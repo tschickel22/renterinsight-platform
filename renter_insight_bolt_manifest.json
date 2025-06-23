@@ -1,0 +1,62 @@
+{
+  "application": "Renter Insight CRM/DMS",
+  "coreApp": "renterinsight-core",
+  "multiTenant": true,
+  "auth": "JWT",
+  "sharedUI": "Tailwind + shadcn/ui",
+  "ai": "OpenAI (ChatGPT)",
+  "devOps": {
+    "ci_cd": "Bolt.new with API contract linting",
+    "eventBus": "Webhooks / message queues"
+  },
+  "modules": [
+    {
+      "id": "crm-prospecting",
+      "name": "CRM Prospecting"
+    },
+    {
+      "id": "inventory-management",
+      "name": "Inventory Management"
+    },
+    {
+      "id": "quote-builder",
+      "name": "Quote Builder"
+    },
+    {
+      "id": "agreement-vault",
+      "name": "Agreement Vault"
+    },
+    {
+      "id": "service-ops",
+      "name": "Service Operations"
+    },
+    {
+      "id": "delivery-tracker",
+      "name": "Delivery Tracker"
+    },
+    {
+      "id": "commission-engine",
+      "name": "Commission Engine"
+    },
+    {
+      "id": "client-portal",
+      "name": "Client Portal"
+    },
+    {
+      "id": "invoice-payments",
+      "name": "Invoice & Payments"
+    },
+    {
+      "id": "company-settings",
+      "name": "Company Settings"
+    },
+    {
+      "id": "platform-admin",
+      "name": "Platform Admin"
+    },
+    {
+      "id": "reporting-suite",
+      "name": "Reporting Suite"
+    }
+  ]
+}

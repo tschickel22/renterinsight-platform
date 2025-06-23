@@ -1,0 +1,72 @@
+info:
+  title: Renter Insight API
+  version: 1.0.0
+openapi: 3.0.0
+paths:
+  /zego/invoice:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                amount:
+                  type: number
+                customerId:
+                  type: string
+                invoiceId:
+                  type: string
+              required:
+              - invoiceId
+              - amount
+              - customerId
+              type: object
+        required: true
+      responses:
+        '200':
+          description: Invoice submitted successfully
+      summary: Send invoice to Zego
+  /zego/payment-request:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                email:
+                  type: string
+                invoiceId:
+                  type: string
+              required:
+              - invoiceId
+              - email
+              type: object
+        required: true
+      responses:
+        '200':
+          description: Payment request sent
+      summary: Send payment request to resident
+  /zego/payment-status:
+    get:
+      parameters:
+      - in: query
+        name: invoiceId
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Payment status returned
+      summary: Check payment status
+  /zego/transactions:
+    get:
+      parameters:
+      - in: query
+        name: invoiceId
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Transaction history returned
+      summary: Retrieve transaction history
