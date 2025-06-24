@@ -19,6 +19,7 @@ import { LeadIntakeFormBuilder, DynamicLeadForm } from './components/LeadIntakeF
 import { NurtureSequences } from './components/NurtureSequences'
 import { AIInsights } from './components/AIInsights'
 import { CommunicationCenter } from './components/CommunicationCenter'
+import { NewLeadForm } from './components/NewLeadForm'
 
 function LeadsList() {
   const {
@@ -38,6 +39,7 @@ function LeadsList() {
   const [sourceFilter, setSourceFilter] = useState<string>('all')
   const [assigneeFilter, setAssigneeFilter] = useState<string>('all')
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
+  const [showNewLeadForm, setShowNewLeadForm] = useState(false)
 
   const getStatusColor = (status: LeadStatus) => {
     switch (status) {
@@ -86,6 +88,12 @@ function LeadsList() {
 
   const handleAssignLead = async (leadId: string, repId: string) => {
     await assignLead(leadId, repId)
+  }
+
+  const handleNewLeadSuccess = (newLead: Lead) => {
+    // The lead is already added to the state by the createLead function
+    // We can optionally show a success message or redirect to the lead detail
+    console.log('New lead created:', newLead)
   }
 
   if (selectedLead) {
@@ -209,6 +217,14 @@ function LeadsList() {
 
   return (
     <div className="space-y-8">
+      {/* New Lead Form Modal */}
+      {showNewLeadForm && (
+        <NewLeadForm
+          onClose={() => setShowNewLeadForm(false)}
+          onSuccess={handleNewLeadSuccess}
+        />
+      )}
+
       {/* Page Header */}
       <div className="ri-page-header">
         <div className="flex items-center justify-between">
@@ -218,7 +234,7 @@ function LeadsList() {
               Manage leads, track activities, and monitor sales pipeline with AI-powered insights
             </p>
           </div>
-          <Button className="shadow-sm">
+          <Button className="shadow-sm" onClick={() => setShowNewLeadForm(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Add Lead
           </Button>
@@ -348,15 +364,27 @@ function LeadsList() {
                 ))}
               </SelectContent>
             </Select>
+            <Button onClick={() => setShowNewLeadForm(true)} className="shadow-sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Lead
+            </Button>
           </div>
 
           {/* Leads Table */}
           <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle className="text-xl">Leads ({filteredLeads.length})</CardTitle>
-              <CardDescription>
-                Manage your sales prospects with AI-powered insights and automated nurturing
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl">Leads ({filteredLeads.length})</CardTitle>
+                  <CardDescription>
+                    Manage your sales prospects with AI-powered insights and automated nurturing
+                  </CardDescription>
+                </div>
+                <Button onClick={() => setShowNewLeadForm(true)} variant="outline" className="shadow-sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Lead
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">

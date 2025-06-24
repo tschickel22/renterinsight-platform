@@ -1,6 +1,8 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Users, Package, FileText, DollarSign, TrendingUp, Calendar } from 'lucide-react'
+import { Users, Package, FileText, DollarSign, TrendingUp, Calendar, Plus } from 'lucide-react'
+import { NewLeadForm } from '@/modules/crm-prospecting/components/NewLeadForm'
+import { Lead } from '@/types'
 
 const stats = [
   {
@@ -65,8 +67,45 @@ const recentActivity = [
 ]
 
 export default function Dashboard() {
+  const [showNewLeadForm, setShowNewLeadForm] = useState(false)
+
+  const handleNewLeadSuccess = (newLead: Lead) => {
+    console.log('New lead created from dashboard:', newLead)
+    // Optionally show a success message or redirect
+  }
+
+  const handleQuickAction = (action: string) => {
+    switch (action) {
+      case 'add-lead':
+        setShowNewLeadForm(true)
+        break
+      case 'add-inventory':
+        // Navigate to inventory management
+        window.location.href = '/inventory'
+        break
+      case 'create-quote':
+        // Navigate to quote builder
+        window.location.href = '/quotes'
+        break
+      case 'schedule-service':
+        // Navigate to service operations
+        window.location.href = '/service'
+        break
+      default:
+        break
+    }
+  }
+
   return (
     <div className="space-y-6">
+      {/* New Lead Form Modal */}
+      {showNewLeadForm && (
+        <NewLeadForm
+          onClose={() => setShowNewLeadForm(false)}
+          onSuccess={handleNewLeadSuccess}
+        />
+      )}
+
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">
@@ -139,28 +178,40 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="grid gap-3">
-              <button className="flex items-center justify-between p-3 text-left border rounded-lg hover:bg-accent transition-colors">
+              <button 
+                onClick={() => handleQuickAction('add-lead')}
+                className="flex items-center justify-between p-3 text-left border rounded-lg hover:bg-accent transition-colors"
+              >
                 <div className="flex items-center space-x-3">
                   <Users className="h-5 w-5 text-primary" />
                   <span className="font-medium">Add New Lead</span>
                 </div>
-                <span className="text-muted-foreground">→</span>
+                <Plus className="h-4 w-4 text-muted-foreground" />
               </button>
-              <button className="flex items-center justify-between p-3 text-left border rounded-lg hover:bg-accent transition-colors">
+              <button 
+                onClick={() => handleQuickAction('add-inventory')}
+                className="flex items-center justify-between p-3 text-left border rounded-lg hover:bg-accent transition-colors"
+              >
                 <div className="flex items-center space-x-3">
                   <Package className="h-5 w-5 text-primary" />
                   <span className="font-medium">Add Inventory</span>
                 </div>
                 <span className="text-muted-foreground">→</span>
               </button>
-              <button className="flex items-center justify-between p-3 text-left border rounded-lg hover:bg-accent transition-colors">
+              <button 
+                onClick={() => handleQuickAction('create-quote')}
+                className="flex items-center justify-between p-3 text-left border rounded-lg hover:bg-accent transition-colors"
+              >
                 <div className="flex items-center space-x-3">
                   <FileText className="h-5 w-5 text-primary" />
                   <span className="font-medium">Create Quote</span>
                 </div>
                 <span className="text-muted-foreground">→</span>
               </button>
-              <button className="flex items-center justify-between p-3 text-left border rounded-lg hover:bg-accent transition-colors">
+              <button 
+                onClick={() => handleQuickAction('schedule-service')}
+                className="flex items-center justify-between p-3 text-left border rounded-lg hover:bg-accent transition-colors"
+              >
                 <div className="flex items-center space-x-3">
                   <Calendar className="h-5 w-5 text-primary" />
                   <span className="font-medium">Schedule Service</span>
