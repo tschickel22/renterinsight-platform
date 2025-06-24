@@ -204,7 +204,9 @@ function LeadsList() {
           </TabsContent>
 
           <TabsContent value="nurturing">
-            <NurtureSequences />
+            <div className="space-y-6">
+              <NurtureSequences />
+            </div>
           </TabsContent>
 
           <TabsContent value="reminders">

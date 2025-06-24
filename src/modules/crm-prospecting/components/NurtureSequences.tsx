@@ -4,34 +4,65 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Plus, Play, Pause, Edit, Trash2, Mail, MessageSquare, Clock, Users, TrendingUp, Zap } from 'lucide-react'
-import { NurtureSequence, NurtureStep, EmailTemplate, SMSTemplate } from '../types'
+// import { NurtureSequence, NurtureStep, EmailTemplate, SMSTemplate } from '../types'
 import { useNurturing } from '../hooks/useNurturing'
-import { TemplateEditor } from './TemplateEditor'
-import { SequenceEditor } from './SequenceEditor'
+// import { TemplateEditor } from './TemplateEditor'
+// import { SequenceEditor } from './SequenceEditor'
 import { cn } from '@/lib/utils'
 
-export function NurtureSequences() {
-  const {
-    sequences,
-    emailTemplates,
-    smsTemplates,
-    enrollments,
-    createNurtureSequence,
-    updateNurtureSequence,
-    createEmailTemplate,
-    createSMSTemplate,
-    updateEmailTemplate,
-    updateSMSTemplate
-  } = useNurturing()
+// Mock data for now since we removed Supabase
+const mockSequences = [
+  {
+    id: '1',
+    name: 'New Lead Welcome Series',
+    description: 'Automated welcome sequence for new leads',
+    isActive: true,
+    targetAudience: 'New website leads',
+    steps: [
+      { id: '1', type: 'email', delay: 0 },
+      { id: '2', type: 'wait', delay: 72 },
+      { id: '3', type: 'email', delay: 0 },
+      { id: '4', type: 'sms', delay: 48 }
+    ]
+  }
+]
 
-  const [selectedSequence, setSelectedSequence] = useState<NurtureSequence | null>(null)
+const mockEmailTemplates = [
+  {
+    id: '1',
+    name: 'Welcome New Lead',
+    subject: 'Welcome to our RV dealership!',
+    body: 'Thank you for your interest...',
+    type: 'welcome',
+    isActive: true
+  }
+]
+
+const mockSmsTemplates = [
+  {
+    id: '1',
+    name: 'Quick Follow-up',
+    message: 'Hi! Just wanted to check if you have any questions.',
+    type: 'follow_up',
+    isActive: true
+  }
+]
+
+export function NurtureSequences() {
+  // Use mock data for now
+  const sequences = mockSequences
+  const emailTemplates = mockEmailTemplates
+  const smsTemplates = mockSmsTemplates
+  const enrollments = []
+
+  const [selectedSequence, setSelectedSequence] = useState(null)
   const [showCreateSequence, setShowCreateSequence] = useState(false)
   const [showCreateTemplate, setShowCreateTemplate] = useState(false)
-  const [editingSequence, setEditingSequence] = useState<NurtureSequence | null>(null)
-  const [editingTemplate, setEditingTemplate] = useState<{ template: EmailTemplate | SMSTemplate, type: 'email' | 'sms' } | null>(null)
+  const [editingSequence, setEditingSequence] = useState(null)
+  const [editingTemplate, setEditingTemplate] = useState(null)
   const [templateType, setTemplateType] = useState<'email' | 'sms'>('email')
 
-  const getStepIcon = (type: NurtureStep['type']) => {
+  const getStepIcon = (type: string) => {
     switch (type) {
       case 'email': return Mail
       case 'sms': return MessageSquare
@@ -41,7 +72,7 @@ export function NurtureSequences() {
     }
   }
 
-  const getStepColor = (type: NurtureStep['type']) => {
+  const getStepColor = (type: string) => {
     switch (type) {
       case 'email': return 'text-blue-500 bg-blue-50'
       case 'sms': return 'text-green-500 bg-green-50'
@@ -74,26 +105,18 @@ export function NurtureSequences() {
     setEditingTemplate(null)
   }
 
-  const handleEditTemplate = (template: EmailTemplate | SMSTemplate, type: 'email' | 'sms') => {
+  const handleEditTemplate = (template: any, type: 'email' | 'sms') => {
     setEditingTemplate({ template, type })
     setShowCreateTemplate(true)
   }
 
-  const handleSaveTemplate = async (templateData: Partial<EmailTemplate | SMSTemplate>) => {
+  const handleSaveTemplate = async (templateData: any) => {
     if (editingTemplate) {
       // Update existing template
-      if (editingTemplate.type === 'email') {
-        await updateEmailTemplate(editingTemplate.template.id, templateData as Partial<EmailTemplate>)
-      } else {
-        await updateSMSTemplate(editingTemplate.template.id, templateData as Partial<SMSTemplate>)
-      }
+      console.log('Update template:', templateData)
     } else {
       // Create new template
-      if (templateType === 'email') {
-        await createEmailTemplate(templateData as Partial<EmailTemplate>)
-      } else {
-        await createSMSTemplate(templateData as Partial<SMSTemplate>)
-      }
+      console.log('Create template:', templateData)
     }
     setShowCreateTemplate(false)
     setEditingTemplate(null)
@@ -104,16 +127,16 @@ export function NurtureSequences() {
     setEditingSequence(null)
   }
 
-  const handleEditSequence = (sequence: NurtureSequence) => {
+  const handleEditSequence = (sequence: any) => {
     setEditingSequence(sequence)
     setShowCreateSequence(true)
   }
 
-  const handleSaveSequence = async (sequenceData: Partial<NurtureSequence>) => {
+  const handleSaveSequence = async (sequenceData: any) => {
     if (editingSequence) {
-      await updateNurtureSequence(editingSequence.id, sequenceData)
+      console.log('Update sequence:', sequenceData)
     } else {
-      await createNurtureSequence(sequenceData)
+      console.log('Create sequence:', sequenceData)
     }
     setShowCreateSequence(false)
     setEditingSequence(null)
@@ -122,33 +145,6 @@ export function NurtureSequences() {
 
   return (
     <div className="space-y-6">
-      {/* Template Editor Modal */}
-      {showCreateTemplate && (
-        <TemplateEditor
-          template={editingTemplate?.template}
-          type={editingTemplate?.type || templateType}
-          onSave={handleSaveTemplate}
-          onCancel={() => {
-            setShowCreateTemplate(false)
-            setEditingTemplate(null)
-          }}
-        />
-      )}
-
-      {/* Sequence Editor Modal */}
-      {showCreateSequence && (
-        <SequenceEditor
-          sequence={editingSequence}
-          emailTemplates={emailTemplates}
-          smsTemplates={smsTemplates}
-          onSave={handleSaveSequence}
-          onCancel={() => {
-            setShowCreateSequence(false)
-            setEditingSequence(null)
-          }}
-        />
-      )}
-
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Nurture Sequences</h2>
@@ -247,6 +243,7 @@ export function NurtureSequences() {
                   </div>
                   <div className="flex space-x-2">
                     <Button variant="outline" size="sm" onClick={() => handleEditSequence(sequence)}>
+                    <Button variant="outline" size="sm" onClick={() => handleEditSequence(sequence)}>
                       <Edit className="h-4 w-4 mr-2" />
                       Edit
                     </Button>
@@ -284,39 +281,14 @@ export function NurtureSequences() {
                                 <div className="flex items-center space-x-2 mb-1">
                                   <span className="font-medium capitalize">{step.type}</span>
                                   {step.delay > 0 && (
-                                    <Badge variant="secondary" className="text-xs">
-                                      <Clock className="h-3 w-3 mr-1" />
-                                      {formatDelay(step.delay)}
-                                    </Badge>
-                                  )}
-                                </div>
                                 
                                 {step.type === 'email' && (
-                                  <div className="bg-blue-50 p-3 rounded-md">
-                                    <p className="font-medium text-sm text-blue-900">
-                                      {step.content.subject}
-                                    </p>
-                                    <p className="text-sm text-blue-700 mt-1 line-clamp-2">
-                                      {step.content.body}
-                                    </p>
-                                  </div>
-                                )}
-                                
-                                {step.type === 'sms' && (
-                                  <div className="bg-green-50 p-3 rounded-md">
-                                    <p className="text-sm text-green-700">
-                                      {step.content.body}
-                                    </p>
-                                  </div>
-                                )}
-                                
-                                {step.type === 'wait' && (
-                                  <div className="bg-orange-50 p-3 rounded-md">
-                                    <p className="text-sm text-orange-700">
-                                      Wait {formatDelay(step.delay)} before next step
-                                    </p>
-                                  </div>
-                                )}
+                              <div className="bg-muted/30 p-3 rounded-md">
+                                <p className="text-sm text-muted-foreground">
+                                  {step.type === 'email' ? 'Email step' : 
+                                   step.type === 'sms' ? 'SMS step' : 
+                                   step.type === 'wait' ? 'Wait step' : 'Step'}
+                                </p>
                               </div>
                             </div>
                           </div>
@@ -368,28 +340,20 @@ export function NurtureSequences() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2">
-                        <div>
-                          <span className="text-sm font-medium">Subject:</span>
-                          <p className="text-sm text-muted-foreground">{template.subject}</p>
-                        </div>
-                        <div>
-                          <span className="text-sm font-medium">Preview:</span>
-                          <p className="text-sm text-muted-foreground line-clamp-3">
-                            {template.body}
-                          </p>
-                        </div>
-                        {template.variables.length > 0 && (
+                        <p className="text-sm text-muted-foreground">
+                          {template.subject || template.body}
+                        </p>
                           <div>
                             <span className="text-sm font-medium">Variables:</span>
                             <div className="flex flex-wrap gap-1 mt-1">
-                              {template.variables.map(variable => (
-                                <Badge key={variable} variant="outline" className="text-xs">
-                                  {variable}
-                                </Badge>
-                              ))}
+                              <Badge variant="outline" className="text-xs">
+                                first_name
+                              </Badge>
+                              <Badge variant="outline" className="text-xs">
+                                company_name
+                              </Badge>
                             </div>
                           </div>
-                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -416,25 +380,17 @@ export function NurtureSequences() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2">
-                        <div>
-                          <span className="text-sm font-medium">Message:</span>
-                          <p className="text-sm text-muted-foreground">{template.message}</p>
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {template.message.length}/160 characters
-                        </div>
-                        {template.variables.length > 0 && (
+                        <p className="text-sm text-muted-foreground">
+                          {template.message}
+                        </p>
                           <div>
                             <span className="text-sm font-medium">Variables:</span>
                             <div className="flex flex-wrap gap-1 mt-1">
-                              {template.variables.map(variable => (
-                                <Badge key={variable} variant="outline" className="text-xs">
-                                  {variable}
-                                </Badge>
-                              ))}
+                              <Badge variant="outline" className="text-xs">
+                                first_name
+                              </Badge>
                             </div>
                           </div>
-                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -442,18 +398,6 @@ export function NurtureSequences() {
               </div>
             </TabsContent>
           </Tabs>
-
-          {/* Template Type Selection for New Templates */}
-          {showCreateTemplate && !editingTemplate && (
-            <div className="mb-4">
-              <Tabs value={templateType} onValueChange={(value: 'email' | 'sms') => setTemplateType(value)}>
-                <TabsList>
-                  <TabsTrigger value="email">Email Template</TabsTrigger>
-                  <TabsTrigger value="sms">SMS Template</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
-          )}
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">
@@ -464,7 +408,7 @@ export function NurtureSequences() {
                 <Users className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-blue-900">{enrollments.length}</div>
+                <div className="text-2xl font-bold text-blue-900">0</div>
                 <p className="text-xs text-blue-600 flex items-center mt-1">
                   <TrendingUp className="h-3 w-3 mr-1" />
                   Across all sequences
@@ -495,10 +439,7 @@ export function NurtureSequences() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-purple-900">
-                  {enrollments.length > 0 
-                    ? Math.round((enrollments.filter(e => e.status === 'completed').length / enrollments.length) * 100)
-                    : 0
-                  }%
+                  0%
                 </div>
                 <p className="text-xs text-purple-600 flex items-center mt-1">
                   <TrendingUp className="h-3 w-3 mr-1" />
@@ -535,7 +476,7 @@ export function NurtureSequences() {
               <div className="space-y-4">
                 {sequences.map(sequence => {
                   const stats = getSequenceStats(sequence.id)
-                  const completionRate = stats.total > 0 ? (stats.completed / stats.total) * 100 : 0
+                  const completionRate = 0
                   
                   return (
                     <div key={sequence.id} className="flex items-center justify-between p-4 border rounded-lg">
@@ -545,15 +486,15 @@ export function NurtureSequences() {
                       </div>
                       <div className="grid grid-cols-4 gap-4 text-center">
                         <div>
-                          <div className="text-lg font-bold">{stats.total}</div>
+                          <div className="text-lg font-bold">0</div>
                           <div className="text-xs text-muted-foreground">Enrolled</div>
                         </div>
                         <div>
-                          <div className="text-lg font-bold text-green-600">{stats.active}</div>
+                          <div className="text-lg font-bold text-green-600">0</div>
                           <div className="text-xs text-muted-foreground">Active</div>
                         </div>
                         <div>
-                          <div className="text-lg font-bold text-blue-600">{stats.completed}</div>
+                          <div className="text-lg font-bold text-blue-600">0</div>
                           <div className="text-xs text-muted-foreground">Completed</div>
                         </div>
                         <div>
