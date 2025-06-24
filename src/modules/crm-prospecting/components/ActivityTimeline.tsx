@@ -34,6 +34,11 @@ export function ActivityTimeline({ leadId, activities }: ActivityTimelineProps) 
       case 'meeting': return Calendar
       case 'note': return MessageSquare
       case 'status_change': return User
+      case 'form_submission': return User
+      case 'website_visit': return User
+      case 'sms': return MessageSquare
+      case 'nurture_email': return Mail
+      case 'ai_suggestion': return User
       default: return MessageSquare
     }
   }
@@ -45,6 +50,11 @@ export function ActivityTimeline({ leadId, activities }: ActivityTimelineProps) 
       case 'meeting': return 'text-purple-500'
       case 'note': return 'text-gray-500'
       case 'status_change': return 'text-orange-500'
+      case 'form_submission': return 'text-blue-500'
+      case 'website_visit': return 'text-indigo-500'
+      case 'sms': return 'text-green-500'
+      case 'nurture_email': return 'text-blue-600'
+      case 'ai_suggestion': return 'text-purple-500'
       default: return 'text-gray-500'
     }
   }
@@ -81,9 +91,8 @@ export function ActivityTimeline({ leadId, activities }: ActivityTimelineProps) 
     setShowAddActivity(false)
   }
 
-  const sortedActivities = [...activities].sort((a, b) => 
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  )
+  // Activities are now pre-sorted, so we don't need to sort them again
+  const sortedActivities = activities
 
   return (
     <Card className="shadow-sm">
@@ -224,15 +233,72 @@ export function ActivityTimeline({ leadId, activities }: ActivityTimelineProps) 
                               {activity.duration}m
                             </Badge>
                           )}
+                          {activity.metadata?.communicationStatus && (
+                            <Badge variant="outline" className="text-xs">
+                              {activity.metadata.communicationStatus}
+                            </Badge>
+                          )}
                         </div>
                         <span className="text-xs text-muted-foreground">
-                          {formatDate(activity.createdAt)}
+                          {formatDate(activity.completedDate || activity.createdAt)}
                         </span>
                       </div>
                       
                       <p className="text-sm text-muted-foreground">
                         {activity.description}
                       </p>
+                      
+                      {/* Enhanced display for communication activities */}
+                      {activity.metadata?.content && activity.type !== 'form_submission' && (
+                        <div className="mt-2 p-2 bg-muted/20 rounded-md border-l-2 border-blue-200">
+                          <p className="text-xs text-muted-foreground">
+                            {activity.metadata.content.length > 100 
+                              ? `${activity.metadata.content.substring(0, 100)}...`
+                              : activity.metadata.content
+                            }
+                          </p>
+                        </div>
+                      )}
+                      
+                      {/* Form submission details */}
+                      {activity.type === 'form_submission' && activity.metadata?.customFields && (
+                        <div className="mt-2 p-2 bg-blue-50 rounded-md">
+                          <p className="text-xs font-medium text-blue-900 mb-1">Form Data:</p>
+                          <div className="grid grid-cols-2 gap-1 text-xs text-blue-700">
+                            {Object.entries(activity.metadata.customFields).map(([key, value]) => (
+                              <div key={key}>
+                                <span className="font-medium">{key}:</span> {value}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Communication tracking details */}
+                      {activity.metadata?.communicationStatus && (
+                        <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                          {activity.metadata.sentAt && (
+                            <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                              Sent: {formatDate(activity.metadata.sentAt)}
+                            </span>
+                          )}
+                          {activity.metadata.deliveredAt && (
+                            <span className="bg-green-100 text-green-700 px-2 py-1 rounded">
+                              Delivered: {formatDate(activity.metadata.deliveredAt)}
+                            </span>
+                          )}
+                          {activity.metadata.openedAt && (
+                            <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded">
+                              Opened: {formatDate(activity.metadata.openedAt)}
+                            </span>
+                          )}
+                          {activity.metadata.clickedAt && (
+                            <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded">
+                              Clicked: {formatDate(activity.metadata.clickedAt)}
+                            </span>
+                          )}
+                        </div>
+                      )}
                       
                       {activity.scheduledDate && (
                         <p className="text-xs text-muted-foreground mt-1">

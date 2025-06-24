@@ -20,6 +20,7 @@ import { NurtureSequences } from './components/NurtureSequences'
 import { AIInsights } from './components/AIInsights'
 import { CommunicationCenter } from './components/CommunicationCenter'
 import { NewLeadForm } from './components/NewLeadForm'
+import { useNurturing } from './hooks/useNurturing'
 
 function LeadsList() {
   const {
@@ -33,6 +34,8 @@ function LeadsList() {
     getRemindersByUser,
     getLeadScore
   } = useLeadManagement()
+  
+  const { getCommunicationHistory } = useNurturing()
   
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -100,6 +103,74 @@ function LeadsList() {
     const leadActivities = getActivitiesByLead(selectedLead.id)
     const leadReminders = getRemindersByUser('current-user').filter(r => r.leadId === selectedLead.id)
     const leadScore = getLeadScore(selectedLead.id)
+    const communicationHistory = getCommunicationHistory(selectedLead.id)
+
+    // Combine all activities into a unified timeline
+    const combinedActivities = useMemo(() => {
+      const activities = [...leadActivities]
+      
+      // Transform communication logs into activities
+      communicationHistory.forEach(comm => {
+        activities.push({
+          id: `comm-${comm.id}`,
+          leadId: selectedLead.id,
+          type: comm.type === 'email' ? 'nurture_email' : 'sms',
+          description: comm.type === 'email' 
+            ? `Email: ${comm.subject || 'No subject'}` 
+            : `SMS: ${comm.content.substring(0, 50)}${comm.content.length > 50 ? '...' : ''}`,
+          outcome: comm.status === 'opened' || comm.status === 'clicked' || comm.status === 'replied' ? 'positive' : 
+                   comm.status === 'failed' ? 'negative' : undefined,
+          completedDate: comm.sentAt,
+          userId: 'system',
+          metadata: {
+            communicationStatus: comm.status,
+            subject: comm.subject,
+            content: comm.content,
+            sentAt: comm.sentAt,
+            deliveredAt: comm.deliveredAt,
+            openedAt: comm.openedAt,
+            clickedAt: comm.clickedAt,
+            direction: comm.direction
+          },
+          createdAt: comm.sentAt
+        })
+      })
+
+      // Add status change activities (simulated based on lead updates)
+      if (selectedLead.updatedAt > selectedLead.createdAt) {
+        activities.push({
+          id: `status-${selectedLead.id}`,
+          leadId: selectedLead.id,
+          type: 'status_change',
+          description: `Lead status updated to ${selectedLead.status.replace('_', ' ')}`,
+          completedDate: selectedLead.updatedAt,
+          userId: 'system',
+          createdAt: selectedLead.updatedAt
+        })
+      }
+
+      // Add form submission activity (lead creation)
+      activities.push({
+        id: `form-${selectedLead.id}`,
+        leadId: selectedLead.id,
+        type: 'form_submission',
+        description: `Lead created from ${selectedLead.source}`,
+        outcome: 'positive',
+        completedDate: selectedLead.createdAt,
+        userId: 'system',
+        metadata: {
+          source: selectedLead.source,
+          customFields: selectedLead.customFields
+        },
+        createdAt: selectedLead.createdAt
+      })
+
+      // Sort all activities by date (newest first)
+      return activities.sort((a, b) => 
+        new Date(b.completedDate || b.createdAt).getTime() - 
+        new Date(a.completedDate || a.createdAt).getTime()
+      )
+    }, [leadActivities, communicationHistory, selectedLead])
 
     return (
       <div className="space-y-6">
@@ -192,7 +263,7 @@ function LeadsList() {
           </TabsContent>
 
           <TabsContent value="activity">
-            <ActivityTimeline leadId={selectedLead.id} activities={leadActivities} />
+            <ActivityTimeline leadId={selectedLead.id} activities={combinedActivities} />
           </TabsContent>
 
           <TabsContent value="communication">
