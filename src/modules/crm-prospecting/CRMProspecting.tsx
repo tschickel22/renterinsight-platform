@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -11,16 +11,7 @@ import { Lead, LeadStatus } from '@/types'
 import { formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { useLeadManagement } from './hooks/useLeadManagement'
-import { PipelineDashboard } from './components/PipelineDashboard'
-import { LeadScoring } from './components/LeadScoring'
-import { ActivityTimeline } from './components/ActivityTimeline'
-import { LeadReminders } from './components/LeadReminders'
-import { LeadIntakeFormBuilder, DynamicLeadForm } from './components/LeadIntakeForm'
-import { NurtureSequences } from './components/NurtureSequences'
-import { AIInsights } from './components/AIInsights'
-import { CommunicationCenter } from './components/CommunicationCenter'
 import { NewLeadForm } from './components/NewLeadForm'
-import { useNurturing } from './hooks/useNurturing'
 
 function LeadsList() {
   const {
@@ -34,8 +25,6 @@ function LeadsList() {
     getRemindersByUser,
     getLeadScore
   } = useLeadManagement()
-  
-  const { getCommunicationHistory } = useNurturing()
   
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -94,8 +83,6 @@ function LeadsList() {
   }
 
   const handleNewLeadSuccess = (newLead: Lead) => {
-    // The lead is already added to the state by the createLead function
-    // We can optionally show a success message or redirect to the lead detail
     console.log('New lead created:', newLead)
   }
 
@@ -103,74 +90,6 @@ function LeadsList() {
     const leadActivities = getActivitiesByLead(selectedLead.id)
     const leadReminders = getRemindersByUser('current-user').filter(r => r.leadId === selectedLead.id)
     const leadScore = getLeadScore(selectedLead.id)
-    const communicationHistory = getCommunicationHistory(selectedLead.id)
-
-    // Combine all activities into a unified timeline
-    const combinedActivities = useMemo(() => {
-      const activities = [...leadActivities]
-      
-      // Transform communication logs into activities
-      communicationHistory.forEach(comm => {
-        activities.push({
-          id: `comm-${comm.id}`,
-          leadId: selectedLead.id,
-          type: comm.type === 'email' ? 'nurture_email' : 'sms',
-          description: comm.type === 'email' 
-            ? `Email: ${comm.subject || 'No subject'}` 
-            : `SMS: ${comm.content.substring(0, 50)}${comm.content.length > 50 ? '...' : ''}`,
-          outcome: comm.status === 'opened' || comm.status === 'clicked' || comm.status === 'replied' ? 'positive' : 
-                   comm.status === 'failed' ? 'negative' : undefined,
-          completedDate: comm.sentAt,
-          userId: 'system',
-          metadata: {
-            communicationStatus: comm.status,
-            subject: comm.subject,
-            content: comm.content,
-            sentAt: comm.sentAt,
-            deliveredAt: comm.deliveredAt,
-            openedAt: comm.openedAt,
-            clickedAt: comm.clickedAt,
-            direction: comm.direction
-          },
-          createdAt: comm.sentAt
-        })
-      })
-
-      // Add status change activities (simulated based on lead updates)
-      if (selectedLead.updatedAt > selectedLead.createdAt) {
-        activities.push({
-          id: `status-${selectedLead.id}`,
-          leadId: selectedLead.id,
-          type: 'status_change',
-          description: `Lead status updated to ${selectedLead.status.replace('_', ' ')}`,
-          completedDate: selectedLead.updatedAt,
-          userId: 'system',
-          createdAt: selectedLead.updatedAt
-        })
-      }
-
-      // Add form submission activity (lead creation)
-      activities.push({
-        id: `form-${selectedLead.id}`,
-        leadId: selectedLead.id,
-        type: 'form_submission',
-        description: `Lead created from ${selectedLead.source}`,
-        outcome: 'positive',
-        completedDate: selectedLead.createdAt,
-        userId: 'system',
-        metadata: {
-          source: selectedLead.source,
-          customFields: selectedLead.customFields
-        },
-        createdAt: selectedLead.createdAt
-      })
-
-      // Sort all activities by date (newest first)
-      return activities.sort((a, b) => 
-        new Date(b.completedDate || b.createdAt).getTime() - 
-        new Date(a.completedDate || a.createdAt).getTime()
-      )
-    }, [leadActivities, communicationHistory, selectedLead])
 
     return (
       <div className="space-y-6">
@@ -199,91 +118,113 @@ function LeadsList() {
           </div>
         </div>
 
-        {/* Lead Details Tabs */}
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="activity">Activity</TabsTrigger>
-            <TabsTrigger value="communication">Communication</TabsTrigger>
-            <TabsTrigger value="ai-insights">AI Insights</TabsTrigger>
-            <TabsTrigger value="nurturing">Nurturing</TabsTrigger>
-            <TabsTrigger value="reminders">Reminders</TabsTrigger>
-          </TabsList>
+        {/* Lead Details */}
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>Lead Information</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Email</label>
+                <p className="font-medium">{selectedLead.email}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Phone</label>
+                <p className="font-medium">{selectedLead.phone}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Source</label>
+                <p className="font-medium">{selectedLead.source}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Assigned To</label>
+                <p className="font-medium">
+                  {salesReps.find(rep => rep.id === selectedLead.assignedTo)?.name || 'Unassigned'}
+                </p>
+              </div>
+              {Object.entries(selectedLead.customFields || {}).map(([key, value]) => (
+                <div key={key}>
+                  <label className="text-sm font-medium text-muted-foreground capitalize">
+                    {key.replace(/([A-Z])/g, ' $1').trim()}
+                  </label>
+                  <p className="font-medium">{value}</p>
+                </div>
+              ))}
+            </div>
+            {selectedLead.notes && (
+              <div className="mt-4">
+                <label className="text-sm font-medium text-muted-foreground">Notes</label>
+                <p className="mt-1 p-3 bg-muted/30 rounded-md">{selectedLead.notes}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-3">
-              <div className="md:col-span-2">
-                <Card className="shadow-sm">
-                  <CardHeader>
-                    <CardTitle>Lead Information</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">Email</label>
-                        <p className="font-medium">{selectedLead.email}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">Phone</label>
-                        <p className="font-medium">{selectedLead.phone}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">Source</label>
-                        <p className="font-medium">{selectedLead.source}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">Assigned To</label>
-                        <p className="font-medium">
-                          {salesReps.find(rep => rep.id === selectedLead.assignedTo)?.name || 'Unassigned'}
-                        </p>
-                      </div>
-                      {Object.entries(selectedLead.customFields || {}).map(([key, value]) => (
-                        <div key={key}>
-                          <label className="text-sm font-medium text-muted-foreground capitalize">
-                            {key.replace(/([A-Z])/g, ' $1').trim()}
-                          </label>
-                          <p className="font-medium">{value}</p>
-                        </div>
-                      ))}
-                    </div>
-                    {selectedLead.notes && (
-                      <div className="mt-4">
-                        <label className="text-sm font-medium text-muted-foreground">Notes</label>
-                        <p className="mt-1 p-3 bg-muted/30 rounded-md">{selectedLead.notes}</p>
-                      </div>
+        {/* Activity Timeline */}
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>Activity Timeline</CardTitle>
+            <CardDescription>
+              All interactions and activities for this lead
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {leadActivities.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No activities recorded yet
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {leadActivities.map((activity, index) => (
+                  <div key={activity.id} className="relative">
+                    {index < leadActivities.length - 1 && (
+                      <div className="absolute left-4 top-8 bottom-0 w-px bg-border" />
                     )}
-                  </CardContent>
-                </Card>
+                    
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 border-2 border-primary flex items-center justify-center">
+                        {activity.type === 'call' && <Phone className="h-4 w-4 text-primary" />}
+                        {activity.type === 'email' && <Mail className="h-4 w-4 text-primary" />}
+                        {activity.type === 'meeting' && <Calendar className="h-4 w-4 text-primary" />}
+                        {activity.type === 'note' && <MessageSquare className="h-4 w-4 text-primary" />}
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-medium text-sm capitalize">
+                            {activity.type.replace('_', ' ')}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {formatDate(activity.completedDate || activity.createdAt)}
+                          </span>
+                        </div>
+                        
+                        <p className="text-sm text-muted-foreground">
+                          {activity.description}
+                        </p>
+                        
+                        {activity.outcome && (
+                          <Badge 
+                            variant="secondary" 
+                            className={cn(
+                              "mt-1 text-xs",
+                              activity.outcome === 'positive' && 'bg-green-50 text-green-700',
+                              activity.outcome === 'neutral' && 'bg-yellow-50 text-yellow-700',
+                              activity.outcome === 'negative' && 'bg-red-50 text-red-700'
+                            )}
+                          >
+                            {activity.outcome}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-
-              <div className="space-y-6">
-                {leadScore && <LeadScoring score={leadScore} />}
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="activity">
-            <ActivityTimeline leadId={selectedLead.id} activities={combinedActivities} />
-          </TabsContent>
-
-          <TabsContent value="communication">
-            <CommunicationCenter leadId={selectedLead.id} leadData={selectedLead} />
-          </TabsContent>
-
-          <TabsContent value="ai-insights">
-            <AIInsights leadId={selectedLead.id} leadData={selectedLead} />
-          </TabsContent>
-
-          <TabsContent value="nurturing">
-            <div className="space-y-6">
-              <NurtureSequences />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="reminders">
-            <LeadReminders leadId={selectedLead.id} reminders={leadReminders} />
-          </TabsContent>
-        </Tabs>
+            )}
+          </CardContent>
+        </Card>
       </div>
     )
   }
@@ -304,7 +245,7 @@ function LeadsList() {
           <div>
             <h1 className="ri-page-title">CRM & Prospecting</h1>
             <p className="ri-page-description">
-              Manage leads, track activities, and monitor sales pipeline with AI-powered insights
+              Manage leads, track activities, and monitor sales pipeline
             </p>
           </div>
           <Button className="shadow-sm" onClick={() => setShowNewLeadForm(true)}>
@@ -374,220 +315,133 @@ function LeadsList() {
         </Card>
       </div>
 
-      {/* Main Content Tabs */}
-      <Tabs defaultValue="leads" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="leads">Leads</TabsTrigger>
-          <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
-          <TabsTrigger value="nurturing">Nurturing</TabsTrigger>
-          <TabsTrigger value="forms">Intake Forms</TabsTrigger>
-          <TabsTrigger value="sources">Sources</TabsTrigger>
-        </TabsList>
+      {/* Filters */}
+      <div className="flex gap-4">
+        <div className="ri-search-bar">
+          <Search className="ri-search-icon" />
+          <Input
+            placeholder="Search leads..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="ri-search-input shadow-sm"
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value={LeadStatus.NEW}>New</SelectItem>
+            <SelectItem value={LeadStatus.CONTACTED}>Contacted</SelectItem>
+            <SelectItem value={LeadStatus.QUALIFIED}>Qualified</SelectItem>
+            <SelectItem value={LeadStatus.PROPOSAL}>Proposal</SelectItem>
+            <SelectItem value={LeadStatus.NEGOTIATION}>Negotiation</SelectItem>
+            <SelectItem value={LeadStatus.CLOSED_WON}>Closed Won</SelectItem>
+            <SelectItem value={LeadStatus.CLOSED_LOST}>Closed Lost</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={sourceFilter} onValueChange={setSourceFilter}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Source" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Sources</SelectItem>
+            {sources.map(source => (
+              <SelectItem key={source.id} value={source.id}>
+                {source.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Assignee" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Reps</SelectItem>
+            {salesReps.map(rep => (
+              <SelectItem key={rep.id} value={rep.id}>
+                {rep.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-        <TabsContent value="leads" className="space-y-6">
-          {/* Filters */}
-          <div className="flex gap-4">
-            <div className="ri-search-bar">
-              <Search className="ri-search-icon" />
-              <Input
-                placeholder="Search leads..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="ri-search-input shadow-sm"
-              />
+      {/* Leads Table */}
+      <Card className="shadow-sm">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-xl">Leads ({filteredLeads.length})</CardTitle>
+              <CardDescription>
+                Manage your sales prospects and track their progress
+              </CardDescription>
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value={LeadStatus.NEW}>New</SelectItem>
-                <SelectItem value={LeadStatus.CONTACTED}>Contacted</SelectItem>
-                <SelectItem value={LeadStatus.QUALIFIED}>Qualified</SelectItem>
-                <SelectItem value={LeadStatus.PROPOSAL}>Proposal</SelectItem>
-                <SelectItem value={LeadStatus.NEGOTIATION}>Negotiation</SelectItem>
-                <SelectItem value={LeadStatus.CLOSED_WON}>Closed Won</SelectItem>
-                <SelectItem value={LeadStatus.CLOSED_LOST}>Closed Lost</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={sourceFilter} onValueChange={setSourceFilter}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Source" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Sources</SelectItem>
-                {sources.map(source => (
-                  <SelectItem key={source.id} value={source.id}>
-                    {source.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Assignee" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Reps</SelectItem>
-                {salesReps.map(rep => (
-                  <SelectItem key={rep.id} value={rep.id}>
-                    {rep.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button onClick={() => setShowNewLeadForm(true)} className="shadow-sm">
+            <Button onClick={() => setShowNewLeadForm(true)} variant="outline" className="shadow-sm">
               <Plus className="h-4 w-4 mr-2" />
               Add Lead
             </Button>
           </div>
-
-          {/* Leads Table */}
-          <Card className="shadow-sm">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-xl">Leads ({filteredLeads.length})</CardTitle>
-                  <CardDescription>
-                    Manage your sales prospects with AI-powered insights and automated nurturing
-                  </CardDescription>
-                </div>
-                <Button onClick={() => setShowNewLeadForm(true)} variant="outline" className="shadow-sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Lead
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {filteredLeads.map((lead) => (
-                  <div key={lead.id} className="ri-table-row cursor-pointer" onClick={() => setSelectedLead(lead)}>
-                    <div className="flex items-center space-x-4 flex-1">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="font-semibold text-foreground">
-                            {lead.firstName} {lead.lastName}
-                          </h3>
-                          <Badge className={cn("ri-badge-status", getStatusColor(lead.status))}>
-                            {lead.status.replace('_', ' ').toUpperCase()}
-                          </Badge>
-                          {lead.score && (
-                            <Badge className={cn("ri-badge-status", getScoreColor(lead.score))}>
-                              {lead.score}
-                            </Badge>
-                          )}
-                          <Badge variant="outline" className="text-xs">
-                            <Brain className="h-3 w-3 mr-1" />
-                            AI Ready
-                          </Badge>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm text-muted-foreground">
-                          <span className="flex items-center">
-                            <Mail className="h-3 w-3 mr-2 text-blue-500" />
-                            {lead.email}
-                          </span>
-                          <span className="flex items-center">
-                            <Phone className="h-3 w-3 mr-2 text-green-500" />
-                            {lead.phone}
-                          </span>
-                          <span className="flex items-center">
-                            <Users className="h-3 w-3 mr-2 text-purple-500" />
-                            {salesReps.find(rep => rep.id === lead.assignedTo)?.name || 'Unassigned'}
-                          </span>
-                          <span className="flex items-center">
-                            <Calendar className="h-3 w-3 mr-2 text-orange-500" />
-                            {formatDate(lead.createdAt)}
-                          </span>
-                        </div>
-                        {lead.notes && (
-                          <p className="text-sm text-muted-foreground mt-2 bg-muted/30 p-2 rounded-md">
-                            {lead.notes}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="ri-action-buttons">
-                      <Button variant="outline" size="sm" className="shadow-sm" onClick={(e) => {
-                        e.stopPropagation()
-                        // Handle quick actions
-                      }}>
-                        <MessageSquare className="h-3 w-3 mr-1" />
-                        Contact
-                      </Button>
-                      <Button variant="outline" size="sm" className="shadow-sm" onClick={(e) => {
-                        e.stopPropagation()
-                        setSelectedLead(lead)
-                      }}>
-                        <Brain className="h-3 w-3 mr-1" />
-                        AI Insights
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="pipeline">
-          <PipelineDashboard />
-        </TabsContent>
-
-        <TabsContent value="nurturing">
-          <NurtureSequences />
-        </TabsContent>
-
-        <TabsContent value="forms">
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle>Lead Intake Forms</CardTitle>
-              <CardDescription>
-                Create and manage dynamic lead capture forms
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                Form builder coming soon...
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="sources">
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle>Lead Sources</CardTitle>
-              <CardDescription>
-                Manage and track lead source performance
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {sources.map(source => (
-                  <div key={source.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
-                    <div>
-                      <h3 className="font-semibold">{source.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Type: {source.type} • Conversion: {source.conversionRate}%
-                        {source.trackingCode && ` • Code: ${source.trackingCode}`}
-                      </p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge className={source.isActive ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-700 border-gray-200'}>
-                        {source.isActive ? 'Active' : 'Inactive'}
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {filteredLeads.map((lead) => (
+              <div key={lead.id} className="ri-table-row cursor-pointer" onClick={() => setSelectedLead(lead)}>
+                <div className="flex items-center space-x-4 flex-1">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <h3 className="font-semibold text-foreground">
+                        {lead.firstName} {lead.lastName}
+                      </h3>
+                      <Badge className={cn("ri-badge-status", getStatusColor(lead.status))}>
+                        {lead.status.replace('_', ' ').toUpperCase()}
                       </Badge>
-                      <Button variant="outline" size="sm">
-                        <Settings className="h-3 w-3" />
-                      </Button>
+                      {lead.score && (
+                        <Badge className={cn("ri-badge-status", getScoreColor(lead.score))}>
+                          {lead.score}
+                        </Badge>
+                      )}
                     </div>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm text-muted-foreground">
+                      <span className="flex items-center">
+                        <Mail className="h-3 w-3 mr-2 text-blue-500" />
+                        {lead.email}
+                      </span>
+                      <span className="flex items-center">
+                        <Phone className="h-3 w-3 mr-2 text-green-500" />
+                        {lead.phone}
+                      </span>
+                      <span className="flex items-center">
+                        <Users className="h-3 w-3 mr-2 text-purple-500" />
+                        {salesReps.find(rep => rep.id === lead.assignedTo)?.name || 'Unassigned'}
+                      </span>
+                      <span className="flex items-center">
+                        <Calendar className="h-3 w-3 mr-2 text-orange-500" />
+                        {formatDate(lead.createdAt)}
+                      </span>
+                    </div>
+                    {lead.notes && (
+                      <p className="text-sm text-muted-foreground mt-2 bg-muted/30 p-2 rounded-md">
+                        {lead.notes}
+                      </p>
+                    )}
                   </div>
-                ))}
+                </div>
+                <div className="ri-action-buttons">
+                  <Button variant="outline" size="sm" className="shadow-sm" onClick={(e) => {
+                    e.stopPropagation()
+                    setSelectedLead(lead)
+                  }}>
+                    View Details
+                  </Button>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
