@@ -1,3 +1,31 @@
+export enum LeadStatus {
+  NEW = 'new',
+  CONTACTED = 'contacted',
+  QUALIFIED = 'qualified',
+  PROPOSAL = 'proposal',
+  NEGOTIATION = 'negotiation',
+  CLOSED_WON = 'closed_won',
+  CLOSED_LOST = 'closed_lost'
+}
+
+export interface Lead {
+  id: string
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  source: string
+  sourceId: string
+  status: LeadStatus
+  assignedTo?: string
+  notes: string
+  score: number
+  lastActivity: Date
+  customFields: Record<string, any>
+  createdAt: Date
+  updatedAt: Date
+}
+
 export interface LeadSource {
   id: string
   name: string
