@@ -260,9 +260,9 @@ export function SequenceEditor({ sequence, emailTemplates, smsTemplates, onSave,
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {stepTypes.map(type => (
+                                    <Badge variant="secondary" className="text-xs flex items-center space-x-1">
                               <SelectItem key={type.value} value={type.value}>
-                                <div className="flex items-center">
+                                      <span>{formatDelay(step.delay)}</span>
                                   <type.icon className={cn("h-4 w-4 mr-2", type.color)} />
                                   {type.label}
                                 </div>

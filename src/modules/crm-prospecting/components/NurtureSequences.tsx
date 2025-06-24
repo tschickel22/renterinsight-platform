@@ -336,8 +336,9 @@ export function NurtureSequences() {
                                 <div className="flex items-center space-x-2 mb-1">
                                   <span className="font-medium capitalize">{step.type}</span>
                                   {step.delay > 0 && (
-                                    <Badge variant="outline">
-                                      Wait {formatDelay(step.delay)}
+                                    <Badge variant="outline" className="flex items-center space-x-1">
+                                      <Clock className="h-3 w-3" />
+                                      <span>Wait {formatDelay(step.delay)}</span>
                                     </Badge>
                                   )}
                                 </div>
