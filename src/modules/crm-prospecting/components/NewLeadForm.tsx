@@ -5,9 +5,10 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-import { X, Save, User, Mail, Phone, MapPin, Tag, DollarSign } from 'lucide-react'
+import { X, Save, User, Mail, Phone, MapPin, Tag, DollarSign, CheckCircle } from 'lucide-react'
 import { Lead, LeadStatus } from '../types'
 import { useLeadManagement } from '../hooks/useLeadManagement'
+import { useToast } from '@/hooks/use-toast'
 
 interface NewLeadFormProps {
   onClose: () => void
@@ -16,6 +17,7 @@ interface NewLeadFormProps {
 
 export function NewLeadForm({ onClose, onSuccess }: NewLeadFormProps) {
   const { sources, salesReps, createLead } = useLeadManagement()
+  const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     firstName: '',
@@ -66,6 +68,11 @@ export function NewLeadForm({ onClose, onSuccess }: NewLeadFormProps) {
     e.preventDefault()
     
     if (!validateForm()) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please fill in all required fields correctly.',
+        variant: 'destructive'
+      })
       return
     }
 
@@ -74,22 +81,37 @@ export function NewLeadForm({ onClose, onSuccess }: NewLeadFormProps) {
       const selectedSource = sources.find(s => s.id === formData.sourceId)
       
       const leadData: Partial<Lead> = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        phone: formData.phone,
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim().toLowerCase(),
+        phone: formData.phone.trim(),
         source: selectedSource?.name || '',
         sourceId: formData.sourceId,
         assignedTo: formData.assignedTo || undefined,
-        notes: formData.notes,
-        customFields: formData.customFields
+        notes: formData.notes.trim(),
+        customFields: {
+          ...formData.customFields,
+          interests: formData.customFields.interests.trim()
+        }
       }
 
       const newLead = await createLead(leadData)
+      
+      toast({
+        title: 'Lead Created Successfully!',
+        description: `${newLead.firstName} ${newLead.lastName} has been added to your CRM.`,
+        variant: 'default'
+      })
+      
       onSuccess(newLead)
       onClose()
     } catch (error) {
       console.error('Error creating lead:', error)
+      toast({
+        title: 'Error Creating Lead',
+        description: 'There was a problem creating the lead. Please try again.',
+        variant: 'destructive'
+      })
     } finally {
       setLoading(false)
     }
@@ -364,12 +386,21 @@ export function NewLeadForm({ onClose, onSuccess }: NewLeadFormProps) {
 
             {/* Form Actions */}
             <div className="flex justify-end space-x-3 pt-6 border-t">
-              <Button type="button" variant="outline" onClick={onClose}>
+              <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
                 Cancel
               </Button>
               <Button type="submit" disabled={loading}>
-                <Save className="h-4 w-4 mr-2" />
-                {loading ? 'Creating Lead...' : 'Create Lead'}
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Creating Lead...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Create Lead
+                  </>
+                )}
               </Button>
             </div>
           </form>

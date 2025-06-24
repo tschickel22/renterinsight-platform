@@ -52,6 +52,23 @@ export function useLeadManagement() {
         trackingCode: 'RV_SHOW_2024',
         conversionRate: 22.1,
         createdAt: new Date('2024-01-01')
+      },
+      {
+        id: '5',
+        name: 'Google Ads',
+        type: 'advertising',
+        isActive: true,
+        trackingCode: 'GOOGLE_ADS',
+        conversionRate: 12.3,
+        createdAt: new Date('2024-01-01')
+      },
+      {
+        id: '6',
+        name: 'Walk-in',
+        type: 'other',
+        isActive: true,
+        conversionRate: 45.2,
+        createdAt: new Date('2024-01-01')
       }
     ]
 
@@ -82,11 +99,25 @@ export function useLeadManagement() {
           quarterly: 36,
           annual: 144
         }
+      },
+      {
+        id: 'rep-003',
+        name: 'Mike Davis',
+        email: 'mike.davis@dealership.com',
+        phone: '(555) 456-7890',
+        territory: 'East Region',
+        isActive: true,
+        targets: {
+          monthly: 8,
+          quarterly: 24,
+          annual: 96
+        }
       }
     ]
 
-    // Mock leads with enhanced data
-    const mockLeads: Lead[] = [
+    // Load existing leads from localStorage or use mock data
+    const savedLeads = localStorage.getItem('renter-insight-leads')
+    const mockLeads: Lead[] = savedLeads ? JSON.parse(savedLeads) : [
       {
         id: '1',
         firstName: 'John',
@@ -131,8 +162,9 @@ export function useLeadManagement() {
       }
     ]
 
-    // Mock activities
-    const mockActivities: LeadActivity[] = [
+    // Load existing activities from localStorage or use mock data
+    const savedActivities = localStorage.getItem('renter-insight-activities')
+    const mockActivities: LeadActivity[] = savedActivities ? JSON.parse(savedActivities) : [
       {
         id: '1',
         leadId: '1',
@@ -197,6 +229,14 @@ export function useLeadManagement() {
     setReminders(mockReminders)
   }
 
+  const saveLeadsToStorage = (updatedLeads: Lead[]) => {
+    localStorage.setItem('renter-insight-leads', JSON.stringify(updatedLeads))
+  }
+
+  const saveActivitiesToStorage = (updatedActivities: LeadActivity[]) => {
+    localStorage.setItem('renter-insight-activities', JSON.stringify(updatedActivities))
+  }
+
   const createLead = async (leadData: Partial<Lead>) => {
     setLoading(true)
     try {
@@ -218,7 +258,17 @@ export function useLeadManagement() {
         updatedAt: new Date()
       }
       
-      setLeads(prev => [...prev, newLead])
+      const updatedLeads = [...leads, newLead]
+      setLeads(updatedLeads)
+      saveLeadsToStorage(updatedLeads)
+      
+      // Log initial activity
+      await logActivity({
+        leadId: newLead.id,
+        type: 'note',
+        description: `Lead created from ${newLead.source}`,
+        userId: 'current-user'
+      })
       
       // Calculate initial score
       await calculateLeadScore(newLead.id)
@@ -230,11 +280,13 @@ export function useLeadManagement() {
   }
 
   const updateLeadStatus = async (leadId: string, status: LeadStatus) => {
-    setLeads(prev => prev.map(lead => 
+    const updatedLeads = leads.map(lead => 
       lead.id === leadId 
         ? { ...lead, status, updatedAt: new Date() }
         : lead
-    ))
+    )
+    setLeads(updatedLeads)
+    saveLeadsToStorage(updatedLeads)
 
     // Log activity
     await logActivity({
@@ -246,11 +298,13 @@ export function useLeadManagement() {
   }
 
   const assignLead = async (leadId: string, repId: string) => {
-    setLeads(prev => prev.map(lead => 
+    const updatedLeads = leads.map(lead => 
       lead.id === leadId 
         ? { ...lead, assignedTo: repId, updatedAt: new Date() }
         : lead
-    ))
+    )
+    setLeads(updatedLeads)
+    saveLeadsToStorage(updatedLeads)
 
     await logActivity({
       leadId,
@@ -275,14 +329,18 @@ export function useLeadManagement() {
       createdAt: new Date()
     }
 
-    setActivities(prev => [...prev, newActivity])
+    const updatedActivities = [...activities, newActivity]
+    setActivities(updatedActivities)
+    saveActivitiesToStorage(updatedActivities)
 
     // Update lead's last activity
-    setLeads(prev => prev.map(lead => 
+    const updatedLeads = leads.map(lead => 
       lead.id === newActivity.leadId 
         ? { ...lead, lastActivity: new Date(), updatedAt: new Date() }
         : lead
-    ))
+    )
+    setLeads(updatedLeads)
+    saveLeadsToStorage(updatedLeads)
 
     // Recalculate score
     await calculateLeadScore(newActivity.leadId)
@@ -354,11 +412,14 @@ export function useLeadManagement() {
     }
 
     setScores(prev => prev.filter(s => s.leadId !== leadId).concat(newScore))
-    setLeads(prev => prev.map(lead => 
+    
+    const updatedLeads = leads.map(lead => 
       lead.id === leadId 
         ? { ...lead, score: totalScore, updatedAt: new Date() }
         : lead
-    ))
+    )
+    setLeads(updatedLeads)
+    saveLeadsToStorage(updatedLeads)
   }
 
   const createReminder = async (reminderData: Partial<LeadReminder>) => {
@@ -423,4 +484,10 @@ export function useLeadManagement() {
     getRemindersByUser,
     getLeadScore
   }
+}
+
+interface ScoreFactor {
+  factor: string
+  points: number
+  reason: string
 }
