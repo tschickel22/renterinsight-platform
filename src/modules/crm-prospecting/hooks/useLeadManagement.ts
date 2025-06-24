@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Lead, LeadStatus, LeadSource, LeadActivity, LeadScore, LeadReminder, SalesRep } from '../types'
+import { saveToLocalStorage, loadFromLocalStorage } from '@/lib/utils'
 
 export function useLeadManagement() {
   const [leads, setLeads] = useState<Lead[]>([])
@@ -116,8 +117,7 @@ export function useLeadManagement() {
     ]
 
     // Load existing leads from localStorage or use mock data
-    const savedLeads = localStorage.getItem('renter-insight-leads')
-    const mockLeads: Lead[] = savedLeads ? JSON.parse(savedLeads) : [
+    const mockLeads: Lead[] = loadFromLocalStorage('renter-insight-leads', [
       {
         id: '1',
         firstName: 'John',
@@ -160,11 +160,10 @@ export function useLeadManagement() {
         createdAt: new Date('2024-01-14'),
         updatedAt: new Date('2024-01-18')
       }
-    ]
+    ])
 
     // Load existing activities from localStorage or use mock data
-    const savedActivities = localStorage.getItem('renter-insight-activities')
-    const mockActivities: LeadActivity[] = savedActivities ? JSON.parse(savedActivities) : [
+    const mockActivities: LeadActivity[] = loadFromLocalStorage('renter-insight-activities', [
       {
         id: '1',
         leadId: '1',
@@ -186,7 +185,7 @@ export function useLeadManagement() {
         userId: 'rep-002',
         createdAt: new Date('2024-01-18')
       }
-    ]
+    ])
 
     // Mock scores
     const mockScores: LeadScore[] = [
@@ -230,11 +229,11 @@ export function useLeadManagement() {
   }
 
   const saveLeadsToStorage = (updatedLeads: Lead[]) => {
-    localStorage.setItem('renter-insight-leads', JSON.stringify(updatedLeads))
+    saveToLocalStorage('renter-insight-leads', updatedLeads)
   }
 
   const saveActivitiesToStorage = (updatedActivities: LeadActivity[]) => {
-    localStorage.setItem('renter-insight-activities', JSON.stringify(updatedActivities))
+    saveToLocalStorage('renter-insight-activities', updatedActivities)
   }
 
   const createLead = async (leadData: Partial<Lead>) => {

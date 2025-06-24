@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { User, UserRole } from '@/types'
+import { saveToLocalStorage, loadFromLocalStorage, removeFromLocalStorage } from '@/lib/utils'
 
 interface AuthContextType {
   user: User | null
@@ -30,7 +31,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     // Check for existing session
-    const token = localStorage.getItem('auth_token')
+    const token = loadFromLocalStorage('auth_token', null)
     if (token) {
       // Simulate user data - in real app, validate token with API
       setUser({
@@ -69,7 +70,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
       
       setUser(mockUser)
-      localStorage.setItem('auth_token', 'mock-token')
+      saveToLocalStorage('auth_token', 'mock-token')
     } catch (error) {
       throw new Error('Login failed')
     } finally {
@@ -79,7 +80,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = () => {
     setUser(null)
-    localStorage.removeItem('auth_token')
+    removeFromLocalStorage('auth_token')
   }
 
   const hasPermission = (resource: string, action: string): boolean => {

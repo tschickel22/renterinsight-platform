@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { saveToLocalStorage, loadFromLocalStorage } from '@/lib/utils'
 import { 
   NurtureSequence, 
   NurtureEnrollment, 
@@ -27,6 +28,16 @@ export function useNurturing() {
   }, [])
 
   const initializeMockData = () => {
+    // Load existing data from localStorage or use mock data
+    const savedEmailTemplates = loadFromLocalStorage('renter-insight-email-templates', [])
+    const savedSmsTemplates = loadFromLocalStorage('renter-insight-sms-templates', [])
+    const savedSequences = loadFromLocalStorage('renter-insight-sequences', [])
+    const savedEnrollments = loadFromLocalStorage('renter-insight-enrollments', [])
+    const savedCommunicationLogs = loadFromLocalStorage('renter-insight-communication-logs', [])
+    const savedAiInsights = loadFromLocalStorage('renter-insight-ai-insights', [])
+
+    // Only initialize with mock data if localStorage is empty
+    if (savedEmailTemplates.length === 0) {
     // Mock email templates
     const mockEmailTemplates: EmailTemplate[] = [
       {
@@ -75,7 +86,13 @@ Best regards,
         createdAt: new Date('2024-01-01')
       }
     ]
+      setEmailTemplates(mockEmailTemplates)
+      saveToLocalStorage('renter-insight-email-templates', mockEmailTemplates)
+    } else {
+      setEmailTemplates(savedEmailTemplates)
+    }
 
+    if (savedSmsTemplates.length === 0) {
     // Mock SMS templates
     const mockSmsTemplates: SMSTemplate[] = [
       {
@@ -97,7 +114,13 @@ Best regards,
         createdAt: new Date('2024-01-01')
       }
     ]
+      setSmsTemplates(mockSmsTemplates)
+      saveToLocalStorage('renter-insight-sms-templates', mockSmsTemplates)
+    } else {
+      setSmsTemplates(savedSmsTemplates)
+    }
 
+    if (savedSequences.length === 0) {
     // Mock nurture sequences
     const mockSequences: NurtureSequence[] = [
       {
@@ -168,7 +191,13 @@ Best regards,
         updatedAt: new Date('2024-01-01')
       }
     ]
+      setSequences(mockSequences)
+      saveToLocalStorage('renter-insight-sequences', mockSequences)
+    } else {
+      setSequences(savedSequences)
+    }
 
+    if (savedAiInsights.length === 0) {
     // Mock AI insights
     const mockAiInsights: AIInsight[] = [
       {
@@ -215,11 +244,15 @@ Best regards,
         isRead: false
       }
     ]
+      setAiInsights(mockAiInsights)
+      saveToLocalStorage('renter-insight-ai-insights', mockAiInsights)
+    } else {
+      setAiInsights(savedAiInsights)
+    }
 
-    setEmailTemplates(mockEmailTemplates)
-    setSmsTemplates(mockSmsTemplates)
-    setSequences(mockSequences)
-    setAiInsights(mockAiInsights)
+    // Set other data from localStorage
+    setEnrollments(savedEnrollments)
+    setCommunicationLogs(savedCommunicationLogs)
   }
 
   const enrollLeadInSequence = async (leadId: string, sequenceId: string) => {
@@ -444,7 +477,9 @@ Best regards,
       createdAt: new Date()
     }
 
-    setEmailTemplates(prev => [...prev, template])
+    const updatedTemplates = [...emailTemplates, template]
+    setEmailTemplates(updatedTemplates)
+    saveToLocalStorage('renter-insight-email-templates', updatedTemplates)
     return template
   }
 
@@ -459,7 +494,9 @@ Best regards,
       createdAt: new Date()
     }
 
-    setSmsTemplates(prev => [...prev, template])
+    const updatedTemplates = [...smsTemplates, template]
+    setSmsTemplates(updatedTemplates)
+    saveToLocalStorage('renter-insight-sms-templates', updatedTemplates)
     return template
   }
 
@@ -477,32 +514,40 @@ Best regards,
       updatedAt: new Date()
     }
 
-    setSequences(prev => [...prev, sequence])
+    const updatedSequences = [...sequences, sequence]
+    setSequences(updatedSequences)
+    saveToLocalStorage('renter-insight-sequences', updatedSequences)
     return sequence
   }
 
   const updateNurtureSequence = async (sequenceId: string, sequenceData: Partial<NurtureSequence>) => {
-    setSequences(prev => prev.map(s => 
+    const updatedSequences = sequences.map(s => 
       s.id === sequenceId 
         ? { ...s, ...sequenceData, updatedAt: new Date() }
         : s
-    ))
+    )
+    setSequences(updatedSequences)
+    saveToLocalStorage('renter-insight-sequences', updatedSequences)
   }
 
   const updateEmailTemplate = async (templateId: string, templateData: Partial<EmailTemplate>) => {
-    setEmailTemplates(prev => prev.map(t => 
+    const updatedTemplates = emailTemplates.map(t => 
       t.id === templateId 
         ? { ...t, ...templateData }
         : t
-    ))
+    )
+    setEmailTemplates(updatedTemplates)
+    saveToLocalStorage('renter-insight-email-templates', updatedTemplates)
   }
 
   const updateSMSTemplate = async (templateId: string, templateData: Partial<SMSTemplate>) => {
-    setSmsTemplates(prev => prev.map(t => 
+    const updatedTemplates = smsTemplates.map(t => 
       t.id === templateId 
         ? { ...t, ...templateData }
         : t
-    ))
+    )
+    setSmsTemplates(updatedTemplates)
+    saveToLocalStorage('renter-insight-sms-templates', updatedTemplates)
   }
 
   const getEnrollmentsByLead = (leadId: string) => {
