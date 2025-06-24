@@ -20,6 +20,7 @@ import { NurtureSequences } from './components/NurtureSequences'
 import { AIInsights } from './components/AIInsights'
 import { CommunicationCenter } from './components/CommunicationCenter'
 import { NewLeadForm } from './components/NewLeadForm'
+import { QuotesList } from './components/QuotesList'
 
 function LeadsList() {
   const {
@@ -305,9 +306,10 @@ function LeadsList() {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="leads" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="leads">Leads</TabsTrigger>
           <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
+          <TabsTrigger value="quotes">Quotes</TabsTrigger>
           <TabsTrigger value="nurturing">Nurturing</TabsTrigger>
           <TabsTrigger value="forms">Intake Forms</TabsTrigger>
           <TabsTrigger value="sources">Sources</TabsTrigger>
@@ -461,6 +463,10 @@ function LeadsList() {
 
         <TabsContent value="pipeline">
           <PipelineDashboard />
+        </TabsContent>
+
+        <TabsContent value="quotes">
+          <QuotesList />
         </TabsContent>
 
         <TabsContent value="nurturing">
