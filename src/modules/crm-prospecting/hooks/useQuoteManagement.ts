@@ -27,7 +27,6 @@ export interface Quote {
   validUntil: Date
   notes: string
   terms: string
-  terms: string
   createdAt: Date
   updatedAt: Date
 }

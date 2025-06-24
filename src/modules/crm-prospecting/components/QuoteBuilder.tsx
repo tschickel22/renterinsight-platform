@@ -404,7 +404,11 @@ Terms: ${quoteData.terms}
 
     setLoading(true)
     try {
-      await onSave(quoteData)
+      const quoteToSave = {
+        ...quoteData,
+        customerId: quoteData.customerId || customerId
+      }
+      await onSave(quoteToSave)
       toast({
         title: 'Success',
         description: 'Quote saved successfully',
