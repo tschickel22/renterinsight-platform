@@ -8,8 +8,26 @@ import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { X, Save, Mail, MessageSquare, Plus, Trash2 } from 'lucide-react'
-import { EmailTemplate, SMSTemplate } from '../types'
 import { useToast } from '@/hooks/use-toast'
+
+interface EmailTemplate {
+  id?: string
+  name: string
+  subject: string
+  body: string
+  type: string
+  variables: string[]
+  isActive: boolean
+}
+
+interface SMSTemplate {
+  id?: string
+  name: string
+  message: string
+  type: string
+  variables: string[]
+  isActive: boolean
+}
 
 interface TemplateEditorProps {
   template?: EmailTemplate | SMSTemplate

@@ -8,14 +8,34 @@ import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { X, Save, Plus, Trash2, Mail, MessageSquare, Clock, Users, ArrowUp, ArrowDown } from 'lucide-react'
-import { NurtureSequence, NurtureStep, EmailTemplate, SMSTemplate, TriggerCondition } from '../types'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 
+interface NurtureStep {
+  id: string
+  type: 'email' | 'sms' | 'wait' | 'task'
+  delay: number
+  content: {
+    subject?: string
+    body: string
+    template?: string
+  }
+  isActive: boolean
+}
+
+interface NurtureSequence {
+  id?: string
+  name: string
+  description: string
+  targetAudience: string
+  steps: NurtureStep[]
+  isActive: boolean
+}
+
 interface SequenceEditorProps {
   sequence?: NurtureSequence
-  emailTemplates: EmailTemplate[]
-  smsTemplates: SMSTemplate[]
+  emailTemplates: any[]
+  smsTemplates: any[]
   onSave: (sequence: Partial<NurtureSequence>) => Promise<void>
   onCancel: () => void
 }
@@ -27,7 +47,6 @@ export function SequenceEditor({ sequence, emailTemplates, smsTemplates, onSave,
     name: sequence?.name || '',
     description: sequence?.description || '',
     targetAudience: sequence?.targetAudience || '',
-    triggerConditions: sequence?.triggerConditions || [],
     steps: sequence?.steps || [],
     isActive: sequence?.isActive ?? true
   })
@@ -115,8 +134,6 @@ export function SequenceEditor({ sequence, emailTemplates, smsTemplates, onSave,
 
     const step: NurtureStep = {
       id: Math.random().toString(36).substr(2, 9),
-      sequenceId: sequence?.id || '',
-      order: formData.steps.length + 1,
       type: newStep.type || 'email',
       delay: newStep.delay || 0,
       content: newStep.content || { body: '' },
