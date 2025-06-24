@@ -4,9 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Truck, Plus, Search, Filter, MapPin, Calendar, User } from 'lucide-react'
+import { Truck, Plus, Search, Filter, MapPin, Calendar, User, TrendingUp } from 'lucide-react'
 import { Delivery, DeliveryStatus } from '@/types'
 import { formatDate } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 
 const mockDeliveries: Delivery[] = [
   {
@@ -57,15 +58,15 @@ function DeliveriesList() {
   const getStatusColor = (status: DeliveryStatus) => {
     switch (status) {
       case DeliveryStatus.SCHEDULED:
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-50 text-blue-700 border-blue-200'
       case DeliveryStatus.IN_TRANSIT:
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200'
       case DeliveryStatus.DELIVERED:
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-50 text-green-700 border-green-200'
       case DeliveryStatus.CANCELLED:
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-50 text-red-700 border-red-200'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-50 text-gray-700 border-gray-200'
     }
   }
 
@@ -76,87 +77,106 @@ function DeliveriesList() {
   )
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Delivery Tracker</h1>
-          <p className="text-muted-foreground">
-            Track vehicle deliveries and logistics
-          </p>
+    <div className="space-y-8">
+      {/* Page Header */}
+      <div className="ri-page-header">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="ri-page-title">Delivery Tracker</h1>
+            <p className="ri-page-description">
+              Track vehicle deliveries and logistics
+            </p>
+          </div>
+          <Button className="shadow-sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Schedule Delivery
+          </Button>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Schedule Delivery
-        </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
+      <div className="ri-stats-grid">
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-blue-50 to-blue-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Deliveries</CardTitle>
-            <Truck className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-blue-900">Total Deliveries</CardTitle>
+            <Truck className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{deliveries.length}</div>
+            <div className="text-2xl font-bold text-blue-900">{deliveries.length}</div>
+            <p className="text-xs text-blue-600 flex items-center mt-1">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              All deliveries
+            </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-blue-50 to-blue-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Scheduled</CardTitle>
-            <Truck className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-blue-900">Scheduled</CardTitle>
+            <Truck className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-blue-900">
               {deliveries.filter(d => d.status === DeliveryStatus.SCHEDULED).length}
             </div>
+            <p className="text-xs text-blue-600 flex items-center mt-1">
+              <Calendar className="h-3 w-3 mr-1" />
+              Upcoming deliveries
+            </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-yellow-50 to-yellow-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">In Transit</CardTitle>
-            <Truck className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-yellow-900">In Transit</CardTitle>
+            <Truck className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-yellow-900">
               {deliveries.filter(d => d.status === DeliveryStatus.IN_TRANSIT).length}
             </div>
+            <p className="text-xs text-yellow-600 flex items-center mt-1">
+              <Truck className="h-3 w-3 mr-1" />
+              On the road
+            </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-green-50 to-green-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Delivered</CardTitle>
-            <Truck className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-green-900">Delivered</CardTitle>
+            <Truck className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-green-900">
               {deliveries.filter(d => d.status === DeliveryStatus.DELIVERED).length}
             </div>
+            <p className="text-xs text-green-600 flex items-center mt-1">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              Completed
+            </p>
           </CardContent>
         </Card>
       </div>
 
       {/* Search and Filters */}
       <div className="flex gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="ri-search-bar">
+          <Search className="ri-search-icon" />
           <Input
             placeholder="Search deliveries..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="ri-search-input shadow-sm"
           />
         </div>
-        <Button variant="outline">
+        <Button variant="outline" className="shadow-sm">
           <Filter className="h-4 w-4 mr-2" />
           Filter
         </Button>
       </div>
 
       {/* Deliveries Table */}
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle>Deliveries</CardTitle>
+          <CardTitle className="text-xl">Deliveries</CardTitle>
           <CardDescription>
             Track and manage vehicle deliveries
           </CardDescription>
@@ -164,55 +184,60 @@ function DeliveriesList() {
         <CardContent>
           <div className="space-y-4">
             {filteredDeliveries.map((delivery) => (
-              <div key={delivery.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
-                <div className="flex items-center space-x-4">
+              <div key={delivery.id} className="ri-table-row">
+                <div className="flex items-center space-x-4 flex-1">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-2">
-                      <h3 className="font-semibold">Delivery #{delivery.id}</h3>
-                      <Badge className={getStatusColor(delivery.status)}>
+                    <div className="flex items-center space-x-3 mb-2">
+                      <h3 className="font-semibold text-foreground">Delivery #{delivery.id}</h3>
+                      <Badge className={cn("ri-badge-status", getStatusColor(delivery.status))}>
                         {delivery.status.replace('_', ' ').toUpperCase()}
                       </Badge>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 mt-2 text-sm text-muted-foreground">
+                    <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center">
-                        <User className="h-3 w-3 mr-1" />
-                        <span className="font-medium">Customer:</span> {delivery.customerId}
+                        <User className="h-3 w-3 mr-2 text-blue-500" />
+                        <span className="font-medium">Customer:</span> 
+                        <span className="ml-1">{delivery.customerId}</span>
                       </div>
                       <div className="flex items-center">
-                        <User className="h-3 w-3 mr-1" />
-                        <span className="font-medium">Driver:</span> {delivery.driver || 'Not assigned'}
+                        <User className="h-3 w-3 mr-2 text-green-500" />
+                        <span className="font-medium">Driver:</span> 
+                        <span className="ml-1">{delivery.driver || 'Not assigned'}</span>
                       </div>
                       <div className="flex items-center">
-                        <Calendar className="h-3 w-3 mr-1" />
-                        <span className="font-medium">Scheduled:</span> {formatDate(delivery.scheduledDate)}
+                        <Calendar className="h-3 w-3 mr-2 text-purple-500" />
+                        <span className="font-medium">Scheduled:</span> 
+                        <span className="ml-1">{formatDate(delivery.scheduledDate)}</span>
                       </div>
                       {delivery.deliveredDate && (
                         <div className="flex items-center">
-                          <Calendar className="h-3 w-3 mr-1" />
-                          <span className="font-medium">Delivered:</span> {formatDate(delivery.deliveredDate)}
+                          <Calendar className="h-3 w-3 mr-2 text-green-500" />
+                          <span className="font-medium">Delivered:</span> 
+                          <span className="ml-1">{formatDate(delivery.deliveredDate)}</span>
                         </div>
                       )}
                     </div>
                     <div className="mt-2">
-                      <div className="flex items-start">
-                        <MapPin className="h-3 w-3 mr-1 mt-0.5" />
+                      <div className="flex items-start bg-muted/30 p-2 rounded-md">
+                        <MapPin className="h-3 w-3 mr-2 mt-0.5 text-red-500" />
                         <span className="text-sm text-muted-foreground">
                           {delivery.address.street}, {delivery.address.city}, {delivery.address.state} {delivery.address.zipCode}
                         </span>
                       </div>
                       {delivery.notes && (
-                        <p className="text-sm text-muted-foreground mt-1">
+                        <p className="text-sm text-muted-foreground mt-2 bg-blue-50 p-2 rounded-md">
                           <span className="font-medium">Notes:</span> {delivery.notes}
                         </p>
                       )}
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm">
+                <div className="ri-action-buttons">
+                  <Button variant="outline" size="sm" className="shadow-sm">
+                    <MapPin className="h-3 w-3 mr-1" />
                     Track
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="shadow-sm">
                     Edit
                   </Button>
                 </div>

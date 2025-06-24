@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { DollarSign, Plus, Search, Filter, TrendingUp, User, Calendar } from 'lucide-react'
 import { Commission, CommissionStatus, CommissionType } from '@/types'
 import { formatCurrency, formatDate } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 
 const mockCommissions: Commission[] = [
   {
@@ -45,28 +46,28 @@ function CommissionsList() {
   const getStatusColor = (status: CommissionStatus) => {
     switch (status) {
       case CommissionStatus.PENDING:
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200'
       case CommissionStatus.APPROVED:
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-50 text-blue-700 border-blue-200'
       case CommissionStatus.PAID:
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-50 text-green-700 border-green-200'
       case CommissionStatus.CANCELLED:
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-50 text-red-700 border-red-200'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-50 text-gray-700 border-gray-200'
     }
   }
 
   const getTypeColor = (type: CommissionType) => {
     switch (type) {
       case CommissionType.FLAT:
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-50 text-blue-700 border-blue-200'
       case CommissionType.PERCENTAGE:
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-50 text-green-700 border-green-200'
       case CommissionType.TIERED:
-        return 'bg-purple-100 text-purple-800'
+        return 'bg-purple-50 text-purple-700 border-purple-200'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-50 text-gray-700 border-gray-200'
     }
   }
 
@@ -77,87 +78,106 @@ function CommissionsList() {
   )
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Commission Engine</h1>
-          <p className="text-muted-foreground">
-            Manage sales commissions and payouts
-          </p>
+    <div className="space-y-8">
+      {/* Page Header */}
+      <div className="ri-page-header">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="ri-page-title">Commission Engine</h1>
+            <p className="ri-page-description">
+              Manage sales commissions and payouts
+            </p>
+          </div>
+          <Button className="shadow-sm">
+            <Plus className="h-4 w-4 mr-2" />
+            New Commission
+          </Button>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          New Commission
-        </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
+      <div className="ri-stats-grid">
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-blue-50 to-blue-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Commissions</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-blue-900">Total Commissions</CardTitle>
+            <DollarSign className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{commissions.length}</div>
+            <div className="text-2xl font-bold text-blue-900">{commissions.length}</div>
+            <p className="text-xs text-blue-600 flex items-center mt-1">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              All commissions
+            </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-yellow-50 to-yellow-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-yellow-900">Pending</CardTitle>
+            <DollarSign className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-yellow-900">
               {commissions.filter(c => c.status === CommissionStatus.PENDING).length}
             </div>
+            <p className="text-xs text-yellow-600 flex items-center mt-1">
+              <Calendar className="h-3 w-3 mr-1" />
+              Awaiting approval
+            </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-green-50 to-green-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Paid This Month</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-green-900">Paid This Month</CardTitle>
+            <DollarSign className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-green-900">
               {formatCurrency(commissions.filter(c => c.status === CommissionStatus.PAID).reduce((sum, c) => sum + c.amount, 0))}
             </div>
+            <p className="text-xs text-green-600 flex items-center mt-1">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              Paid out
+            </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-purple-50 to-purple-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Value</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-purple-900">Total Value</CardTitle>
+            <DollarSign className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-purple-900">
               {formatCurrency(commissions.reduce((sum, c) => sum + c.amount, 0))}
             </div>
+            <p className="text-xs text-purple-600 flex items-center mt-1">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              Total commission value
+            </p>
           </CardContent>
         </Card>
       </div>
 
       {/* Search and Filters */}
       <div className="flex gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="ri-search-bar">
+          <Search className="ri-search-icon" />
           <Input
             placeholder="Search commissions..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="ri-search-input shadow-sm"
           />
         </div>
-        <Button variant="outline">
+        <Button variant="outline" className="shadow-sm">
           <Filter className="h-4 w-4 mr-2" />
           Filter
         </Button>
       </div>
 
       {/* Commissions Table */}
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle>Commissions</CardTitle>
+          <CardTitle className="text-xl">Commissions</CardTitle>
           <CardDescription>
             Track and manage sales commissions
           </CardDescription>
@@ -165,48 +185,56 @@ function CommissionsList() {
         <CardContent>
           <div className="space-y-4">
             {filteredCommissions.map((commission) => (
-              <div key={commission.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
-                <div className="flex items-center space-x-4">
+              <div key={commission.id} className="ri-table-row">
+                <div className="flex items-center space-x-4 flex-1">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-2">
-                      <h3 className="font-semibold">Commission #{commission.id}</h3>
-                      <Badge className={getTypeColor(commission.type)}>
+                    <div className="flex items-center space-x-3 mb-2">
+                      <h3 className="font-semibold text-foreground">Commission #{commission.id}</h3>
+                      <Badge className={cn("ri-badge-status", getTypeColor(commission.type))}>
                         {commission.type.toUpperCase()}
                       </Badge>
-                      <Badge className={getStatusColor(commission.status)}>
+                      <Badge className={cn("ri-badge-status", getStatusColor(commission.status))}>
                         {commission.status.toUpperCase()}
                       </Badge>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 mt-2 text-sm text-muted-foreground">
+                    <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center">
-                        <User className="h-3 w-3 mr-1" />
-                        <span className="font-medium">Sales Person:</span> {commission.salesPersonId}
+                        <User className="h-3 w-3 mr-2 text-blue-500" />
+                        <span className="font-medium">Sales Person:</span> 
+                        <span className="ml-1">{commission.salesPersonId}</span>
                       </div>
                       <div className="flex items-center">
-                        <TrendingUp className="h-3 w-3 mr-1" />
-                        <span className="font-medium">Deal:</span> {commission.dealId}
+                        <TrendingUp className="h-3 w-3 mr-2 text-green-500" />
+                        <span className="font-medium">Deal:</span> 
+                        <span className="ml-1">{commission.dealId}</span>
                       </div>
                       <div className="flex items-center">
-                        <DollarSign className="h-3 w-3 mr-1" />
-                        <span className="font-medium">Amount:</span> {formatCurrency(commission.amount)}
+                        <DollarSign className="h-3 w-3 mr-2 text-purple-500" />
+                        <span className="font-medium">Amount:</span> 
+                        <span className="ml-1 font-bold text-primary">{formatCurrency(commission.amount)}</span>
                       </div>
                       <div className="flex items-center">
-                        <Calendar className="h-3 w-3 mr-1" />
-                        <span className="font-medium">Created:</span> {formatDate(commission.createdAt)}
+                        <Calendar className="h-3 w-3 mr-2 text-orange-500" />
+                        <span className="font-medium">Created:</span> 
+                        <span className="ml-1">{formatDate(commission.createdAt)}</span>
                       </div>
                     </div>
                     {commission.type === CommissionType.PERCENTAGE && (
-                      <div className="mt-2 text-sm text-muted-foreground">
-                        <span className="font-medium">Rate:</span> {(commission.rate * 100).toFixed(2)}%
+                      <div className="mt-2 bg-green-50 p-2 rounded-md">
+                        <span className="text-sm text-green-700">
+                          <span className="font-medium">Rate:</span> {(commission.rate * 100).toFixed(2)}%
+                        </span>
                       </div>
                     )}
                     {commission.paidDate && (
-                      <div className="mt-2 text-sm text-muted-foreground">
-                        <span className="font-medium">Paid Date:</span> {formatDate(commission.paidDate)}
+                      <div className="mt-2 bg-blue-50 p-2 rounded-md">
+                        <span className="text-sm text-blue-700">
+                          <span className="font-medium">Paid Date:</span> {formatDate(commission.paidDate)}
+                        </span>
                       </div>
                     )}
                     {commission.notes && (
-                      <div className="mt-2">
+                      <div className="mt-2 bg-muted/30 p-2 rounded-md">
                         <p className="text-sm text-muted-foreground">
                           <span className="font-medium">Notes:</span> {commission.notes}
                         </p>
@@ -214,15 +242,15 @@ function CommissionsList() {
                     )}
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm">
+                <div className="ri-action-buttons">
+                  <Button variant="outline" size="sm" className="shadow-sm">
                     View
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="shadow-sm">
                     Edit
                   </Button>
                   {commission.status === CommissionStatus.PENDING && (
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="shadow-sm">
                       Approve
                     </Button>
                   )}

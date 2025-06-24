@@ -4,9 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Wrench, Plus, Search, Filter, Calendar, Clock, User } from 'lucide-react'
+import { Wrench, Plus, Search, Filter, Calendar, Clock, User, TrendingUp, DollarSign } from 'lucide-react'
 import { ServiceTicket, ServiceStatus, Priority } from '@/types'
 import { formatDate, formatCurrency } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 
 const mockServiceTickets: ServiceTicket[] = [
   {
@@ -86,32 +87,32 @@ function ServiceTicketsList() {
   const getStatusColor = (status: ServiceStatus) => {
     switch (status) {
       case ServiceStatus.OPEN:
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-50 text-blue-700 border-blue-200'
       case ServiceStatus.IN_PROGRESS:
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200'
       case ServiceStatus.WAITING_PARTS:
-        return 'bg-orange-100 text-orange-800'
+        return 'bg-orange-50 text-orange-700 border-orange-200'
       case ServiceStatus.COMPLETED:
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-50 text-green-700 border-green-200'
       case ServiceStatus.CANCELLED:
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-50 text-red-700 border-red-200'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-50 text-gray-700 border-gray-200'
     }
   }
 
   const getPriorityColor = (priority: Priority) => {
     switch (priority) {
       case Priority.LOW:
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-50 text-green-700 border-green-200'
       case Priority.MEDIUM:
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200'
       case Priority.HIGH:
-        return 'bg-orange-100 text-orange-800'
+        return 'bg-orange-50 text-orange-700 border-orange-200'
       case Priority.URGENT:
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-50 text-red-700 border-red-200'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-50 text-gray-700 border-gray-200'
     }
   }
 
@@ -122,89 +123,108 @@ function ServiceTicketsList() {
   )
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Service Operations</h1>
-          <p className="text-muted-foreground">
-            Manage service tickets and maintenance schedules
-          </p>
+    <div className="space-y-8">
+      {/* Page Header */}
+      <div className="ri-page-header">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="ri-page-title">Service Operations</h1>
+            <p className="ri-page-description">
+              Manage service tickets and maintenance schedules
+            </p>
+          </div>
+          <Button className="shadow-sm">
+            <Plus className="h-4 w-4 mr-2" />
+            New Service Ticket
+          </Button>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          New Service Ticket
-        </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
+      <div className="ri-stats-grid">
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-blue-50 to-blue-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Tickets</CardTitle>
-            <Wrench className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-blue-900">Total Tickets</CardTitle>
+            <Wrench className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{tickets.length}</div>
+            <div className="text-2xl font-bold text-blue-900">{tickets.length}</div>
+            <p className="text-xs text-blue-600 flex items-center mt-1">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              All service requests
+            </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-yellow-50 to-yellow-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-            <Wrench className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-yellow-900">In Progress</CardTitle>
+            <Wrench className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-yellow-900">
               {tickets.filter(t => t.status === ServiceStatus.IN_PROGRESS).length}
             </div>
+            <p className="text-xs text-yellow-600 flex items-center mt-1">
+              <Clock className="h-3 w-3 mr-1" />
+              Currently working
+            </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-orange-50 to-orange-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Waiting Parts</CardTitle>
-            <Wrench className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-orange-900">Waiting Parts</CardTitle>
+            <Wrench className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-orange-900">
               {tickets.filter(t => t.status === ServiceStatus.WAITING_PARTS).length}
             </div>
+            <p className="text-xs text-orange-600 flex items-center mt-1">
+              <Clock className="h-3 w-3 mr-1" />
+              Parts on order
+            </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-green-50 to-green-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-            <Wrench className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-green-900">Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-green-900">
               {formatCurrency(tickets.reduce((sum, t) => 
                 sum + t.parts.reduce((pSum, p) => pSum + p.total, 0) + 
                 t.labor.reduce((lSum, l) => lSum + l.total, 0), 0))}
             </div>
+            <p className="text-xs text-green-600 flex items-center mt-1">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              Service revenue
+            </p>
           </CardContent>
         </Card>
       </div>
 
       {/* Search and Filters */}
       <div className="flex gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="ri-search-bar">
+          <Search className="ri-search-icon" />
           <Input
             placeholder="Search service tickets..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="ri-search-input shadow-sm"
           />
         </div>
-        <Button variant="outline">
+        <Button variant="outline" className="shadow-sm">
           <Filter className="h-4 w-4 mr-2" />
           Filter
         </Button>
       </div>
 
       {/* Service Tickets Table */}
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle>Service Tickets</CardTitle>
+          <CardTitle className="text-xl">Service Tickets</CardTitle>
           <CardDescription>
             Manage service requests and maintenance schedules
           </CardDescription>
@@ -212,37 +232,41 @@ function ServiceTicketsList() {
         <CardContent>
           <div className="space-y-4">
             {filteredTickets.map((ticket) => (
-              <div key={ticket.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
-                <div className="flex items-center space-x-4">
+              <div key={ticket.id} className="ri-table-row">
+                <div className="flex items-center space-x-4 flex-1">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-2">
-                      <h3 className="font-semibold">{ticket.title}</h3>
-                      <Badge className={getPriorityColor(ticket.priority)}>
+                    <div className="flex items-center space-x-3 mb-2">
+                      <h3 className="font-semibold text-foreground">{ticket.title}</h3>
+                      <Badge className={cn("ri-badge-status", getPriorityColor(ticket.priority))}>
                         {ticket.priority.toUpperCase()}
                       </Badge>
-                      <Badge className={getStatusColor(ticket.status)}>
+                      <Badge className={cn("ri-badge-status", getStatusColor(ticket.status))}>
                         {ticket.status.replace('_', ' ').toUpperCase()}
                       </Badge>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 mt-2 text-sm text-muted-foreground">
+                    <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center">
-                        <User className="h-3 w-3 mr-1" />
-                        <span className="font-medium">Customer:</span> {ticket.customerId}
+                        <User className="h-3 w-3 mr-2 text-blue-500" />
+                        <span className="font-medium">Customer:</span> 
+                        <span className="ml-1">{ticket.customerId}</span>
                       </div>
                       <div className="flex items-center">
-                        <User className="h-3 w-3 mr-1" />
-                        <span className="font-medium">Assigned: </span> {ticket.assignedTo || 'Unassigned'}
+                        <User className="h-3 w-3 mr-2 text-green-500" />
+                        <span className="font-medium">Assigned:</span> 
+                        <span className="ml-1">{ticket.assignedTo || 'Unassigned'}</span>
                       </div>
                       <div className="flex items-center">
-                        <Calendar className="h-3 w-3 mr-1" />
-                        <span className="font-medium">Scheduled:</span> {ticket.scheduledDate ? formatDate(ticket.scheduledDate) : 'Not scheduled'}
+                        <Calendar className="h-3 w-3 mr-2 text-purple-500" />
+                        <span className="font-medium">Scheduled:</span> 
+                        <span className="ml-1">{ticket.scheduledDate ? formatDate(ticket.scheduledDate) : 'Not scheduled'}</span>
                       </div>
                       <div className="flex items-center">
-                        <Clock className="h-3 w-3 mr-1" />
-                        <span className="font-medium">Created:</span> {formatDate(ticket.createdAt)}
+                        <Clock className="h-3 w-3 mr-2 text-orange-500" />
+                        <span className="font-medium">Created:</span> 
+                        <span className="ml-1">{formatDate(ticket.createdAt)}</span>
                       </div>
                     </div>
-                    <div className="mt-2">
+                    <div className="mt-2 bg-muted/30 p-2 rounded-md">
                       <p className="text-sm text-muted-foreground">
                         {ticket.description}
                       </p>
@@ -252,14 +276,14 @@ function ServiceTicketsList() {
                         </p>
                       )}
                     </div>
-                    <div className="flex items-center space-x-4 mt-2 text-sm">
-                      <span>
+                    <div className="flex items-center space-x-4 mt-3 text-sm">
+                      <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md">
                         <span className="font-medium">Parts:</span> {formatCurrency(ticket.parts.reduce((sum, p) => sum + p.total, 0))}
                       </span>
-                      <span>
+                      <span className="bg-green-50 text-green-700 px-2 py-1 rounded-md">
                         <span className="font-medium">Labor:</span> {formatCurrency(ticket.labor.reduce((sum, l) => sum + l.total, 0))}
                       </span>
-                      <span>
+                      <span className="bg-purple-50 text-purple-700 px-2 py-1 rounded-md font-semibold">
                         <span className="font-medium">Total:</span> {formatCurrency(
                           ticket.parts.reduce((sum, p) => sum + p.total, 0) + 
                           ticket.labor.reduce((sum, l) => sum + l.total, 0)
@@ -268,11 +292,11 @@ function ServiceTicketsList() {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm">
+                <div className="ri-action-buttons">
+                  <Button variant="outline" size="sm" className="shadow-sm">
                     View
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="shadow-sm">
                     Edit
                   </Button>
                 </div>

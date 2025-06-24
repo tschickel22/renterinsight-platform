@@ -4,9 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Shield, Plus, Search, Filter, Users, Building, Activity, AlertTriangle } from 'lucide-react'
+import { Shield, Plus, Search, Filter, Users, Building, Activity, AlertTriangle, TrendingUp } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { UserRole } from '@/types'
+import { cn } from '@/lib/utils'
 
 const mockTenants = [
   {
@@ -43,11 +44,10 @@ function PlatformAdminDashboard() {
   const [tenants] = useState(mockTenants)
   const [searchTerm, setSearchTerm] = useState('')
 
-  // Check if user has admin role
   if (!hasRole(UserRole.ADMIN)) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Card className="w-full max-w-md">
+        <Card className="w-full max-w-md shadow-sm">
           <CardHeader className="text-center">
             <AlertTriangle className="h-12 w-12 text-orange-500 mx-auto mb-4" />
             <CardTitle>Access Denied</CardTitle>
@@ -63,13 +63,13 @@ function PlatformAdminDashboard() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-50 text-green-700 border-green-200'
       case 'inactive':
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-50 text-gray-700 border-gray-200'
       case 'suspended':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-50 text-red-700 border-red-200'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-50 text-gray-700 border-gray-200'
     }
   }
 
@@ -79,111 +79,138 @@ function PlatformAdminDashboard() {
   )
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Platform Admin</h1>
-          <p className="text-muted-foreground">
-            System administration and tenant management
-          </p>
+    <div className="space-y-8">
+      {/* Page Header */}
+      <div className="ri-page-header">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="ri-page-title">Platform Admin</h1>
+            <p className="ri-page-description">
+              System administration and tenant management
+            </p>
+          </div>
+          <Button className="shadow-sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Tenant
+          </Button>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Tenant
-        </Button>
       </div>
 
       {/* System Metrics */}
       <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
-        <Card>
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-blue-50 to-blue-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Tenants</CardTitle>
-            <Building className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-blue-900">Total Tenants</CardTitle>
+            <Building className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockSystemMetrics.totalTenants}</div>
+            <div className="text-2xl font-bold text-blue-900">{mockSystemMetrics.totalTenants}</div>
+            <p className="text-xs text-blue-600 flex items-center mt-1">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              All tenants
+            </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-green-50 to-green-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Tenants</CardTitle>
-            <Building className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-green-900">Active Tenants</CardTitle>
+            <Building className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockSystemMetrics.activeTenants}</div>
+            <div className="text-2xl font-bold text-green-900">{mockSystemMetrics.activeTenants}</div>
+            <p className="text-xs text-green-600 flex items-center mt-1">
+              <Activity className="h-3 w-3 mr-1" />
+              Currently active
+            </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-purple-50 to-purple-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-purple-900">Total Users</CardTitle>
+            <Users className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockSystemMetrics.totalUsers}</div>
+            <div className="text-2xl font-bold text-purple-900">{mockSystemMetrics.totalUsers}</div>
+            <p className="text-xs text-purple-600 flex items-center mt-1">
+              <Users className="h-3 w-3 mr-1" />
+              All users
+            </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-green-50 to-green-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">System Uptime</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-green-900">System Uptime</CardTitle>
+            <Activity className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockSystemMetrics.systemUptime}</div>
+            <div className="text-2xl font-bold text-green-900">{mockSystemMetrics.systemUptime}</div>
+            <p className="text-xs text-green-600 flex items-center mt-1">
+              <Activity className="h-3 w-3 mr-1" />
+              Excellent
+            </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-blue-50 to-blue-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Response</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-blue-900">Avg Response</CardTitle>
+            <Activity className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockSystemMetrics.avgResponseTime}</div>
+            <div className="text-2xl font-bold text-blue-900">{mockSystemMetrics.avgResponseTime}</div>
+            <p className="text-xs text-blue-600 flex items-center mt-1">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              Fast response
+            </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-green-50 to-green-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Error Rate</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-green-900">Error Rate</CardTitle>
+            <Activity className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockSystemMetrics.errorRate}</div>
+            <div className="text-2xl font-bold text-green-900">{mockSystemMetrics.errorRate}</div>
+            <p className="text-xs text-green-600 flex items-center mt-1">
+              <Activity className="h-3 w-3 mr-1" />
+              Very low
+            </p>
           </CardContent>
         </Card>
       </div>
 
       {/* System Health */}
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle>System Health</CardTitle>
+          <CardTitle className="text-xl">System Health</CardTitle>
           <CardDescription>
             Real-time system status and health metrics
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-3">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
               <div className="h-3 w-3 bg-green-500 rounded-full"></div>
-              <span className="text-sm">Database: Healthy</span>
+              <span className="text-sm font-medium text-green-900">Database: Healthy</span>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
               <div className="h-3 w-3 bg-green-500 rounded-full"></div>
-              <span className="text-sm">API Services: Operational</span>
+              <span className="text-sm font-medium text-green-900">API Services: Operational</span>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
               <div className="h-3 w-3 bg-green-500 rounded-full"></div>
-              <span className="text-sm">Payment Gateway: Connected</span>
+              <span className="text-sm font-medium text-green-900">Payment Gateway: Connected</span>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
               <div className="h-3 w-3 bg-green-500 rounded-full"></div>
-              <span className="text-sm">Email Service: Active</span>
+              <span className="text-sm font-medium text-green-900">Email Service: Active</span>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
               <div className="h-3 w-3 bg-green-500 rounded-full"></div>
-              <span className="text-sm">File Storage: Available</span>
+              <span className="text-sm font-medium text-green-900">File Storage: Available</span>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
               <div className="h-3 w-3 bg-green-500 rounded-full"></div>
-              <span className="text-sm">Backup System: Running</span>
+              <span className="text-sm font-medium text-green-900">Backup System: Running</span>
             </div>
           </div>
         </CardContent>
@@ -191,25 +218,25 @@ function PlatformAdminDashboard() {
 
       {/* Search and Filters */}
       <div className="flex gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="ri-search-bar">
+          <Search className="ri-search-icon" />
           <Input
             placeholder="Search tenants..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="ri-search-input shadow-sm"
           />
         </div>
-        <Button variant="outline">
+        <Button variant="outline" className="shadow-sm">
           <Filter className="h-4 w-4 mr-2" />
           Filter
         </Button>
       </div>
 
       {/* Tenants Table */}
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle>Tenant Management</CardTitle>
+          <CardTitle className="text-xl">Tenant Management</CardTitle>
           <CardDescription>
             Manage dealership tenants and their configurations
           </CardDescription>
@@ -217,37 +244,41 @@ function PlatformAdminDashboard() {
         <CardContent>
           <div className="space-y-4">
             {filteredTenants.map((tenant) => (
-              <div key={tenant.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
-                <div className="flex items-center space-x-4">
+              <div key={tenant.id} className="ri-table-row">
+                <div className="flex items-center space-x-4 flex-1">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-2">
-                      <h3 className="font-semibold">{tenant.name}</h3>
-                      <Badge className={getStatusColor(tenant.status)}>
+                    <div className="flex items-center space-x-3 mb-2">
+                      <h3 className="font-semibold text-foreground">{tenant.name}</h3>
+                      <Badge className={cn("ri-badge-status", getStatusColor(tenant.status))}>
                         {tenant.status.toUpperCase()}
                       </Badge>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 mt-2 text-sm text-muted-foreground">
+                    <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
                       <div>
-                        <span className="font-medium">Domain:</span> {tenant.domain}
+                        <span className="font-medium">Domain:</span> 
+                        <span className="ml-1">{tenant.domain}</span>
                       </div>
                       <div>
-                        <span className="font-medium">Users:</span> {tenant.users}
+                        <span className="font-medium">Users:</span> 
+                        <span className="ml-1">{tenant.users}</span>
                       </div>
                       <div>
-                        <span className="font-medium">Created:</span> {tenant.createdAt.toLocaleDateString()}
+                        <span className="font-medium">Created:</span> 
+                        <span className="ml-1">{tenant.createdAt.toLocaleDateString()}</span>
                       </div>
                       <div>
-                        <span className="font-medium">Last Activity:</span> {tenant.lastActivity.toLocaleDateString()}
+                        <span className="font-medium">Last Activity:</span> 
+                        <span className="ml-1">{tenant.lastActivity.toLocaleDateString()}</span>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm">
+                <div className="ri-action-buttons">
+                  <Button variant="outline" size="sm" className="shadow-sm">
                     <Shield className="h-3 w-3 mr-1" />
                     Manage
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="shadow-sm">
                     <Activity className="h-3 w-3 mr-1" />
                     Monitor
                   </Button>

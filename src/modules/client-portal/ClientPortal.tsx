@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Globe, Plus, Search, Filter, Users, Eye, Settings, MessageSquare } from 'lucide-react'
+import { Globe, Plus, Search, Filter, Users, Eye, Settings, MessageSquare, TrendingUp, Activity } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 const mockPortalUsers = [
   {
@@ -36,13 +37,13 @@ function PortalDashboard() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-50 text-green-700 border-green-200'
       case 'inactive':
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-50 text-gray-700 border-gray-200'
       case 'suspended':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-50 text-red-700 border-red-200'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-50 text-gray-700 border-gray-200'
     }
   }
 
@@ -52,161 +53,180 @@ function PortalDashboard() {
   )
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Client Portal</h1>
-          <p className="text-muted-foreground">
-            Manage customer portal access and self-service features
-          </p>
+    <div className="space-y-8">
+      {/* Page Header */}
+      <div className="ri-page-header">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="ri-page-title">Client Portal</h1>
+            <p className="ri-page-description">
+              Manage customer portal access and self-service features
+            </p>
+          </div>
+          <Button className="shadow-sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Portal User
+          </Button>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Portal User
-        </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
+      <div className="ri-stats-grid">
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-blue-50 to-blue-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Portal Users</CardTitle>
-            <Globe className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-blue-900">Portal Users</CardTitle>
+            <Globe className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{portalUsers.length}</div>
+            <div className="text-2xl font-bold text-blue-900">{portalUsers.length}</div>
+            <p className="text-xs text-blue-600 flex items-center mt-1">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              Total registered users
+            </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-green-50 to-green-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-            <Globe className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-green-900">Active Users</CardTitle>
+            <Globe className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-green-900">
               {portalUsers.filter(u => u.status === 'active').length}
             </div>
+            <p className="text-xs text-green-600 flex items-center mt-1">
+              <Activity className="h-3 w-3 mr-1" />
+              Currently active
+            </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-purple-50 to-purple-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Monthly Logins</CardTitle>
-            <Globe className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-purple-900">Monthly Logins</CardTitle>
+            <Globe className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">247</div>
+            <div className="text-2xl font-bold text-purple-900">247</div>
+            <p className="text-xs text-purple-600 flex items-center mt-1">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              +18% from last month
+            </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-orange-50 to-orange-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Support Tickets</CardTitle>
-            <Globe className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-orange-900">Support Tickets</CardTitle>
+            <MessageSquare className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12</div>
+            <div className="text-2xl font-bold text-orange-900">12</div>
+            <p className="text-xs text-orange-600 flex items-center mt-1">
+              <MessageSquare className="h-3 w-3 mr-1" />
+              This month
+            </p>
           </CardContent>
         </Card>
       </div>
 
       {/* Portal Features */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+      <div className="ri-content-grid">
+        <Card className="shadow-sm">
           <CardHeader>
-            <CardTitle>Portal Features</CardTitle>
+            <CardTitle className="text-xl">Portal Features</CardTitle>
             <CardDescription>
               Available self-service features for customers
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
                 <div className="flex items-center space-x-3">
-                  <Eye className="h-5 w-5 text-primary" />
+                  <Eye className="h-8 w-8 text-blue-500 bg-blue-50 p-2 rounded-lg" />
                   <div>
-                    <p className="font-medium">Vehicle Information</p>
+                    <p className="font-semibold">Vehicle Information</p>
                     <p className="text-sm text-muted-foreground">View vehicle details and documentation</p>
                   </div>
                 </div>
-                <Badge className="bg-green-100 text-green-800">Active</Badge>
+                <Badge className="bg-green-50 text-green-700 border-green-200">Active</Badge>
               </div>
-              <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
                 <div className="flex items-center space-x-3">
-                  <MessageSquare className="h-5 w-5 text-primary" />
+                  <MessageSquare className="h-8 w-8 text-purple-500 bg-purple-50 p-2 rounded-lg" />
                   <div>
-                    <p className="font-medium">Service Requests</p>
+                    <p className="font-semibold">Service Requests</p>
                     <p className="text-sm text-muted-foreground">Submit and track service tickets</p>
                   </div>
                 </div>
-                <Badge className="bg-green-100 text-green-800">Active</Badge>
+                <Badge className="bg-green-50 text-green-700 border-green-200">Active</Badge>
               </div>
-              <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
                 <div className="flex items-center space-x-3">
-                  <Settings className="h-5 w-5 text-primary" />
+                  <Settings className="h-8 w-8 text-green-500 bg-green-50 p-2 rounded-lg" />
                   <div>
-                    <p className="font-medium">Account Management</p>
+                    <p className="font-semibold">Account Management</p>
                     <p className="text-sm text-muted-foreground">Update profile and preferences</p>
                   </div>
                 </div>
-                <Badge className="bg-green-100 text-green-800">Active</Badge>
+                <Badge className="bg-green-50 text-green-700 border-green-200">Active</Badge>
               </div>
-              <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
                 <div className="flex items-center space-x-3">
-                  <Globe className="h-5 w-5 text-primary" />
+                  <Globe className="h-8 w-8 text-orange-500 bg-orange-50 p-2 rounded-lg" />
                   <div>
-                    <p className="font-medium">Document Library</p>
+                    <p className="font-semibold">Document Library</p>
                     <p className="text-sm text-muted-foreground">Access manuals and warranties</p>
                   </div>
                 </div>
-                <Badge className="bg-yellow-100 text-yellow-800">Coming Soon</Badge>
+                <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200">Coming Soon</Badge>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="shadow-sm">
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
+            <CardTitle className="text-xl">Recent Activity</CardTitle>
             <CardDescription>
               Latest portal user activities
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-start space-x-3">
+              <div className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
                 <div className="flex-shrink-0">
-                  <div className="h-2 w-2 bg-primary rounded-full mt-2"></div>
+                  <div className="h-2 w-2 bg-blue-500 rounded-full mt-2"></div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm font-medium text-blue-900">
                     John Smith logged in
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-xs text-blue-600 mt-1">
                     2 hours ago
                   </p>
                 </div>
               </div>
-              <div className="flex items-start space-x-3">
+              <div className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
                 <div className="flex-shrink-0">
-                  <div className="h-2 w-2 bg-primary rounded-full mt-2"></div>
+                  <div className="h-2 w-2 bg-green-500 rounded-full mt-2"></div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm font-medium text-green-900">
                     Sarah Johnson submitted service request
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-xs text-green-600 mt-1">
                     4 hours ago
                   </p>
                 </div>
               </div>
-              <div className="flex items-start space-x-3">
+              <div className="flex items-start space-x-3 p-3 bg-purple-50 rounded-lg">
                 <div className="flex-shrink-0">
-                  <div className="h-2 w-2 bg-primary rounded-full mt-2"></div>
+                  <div className="h-2 w-2 bg-purple-500 rounded-full mt-2"></div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm font-medium text-purple-900">
                     Mike Davis updated profile
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-xs text-purple-600 mt-1">
                     1 day ago
                   </p>
                 </div>
@@ -218,25 +238,25 @@ function PortalDashboard() {
 
       {/* Search and Filters */}
       <div className="flex gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="ri-search-bar">
+          <Search className="ri-search-icon" />
           <Input
             placeholder="Search portal users..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="ri-search-input shadow-sm"
           />
         </div>
-        <Button variant="outline">
+        <Button variant="outline" className="shadow-sm">
           <Filter className="h-4 w-4 mr-2" />
           Filter
         </Button>
       </div>
 
       {/* Portal Users Table */}
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle>Portal Users</CardTitle>
+          <CardTitle className="text-xl">Portal Users</CardTitle>
           <CardDescription>
             Manage customer portal access and permissions
           </CardDescription>
@@ -244,37 +264,41 @@ function PortalDashboard() {
         <CardContent>
           <div className="space-y-4">
             {filteredUsers.map((user) => (
-              <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
-                <div className="flex items-center space-x-4">
+              <div key={user.id} className="ri-table-row">
+                <div className="flex items-center space-x-4 flex-1">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-2">
-                      <h3 className="font-semibold">{user.name}</h3>
-                      <Badge className={getStatusColor(user.status)}>
+                    <div className="flex items-center space-x-3 mb-2">
+                      <h3 className="font-semibold text-foreground">{user.name}</h3>
+                      <Badge className={cn("ri-badge-status", getStatusColor(user.status))}>
                         {user.status.toUpperCase()}
                       </Badge>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 mt-2 text-sm text-muted-foreground">
+                    <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
                       <div>
-                        <span className="font-medium">Email:</span> {user.email}
+                        <span className="font-medium">Email:</span> 
+                        <span className="ml-1">{user.email}</span>
                       </div>
                       <div>
-                        <span className="font-medium">Last Login:</span> {user.lastLogin.toLocaleDateString()}
+                        <span className="font-medium">Last Login:</span> 
+                        <span className="ml-1">{user.lastLogin.toLocaleDateString()}</span>
                       </div>
                       <div>
-                        <span className="font-medium">Vehicles:</span> {user.vehicleCount}
+                        <span className="font-medium">Vehicles:</span> 
+                        <span className="ml-1">{user.vehicleCount}</span>
                       </div>
                       <div>
-                        <span className="font-medium">Service Tickets:</span> {user.serviceTickets}
+                        <span className="font-medium">Service Tickets:</span> 
+                        <span className="ml-1">{user.serviceTickets}</span>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm">
+                <div className="ri-action-buttons">
+                  <Button variant="outline" size="sm" className="shadow-sm">
                     <Users className="h-3 w-3 mr-1" />
                     Manage
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="shadow-sm">
                     <Settings className="h-3 w-3 mr-1" />
                     Settings
                   </Button>

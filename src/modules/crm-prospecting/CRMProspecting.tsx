@@ -4,9 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Users, Plus, Search, Filter, Phone, Mail, Calendar } from 'lucide-react'
+import { Users, Plus, Search, Filter, Phone, Mail, Calendar, TrendingUp } from 'lucide-react'
 import { Lead, LeadStatus } from '@/types'
 import { formatDate } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 
 const mockLeads: Lead[] = [
   {
@@ -43,24 +44,45 @@ function LeadsList() {
   const [leads] = useState<Lead[]>(mockLeads)
   const [searchTerm, setSearchTerm] = useState('')
 
+  const getStatusBadgeVariant = (status: LeadStatus) => {
+    switch (status) {
+      case LeadStatus.NEW:
+        return 'default'
+      case LeadStatus.CONTACTED:
+        return 'secondary'
+      case LeadStatus.QUALIFIED:
+        return 'default'
+      case LeadStatus.PROPOSAL:
+        return 'secondary'
+      case LeadStatus.NEGOTIATION:
+        return 'secondary'
+      case LeadStatus.CLOSED_WON:
+        return 'default'
+      case LeadStatus.CLOSED_LOST:
+        return 'destructive'
+      default:
+        return 'secondary'
+    }
+  }
+
   const getStatusColor = (status: LeadStatus) => {
     switch (status) {
       case LeadStatus.NEW:
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-50 text-blue-700 border-blue-200'
       case LeadStatus.CONTACTED:
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200'
       case LeadStatus.QUALIFIED:
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-50 text-green-700 border-green-200'
       case LeadStatus.PROPOSAL:
-        return 'bg-purple-100 text-purple-800'
+        return 'bg-purple-50 text-purple-700 border-purple-200'
       case LeadStatus.NEGOTIATION:
-        return 'bg-orange-100 text-orange-800'
+        return 'bg-orange-50 text-orange-700 border-orange-200'
       case LeadStatus.CLOSED_WON:
-        return 'bg-emerald-100 text-emerald-800'
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200'
       case LeadStatus.CLOSED_LOST:
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-50 text-red-700 border-red-200'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-50 text-gray-700 border-gray-200'
     }
   }
 
@@ -71,85 +93,104 @@ function LeadsList() {
   )
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">CRM & Prospecting</h1>
-          <p className="text-muted-foreground">
-            Manage leads and customer relationships
-          </p>
+    <div className="space-y-8">
+      {/* Page Header */}
+      <div className="ri-page-header">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="ri-page-title">CRM & Prospecting</h1>
+            <p className="ri-page-description">
+              Manage leads and customer relationships
+            </p>
+          </div>
+          <Button className="shadow-sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Lead
+          </Button>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Lead
-        </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
+      <div className="ri-stats-grid">
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-blue-50 to-blue-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-blue-900">Total Leads</CardTitle>
+            <Users className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{leads.length}</div>
+            <div className="text-2xl font-bold text-blue-900">{leads.length}</div>
+            <p className="text-xs text-blue-600 flex items-center mt-1">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              +12% from last month
+            </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-yellow-50 to-yellow-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">New Leads</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-yellow-900">New Leads</CardTitle>
+            <Users className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-yellow-900">
               {leads.filter(l => l.status === LeadStatus.NEW).length}
             </div>
+            <p className="text-xs text-yellow-600 flex items-center mt-1">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              +8% from last week
+            </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-green-50 to-green-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Qualified</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-green-900">Qualified</CardTitle>
+            <Users className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-green-900">
               {leads.filter(l => l.status === LeadStatus.QUALIFIED).length}
             </div>
+            <p className="text-xs text-green-600 flex items-center mt-1">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              +15% from last month
+            </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-purple-50 to-purple-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-purple-900">Conversion Rate</CardTitle>
+            <TrendingUp className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">24%</div>
+            <div className="text-2xl font-bold text-purple-900">24%</div>
+            <p className="text-xs text-purple-600 flex items-center mt-1">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              +2.1% from last month
+            </p>
           </CardContent>
         </Card>
       </div>
 
       {/* Search and Filters */}
       <div className="flex gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="ri-search-bar">
+          <Search className="ri-search-icon" />
           <Input
             placeholder="Search leads..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="ri-search-input shadow-sm"
           />
         </div>
-        <Button variant="outline">
+        <Button variant="outline" className="shadow-sm">
           <Filter className="h-4 w-4 mr-2" />
           Filter
         </Button>
       </div>
 
       {/* Leads Table */}
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle>Leads</CardTitle>
+          <CardTitle className="text-xl">Leads</CardTitle>
           <CardDescription>
             Manage your sales prospects and customer relationships
           </CardDescription>
@@ -157,41 +198,45 @@ function LeadsList() {
         <CardContent>
           <div className="space-y-4">
             {filteredLeads.map((lead) => (
-              <div key={lead.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
-                <div className="flex items-center space-x-4">
+              <div key={lead.id} className="ri-table-row">
+                <div className="flex items-center space-x-4 flex-1">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-2">
-                      <h3 className="font-semibold">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <h3 className="font-semibold text-foreground">
                         {lead.firstName} {lead.lastName}
                       </h3>
-                      <Badge className={getStatusColor(lead.status)}>
+                      <Badge 
+                        variant={getStatusBadgeVariant(lead.status)}
+                        className={cn("ri-badge-status", getStatusColor(lead.status))}
+                      >
                         {lead.status.replace('_', ' ').toUpperCase()}
                       </Badge>
                     </div>
-                    <div className="flex items-center space-x-4 mt-1 text-sm text-muted-foreground">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-muted-foreground">
                       <span className="flex items-center">
-                        <Mail className="h-3 w-3 mr-1" />
+                        <Mail className="h-3 w-3 mr-2 text-blue-500" />
                         {lead.email}
                       </span>
                       <span className="flex items-center">
-                        <Phone className="h-3 w-3 mr-1" />
+                        <Phone className="h-3 w-3 mr-2 text-green-500" />
                         {lead.phone}
                       </span>
                       <span className="flex items-center">
-                        <Calendar className="h-3 w-3 mr-1" />
+                        <Calendar className="h-3 w-3 mr-2 text-purple-500" />
                         {formatDate(lead.createdAt)}
                       </span>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <p className="text-sm text-muted-foreground mt-2 bg-muted/30 p-2 rounded-md">
                       {lead.notes}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm">
+                <div className="ri-action-buttons">
+                  <Button variant="outline" size="sm" className="shadow-sm">
+                    <Phone className="h-3 w-3 mr-1" />
                     Contact
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="shadow-sm">
                     Edit
                   </Button>
                 </div>
