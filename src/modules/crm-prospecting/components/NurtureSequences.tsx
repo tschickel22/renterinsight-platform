@@ -242,8 +242,7 @@ export function NurtureSequences() {
                     <CardDescription>{selectedSequence.description}</CardDescription>
                   </div>
                   <div className="flex space-x-2">
-                    <Button variant="outline" size="sm" onClick={() => handleEditSequence(sequence)}>
-                    <Button variant="outline" size="sm" onClick={() => handleEditSequence(sequence)}>
+                    <Button variant="outline" size="sm" onClick={() => handleEditSequence(selectedSequence)}>
                       <Edit className="h-4 w-4 mr-2" />
                       Edit
                     </Button>
@@ -281,14 +280,20 @@ export function NurtureSequences() {
                                 <div className="flex items-center space-x-2 mb-1">
                                   <span className="font-medium capitalize">{step.type}</span>
                                   {step.delay > 0 && (
-                                
+                                    <Badge variant="outline">
+                                      Wait {formatDelay(step.delay)}
+                                    </Badge>
+                                  )}
+                                </div>
                                 {step.type === 'email' && (
-                              <div className="bg-muted/30 p-3 rounded-md">
-                                <p className="text-sm text-muted-foreground">
-                                  {step.type === 'email' ? 'Email step' : 
-                                   step.type === 'sms' ? 'SMS step' : 
-                                   step.type === 'wait' ? 'Wait step' : 'Step'}
-                                </p>
+                                  <div className="bg-muted/30 p-3 rounded-md">
+                                    <p className="text-sm text-muted-foreground">
+                                      {step.type === 'email' ? 'Email step' : 
+                                       step.type === 'sms' ? 'SMS step' : 
+                                       step.type === 'wait' ? 'Wait step' : 'Step'}
+                                    </p>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>
