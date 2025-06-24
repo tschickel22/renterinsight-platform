@@ -4,66 +4,37 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Users, Plus, Search, Filter, Phone, Mail, Calendar, TrendingUp } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Users, Plus, Search, Filter, Phone, Mail, Calendar, TrendingUp, Target, BarChart3, Settings } from 'lucide-react'
 import { Lead, LeadStatus } from '@/types'
 import { formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
-
-const mockLeads: Lead[] = [
-  {
-    id: '1',
-    firstName: 'John',
-    lastName: 'Smith',
-    email: 'john.smith@email.com',
-    phone: '(555) 123-4567',
-    source: 'Website',
-    status: LeadStatus.NEW,
-    assignedTo: 'Sales Rep 1',
-    notes: 'Interested in Class A Motorhome',
-    customFields: {},
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-15')
-  },
-  {
-    id: '2',
-    firstName: 'Sarah',
-    lastName: 'Johnson',
-    email: 'sarah.j@email.com',
-    phone: '(555) 987-6543',
-    source: 'Referral',
-    status: LeadStatus.QUALIFIED,
-    assignedTo: 'Sales Rep 2',
-    notes: 'Looking for travel trailer under $50k',
-    customFields: {},
-    createdAt: new Date('2024-01-14'),
-    updatedAt: new Date('2024-01-16')
-  }
-]
+import { useLeadManagement } from './hooks/useLeadManagement'
+import { PipelineDashboard } from './components/PipelineDashboard'
+import { LeadScoring } from './components/LeadScoring'
+import { ActivityTimeline } from './components/ActivityTimeline'
+import { LeadReminders } from './components/LeadReminders'
+import { LeadIntakeFormBuilder, DynamicLeadForm } from './components/LeadIntakeForm'
 
 function LeadsList() {
-  const [leads] = useState<Lead[]>(mockLeads)
+  const {
+    leads,
+    sources,
+    activities,
+    salesReps,
+    updateLeadStatus,
+    assignLead,
+    getActivitiesByLead,
+    getRemindersByUser,
+    getLeadScore
+  } = useLeadManagement()
+  
   const [searchTerm, setSearchTerm] = useState('')
-
-  const getStatusBadgeVariant = (status: LeadStatus) => {
-    switch (status) {
-      case LeadStatus.NEW:
-        return 'default'
-      case LeadStatus.CONTACTED:
-        return 'secondary'
-      case LeadStatus.QUALIFIED:
-        return 'default'
-      case LeadStatus.PROPOSAL:
-        return 'secondary'
-      case LeadStatus.NEGOTIATION:
-        return 'secondary'
-      case LeadStatus.CLOSED_WON:
-        return 'default'
-      case LeadStatus.CLOSED_LOST:
-        return 'destructive'
-      default:
-        return 'secondary'
-    }
-  }
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [sourceFilter, setSourceFilter] = useState<string>('all')
+  const [assigneeFilter, setAssigneeFilter] = useState<string>('all')
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
 
   const getStatusColor = (status: LeadStatus) => {
     switch (status) {
@@ -86,11 +57,122 @@ function LeadsList() {
     }
   }
 
-  const filteredLeads = leads.filter(lead =>
-    `${lead.firstName} ${lead.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lead.phone.includes(searchTerm)
-  )
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return 'text-green-600 bg-green-50'
+    if (score >= 60) return 'text-yellow-600 bg-yellow-50'
+    if (score >= 40) return 'text-orange-600 bg-orange-50'
+    return 'text-red-600 bg-red-50'
+  }
+
+  const filteredLeads = leads.filter(lead => {
+    const matchesSearch = 
+      `${lead.firstName} ${lead.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead.phone.includes(searchTerm)
+    
+    const matchesStatus = statusFilter === 'all' || lead.status === statusFilter
+    const matchesSource = sourceFilter === 'all' || lead.sourceId === sourceFilter
+    const matchesAssignee = assigneeFilter === 'all' || lead.assignedTo === assigneeFilter
+
+    return matchesSearch && matchesStatus && matchesSource && matchesAssignee
+  })
+
+  const handleStatusChange = async (leadId: string, newStatus: LeadStatus) => {
+    await updateLeadStatus(leadId, newStatus)
+  }
+
+  const handleAssignLead = async (leadId: string, repId: string) => {
+    await assignLead(leadId, repId)
+  }
+
+  if (selectedLead) {
+    const leadActivities = getActivitiesByLead(selectedLead.id)
+    const leadReminders = getRemindersByUser('current-user').filter(r => r.leadId === selectedLead.id)
+    const leadScore = getLeadScore(selectedLead.id)
+
+    return (
+      <div className="space-y-6">
+        {/* Lead Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <Button variant="outline" onClick={() => setSelectedLead(null)} className="mb-4">
+              ← Back to Leads
+            </Button>
+            <h1 className="ri-page-title">
+              {selectedLead.firstName} {selectedLead.lastName}
+            </h1>
+            <p className="ri-page-description">
+              Lead details and activity management
+            </p>
+          </div>
+          <div className="flex items-center space-x-3">
+            <Badge className={cn("ri-badge-status", getStatusColor(selectedLead.status))}>
+              {selectedLead.status.replace('_', ' ').toUpperCase()}
+            </Badge>
+            {selectedLead.score && (
+              <Badge className={cn("ri-badge-status", getScoreColor(selectedLead.score))}>
+                Score: {selectedLead.score}
+              </Badge>
+            )}
+          </div>
+        </div>
+
+        {/* Lead Details */}
+        <div className="grid gap-6 md:grid-cols-3">
+          <div className="md:col-span-2 space-y-6">
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle>Lead Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Email</label>
+                    <p className="font-medium">{selectedLead.email}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Phone</label>
+                    <p className="font-medium">{selectedLead.phone}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Source</label>
+                    <p className="font-medium">{selectedLead.source}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Assigned To</label>
+                    <p className="font-medium">
+                      {salesReps.find(rep => rep.id === selectedLead.assignedTo)?.name || 'Unassigned'}
+                    </p>
+                  </div>
+                  {Object.entries(selectedLead.customFields || {}).map(([key, value]) => (
+                    <div key={key}>
+                      <label className="text-sm font-medium text-muted-foreground capitalize">
+                        {key.replace(/([A-Z])/g, ' $1').trim()}
+                      </label>
+                      <p className="font-medium">{value}</p>
+                    </div>
+                  ))}
+                </div>
+                {selectedLead.notes && (
+                  <div className="mt-4">
+                    <label className="text-sm font-medium text-muted-foreground">Notes</label>
+                    <p className="mt-1 p-3 bg-muted/30 rounded-md">{selectedLead.notes}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <ActivityTimeline leadId={selectedLead.id} activities={leadActivities} />
+          </div>
+
+          <div className="space-y-6">
+            {leadScore && <LeadScoring score={leadScore} />}
+            <LeadReminders leadId={selectedLead.id} reminders={leadReminders} />
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">
@@ -100,7 +182,7 @@ function LeadsList() {
           <div>
             <h1 className="ri-page-title">CRM & Prospecting</h1>
             <p className="ri-page-description">
-              Manage leads and customer relationships
+              Manage leads, track activities, and monitor sales pipeline
             </p>
           </div>
           <Button className="shadow-sm">
@@ -143,7 +225,7 @@ function LeadsList() {
         <Card className="shadow-sm border-0 bg-gradient-to-br from-green-50 to-green-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-green-900">Qualified</CardTitle>
-            <Users className="h-4 w-4 text-green-600" />
+            <Target className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-900">
@@ -158,7 +240,7 @@ function LeadsList() {
         <Card className="shadow-sm border-0 bg-gradient-to-br from-purple-50 to-purple-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-purple-900">Conversion Rate</CardTitle>
-            <TrendingUp className="h-4 w-4 text-purple-600" />
+            <BarChart3 className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-900">24%</div>
@@ -170,81 +252,198 @@ function LeadsList() {
         </Card>
       </div>
 
-      {/* Search and Filters */}
-      <div className="flex gap-4">
-        <div className="ri-search-bar">
-          <Search className="ri-search-icon" />
-          <Input
-            placeholder="Search leads..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="ri-search-input shadow-sm"
-          />
-        </div>
-        <Button variant="outline" className="shadow-sm">
-          <Filter className="h-4 w-4 mr-2" />
-          Filter
-        </Button>
-      </div>
+      {/* Main Content Tabs */}
+      <Tabs defaultValue="leads" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="leads">Leads</TabsTrigger>
+          <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
+          <TabsTrigger value="forms">Intake Forms</TabsTrigger>
+          <TabsTrigger value="sources">Sources</TabsTrigger>
+        </TabsList>
 
-      {/* Leads Table */}
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-xl">Leads</CardTitle>
-          <CardDescription>
-            Manage your sales prospects and customer relationships
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {filteredLeads.map((lead) => (
-              <div key={lead.id} className="ri-table-row">
-                <div className="flex items-center space-x-4 flex-1">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="font-semibold text-foreground">
-                        {lead.firstName} {lead.lastName}
-                      </h3>
-                      <Badge 
-                        variant={getStatusBadgeVariant(lead.status)}
-                        className={cn("ri-badge-status", getStatusColor(lead.status))}
-                      >
-                        {lead.status.replace('_', ' ').toUpperCase()}
-                      </Badge>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-muted-foreground">
-                      <span className="flex items-center">
-                        <Mail className="h-3 w-3 mr-2 text-blue-500" />
-                        {lead.email}
-                      </span>
-                      <span className="flex items-center">
-                        <Phone className="h-3 w-3 mr-2 text-green-500" />
-                        {lead.phone}
-                      </span>
-                      <span className="flex items-center">
-                        <Calendar className="h-3 w-3 mr-2 text-purple-500" />
-                        {formatDate(lead.createdAt)}
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-2 bg-muted/30 p-2 rounded-md">
-                      {lead.notes}
-                    </p>
-                  </div>
-                </div>
-                <div className="ri-action-buttons">
-                  <Button variant="outline" size="sm" className="shadow-sm">
-                    <Phone className="h-3 w-3 mr-1" />
-                    Contact
-                  </Button>
-                  <Button variant="outline" size="sm" className="shadow-sm">
-                    Edit
-                  </Button>
-                </div>
-              </div>
-            ))}
+        <TabsContent value="leads" className="space-y-6">
+          {/* Filters */}
+          <div className="flex gap-4">
+            <div className="ri-search-bar">
+              <Search className="ri-search-icon" />
+              <Input
+                placeholder="Search leads..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="ri-search-input shadow-sm"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value={LeadStatus.NEW}>New</SelectItem>
+                <SelectItem value={LeadStatus.CONTACTED}>Contacted</SelectItem>
+                <SelectItem value={LeadStatus.QUALIFIED}>Qualified</SelectItem>
+                <SelectItem value={LeadStatus.PROPOSAL}>Proposal</SelectItem>
+                <SelectItem value={LeadStatus.NEGOTIATION}>Negotiation</SelectItem>
+                <SelectItem value={LeadStatus.CLOSED_WON}>Closed Won</SelectItem>
+                <SelectItem value={LeadStatus.CLOSED_LOST}>Closed Lost</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={sourceFilter} onValueChange={setSourceFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Source" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Sources</SelectItem>
+                {sources.map(source => (
+                  <SelectItem key={source.id} value={source.id}>
+                    {source.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Assignee" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Reps</SelectItem>
+                {salesReps.map(rep => (
+                  <SelectItem key={rep.id} value={rep.id}>
+                    {rep.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Leads Table */}
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-xl">Leads ({filteredLeads.length})</CardTitle>
+              <CardDescription>
+                Manage your sales prospects and customer relationships
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {filteredLeads.map((lead) => (
+                  <div key={lead.id} className="ri-table-row cursor-pointer" onClick={() => setSelectedLead(lead)}>
+                    <div className="flex items-center space-x-4 flex-1">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="font-semibold text-foreground">
+                            {lead.firstName} {lead.lastName}
+                          </h3>
+                          <Badge className={cn("ri-badge-status", getStatusColor(lead.status))}>
+                            {lead.status.replace('_', ' ').toUpperCase()}
+                          </Badge>
+                          {lead.score && (
+                            <Badge className={cn("ri-badge-status", getScoreColor(lead.score))}>
+                              {lead.score}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm text-muted-foreground">
+                          <span className="flex items-center">
+                            <Mail className="h-3 w-3 mr-2 text-blue-500" />
+                            {lead.email}
+                          </span>
+                          <span className="flex items-center">
+                            <Phone className="h-3 w-3 mr-2 text-green-500" />
+                            {lead.phone}
+                          </span>
+                          <span className="flex items-center">
+                            <Users className="h-3 w-3 mr-2 text-purple-500" />
+                            {salesReps.find(rep => rep.id === lead.assignedTo)?.name || 'Unassigned'}
+                          </span>
+                          <span className="flex items-center">
+                            <Calendar className="h-3 w-3 mr-2 text-orange-500" />
+                            {formatDate(lead.createdAt)}
+                          </span>
+                        </div>
+                        {lead.notes && (
+                          <p className="text-sm text-muted-foreground mt-2 bg-muted/30 p-2 rounded-md">
+                            {lead.notes}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="ri-action-buttons">
+                      <Button variant="outline" size="sm" className="shadow-sm" onClick={(e) => {
+                        e.stopPropagation()
+                        // Handle quick actions
+                      }}>
+                        <Phone className="h-3 w-3 mr-1" />
+                        Contact
+                      </Button>
+                      <Button variant="outline" size="sm" className="shadow-sm" onClick={(e) => {
+                        e.stopPropagation()
+                        setSelectedLead(lead)
+                      }}>
+                        View Details
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="pipeline">
+          <PipelineDashboard />
+        </TabsContent>
+
+        <TabsContent value="forms">
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle>Lead Intake Forms</CardTitle>
+              <CardDescription>
+                Create and manage dynamic lead capture forms
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8 text-muted-foreground">
+                Form builder coming soon...
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="sources">
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle>Lead Sources</CardTitle>
+              <CardDescription>
+                Manage and track lead source performance
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {sources.map(source => (
+                  <div key={source.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
+                    <div>
+                      <h3 className="font-semibold">{source.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Type: {source.type} • Conversion: {source.conversionRate}%
+                        {source.trackingCode && ` • Code: ${source.trackingCode}`}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Badge className={source.isActive ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-700 border-gray-200'}>
+                        {source.isActive ? 'Active' : 'Inactive'}
+                      </Badge>
+                      <Button variant="outline" size="sm">
+                        <Settings className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

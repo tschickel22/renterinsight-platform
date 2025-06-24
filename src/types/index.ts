@@ -81,9 +81,12 @@ export interface Lead {
   email: string
   phone: string
   source: string
+  sourceId?: string
   status: LeadStatus
   assignedTo?: string
   notes: string
+  score?: number
+  lastActivity?: Date
   customFields: Record<string, any>
   createdAt: Date
   updatedAt: Date
