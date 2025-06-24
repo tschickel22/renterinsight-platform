@@ -481,6 +481,30 @@ Best regards,
     return sequence
   }
 
+  const updateNurtureSequence = async (sequenceId: string, sequenceData: Partial<NurtureSequence>) => {
+    setSequences(prev => prev.map(s => 
+      s.id === sequenceId 
+        ? { ...s, ...sequenceData, updatedAt: new Date() }
+        : s
+    ))
+  }
+
+  const updateEmailTemplate = async (templateId: string, templateData: Partial<EmailTemplate>) => {
+    setEmailTemplates(prev => prev.map(t => 
+      t.id === templateId 
+        ? { ...t, ...templateData }
+        : t
+    ))
+  }
+
+  const updateSMSTemplate = async (templateId: string, templateData: Partial<SMSTemplate>) => {
+    setSmsTemplates(prev => prev.map(t => 
+      t.id === templateId 
+        ? { ...t, ...templateData }
+        : t
+    ))
+  }
+
   const getEnrollmentsByLead = (leadId: string) => {
     return enrollments.filter(e => e.leadId === leadId)
   }
@@ -528,6 +552,9 @@ Best regards,
     createEmailTemplate,
     createSMSTemplate,
     createNurtureSequence,
+    updateNurtureSequence,
+    updateEmailTemplate,
+    updateSMSTemplate,
     getEnrollmentsByLead,
     getCommunicationHistory,
     getAIInsightsByLead,

@@ -1,14 +1,13 @@
 import React, { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Plus, Play, Pause, Edit, Trash2, Mail, MessageSquare, Clock, Users, TrendingUp, Zap } from 'lucide-react'
 import { NurtureSequence, NurtureStep, EmailTemplate, SMSTemplate } from '../types'
 import { useNurturing } from '../hooks/useNurturing'
+import { TemplateEditor } from './TemplateEditor'
+import { SequenceEditor } from './SequenceEditor'
 import { cn } from '@/lib/utils'
 
 export function NurtureSequences() {
@@ -18,13 +17,18 @@ export function NurtureSequences() {
     smsTemplates,
     enrollments,
     createNurtureSequence,
+    updateNurtureSequence,
     createEmailTemplate,
-    createSMSTemplate
+    createSMSTemplate,
+    updateEmailTemplate,
+    updateSMSTemplate
   } = useNurturing()
 
   const [selectedSequence, setSelectedSequence] = useState<NurtureSequence | null>(null)
   const [showCreateSequence, setShowCreateSequence] = useState(false)
   const [showCreateTemplate, setShowCreateTemplate] = useState(false)
+  const [editingSequence, setEditingSequence] = useState<NurtureSequence | null>(null)
+  const [editingTemplate, setEditingTemplate] = useState<{ template: EmailTemplate | SMSTemplate, type: 'email' | 'sms' } | null>(null)
   const [templateType, setTemplateType] = useState<'email' | 'sms'>('email')
 
   const getStepIcon = (type: NurtureStep['type']) => {
@@ -65,8 +69,87 @@ export function NurtureSequences() {
     }
   }
 
+  const handleCreateTemplate = () => {
+    setShowCreateTemplate(true)
+    setEditingTemplate(null)
+  }
+
+  const handleEditTemplate = (template: EmailTemplate | SMSTemplate, type: 'email' | 'sms') => {
+    setEditingTemplate({ template, type })
+    setShowCreateTemplate(true)
+  }
+
+  const handleSaveTemplate = async (templateData: Partial<EmailTemplate | SMSTemplate>) => {
+    if (editingTemplate) {
+      // Update existing template
+      if (editingTemplate.type === 'email') {
+        await updateEmailTemplate(editingTemplate.template.id, templateData as Partial<EmailTemplate>)
+      } else {
+        await updateSMSTemplate(editingTemplate.template.id, templateData as Partial<SMSTemplate>)
+      }
+    } else {
+      // Create new template
+      if (templateType === 'email') {
+        await createEmailTemplate(templateData as Partial<EmailTemplate>)
+      } else {
+        await createSMSTemplate(templateData as Partial<SMSTemplate>)
+      }
+    }
+    setShowCreateTemplate(false)
+    setEditingTemplate(null)
+  }
+
+  const handleCreateSequence = () => {
+    setShowCreateSequence(true)
+    setEditingSequence(null)
+  }
+
+  const handleEditSequence = (sequence: NurtureSequence) => {
+    setEditingSequence(sequence)
+    setShowCreateSequence(true)
+  }
+
+  const handleSaveSequence = async (sequenceData: Partial<NurtureSequence>) => {
+    if (editingSequence) {
+      await updateNurtureSequence(editingSequence.id, sequenceData)
+    } else {
+      await createNurtureSequence(sequenceData)
+    }
+    setShowCreateSequence(false)
+    setEditingSequence(null)
+  }
+
+  const chatGPTSuggestions = generateChatGPTSuggestions(leadData)
+
   return (
     <div className="space-y-6">
+      {/* Template Editor Modal */}
+      {showCreateTemplate && (
+        <TemplateEditor
+          template={editingTemplate?.template}
+          type={editingTemplate?.type || templateType}
+          onSave={handleSaveTemplate}
+          onCancel={() => {
+            setShowCreateTemplate(false)
+            setEditingTemplate(null)
+          }}
+        />
+      )}
+
+      {/* Sequence Editor Modal */}
+      {showCreateSequence && (
+        <SequenceEditor
+          sequence={editingSequence}
+          emailTemplates={emailTemplates}
+          smsTemplates={smsTemplates}
+          onSave={handleSaveSequence}
+          onCancel={() => {
+            setShowCreateSequence(false)
+            setEditingSequence(null)
+          }}
+        />
+      )}
+
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Nurture Sequences</h2>
@@ -79,7 +162,7 @@ export function NurtureSequences() {
             <Plus className="h-4 w-4 mr-2" />
             Template
           </Button>
-          <Button onClick={() => setShowCreateSequence(true)}>
+          <Button onClick={handleCreateSequence}>
             <Plus className="h-4 w-4 mr-2" />
             Sequence
           </Button>
@@ -164,7 +247,7 @@ export function NurtureSequences() {
                     <CardDescription>{selectedSequence.description}</CardDescription>
                   </div>
                   <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => handleEditSequence(sequence)}>
                       <Edit className="h-4 w-4 mr-2" />
                       Edit
                     </Button>
@@ -279,7 +362,7 @@ export function NurtureSequences() {
                             {template.type}
                           </Badge>
                         </div>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={() => handleEditTemplate(template, 'email')}>
                           <Edit className="h-4 w-4" />
                         </Button>
                       </div>
@@ -327,7 +410,7 @@ export function NurtureSequences() {
                             {template.type}
                           </Badge>
                         </div>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={() => handleEditTemplate(template, 'sms')}>
                           <Edit className="h-4 w-4" />
                         </Button>
                       </div>
@@ -360,6 +443,18 @@ export function NurtureSequences() {
               </div>
             </TabsContent>
           </Tabs>
+
+          {/* Template Type Selection for New Templates */}
+          {showCreateTemplate && !editingTemplate && (
+            <div className="mb-4">
+              <Tabs value={templateType} onValueChange={(value: 'email' | 'sms') => setTemplateType(value)}>
+                <TabsList>
+                  <TabsTrigger value="email">Email Template</TabsTrigger>
+                  <TabsTrigger value="sms">SMS Template</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">
