@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Users, Plus, Search, Filter, Phone, Mail, Calendar, TrendingUp, Target, BarChart3, Settings } from 'lucide-react'
+import { Users, Plus, Search, Filter, Phone, Mail, Calendar, TrendingUp, Target, BarChart3, Settings, Brain, MessageSquare } from 'lucide-react'
 import { Lead, LeadStatus } from '@/types'
 import { formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
@@ -16,6 +16,9 @@ import { LeadScoring } from './components/LeadScoring'
 import { ActivityTimeline } from './components/ActivityTimeline'
 import { LeadReminders } from './components/LeadReminders'
 import { LeadIntakeFormBuilder, DynamicLeadForm } from './components/LeadIntakeForm'
+import { NurtureSequences } from './components/NurtureSequences'
+import { AIInsights } from './components/AIInsights'
+import { CommunicationCenter } from './components/CommunicationCenter'
 
 function LeadsList() {
   const {
@@ -117,59 +120,89 @@ function LeadsList() {
           </div>
         </div>
 
-        {/* Lead Details */}
-        <div className="grid gap-6 md:grid-cols-3">
-          <div className="md:col-span-2 space-y-6">
-            <Card className="shadow-sm">
-              <CardHeader>
-                <CardTitle>Lead Information</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Email</label>
-                    <p className="font-medium">{selectedLead.email}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Phone</label>
-                    <p className="font-medium">{selectedLead.phone}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Source</label>
-                    <p className="font-medium">{selectedLead.source}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Assigned To</label>
-                    <p className="font-medium">
-                      {salesReps.find(rep => rep.id === selectedLead.assignedTo)?.name || 'Unassigned'}
-                    </p>
-                  </div>
-                  {Object.entries(selectedLead.customFields || {}).map(([key, value]) => (
-                    <div key={key}>
-                      <label className="text-sm font-medium text-muted-foreground capitalize">
-                        {key.replace(/([A-Z])/g, ' $1').trim()}
-                      </label>
-                      <p className="font-medium">{value}</p>
+        {/* Lead Details Tabs */}
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="activity">Activity</TabsTrigger>
+            <TabsTrigger value="communication">Communication</TabsTrigger>
+            <TabsTrigger value="ai-insights">AI Insights</TabsTrigger>
+            <TabsTrigger value="nurturing">Nurturing</TabsTrigger>
+            <TabsTrigger value="reminders">Reminders</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-3">
+              <div className="md:col-span-2">
+                <Card className="shadow-sm">
+                  <CardHeader>
+                    <CardTitle>Lead Information</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">Email</label>
+                        <p className="font-medium">{selectedLead.email}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">Phone</label>
+                        <p className="font-medium">{selectedLead.phone}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">Source</label>
+                        <p className="font-medium">{selectedLead.source}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">Assigned To</label>
+                        <p className="font-medium">
+                          {salesReps.find(rep => rep.id === selectedLead.assignedTo)?.name || 'Unassigned'}
+                        </p>
+                      </div>
+                      {Object.entries(selectedLead.customFields || {}).map(([key, value]) => (
+                        <div key={key}>
+                          <label className="text-sm font-medium text-muted-foreground capitalize">
+                            {key.replace(/([A-Z])/g, ' $1').trim()}
+                          </label>
+                          <p className="font-medium">{value}</p>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-                {selectedLead.notes && (
-                  <div className="mt-4">
-                    <label className="text-sm font-medium text-muted-foreground">Notes</label>
-                    <p className="mt-1 p-3 bg-muted/30 rounded-md">{selectedLead.notes}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                    {selectedLead.notes && (
+                      <div className="mt-4">
+                        <label className="text-sm font-medium text-muted-foreground">Notes</label>
+                        <p className="mt-1 p-3 bg-muted/30 rounded-md">{selectedLead.notes}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
 
+              <div className="space-y-6">
+                {leadScore && <LeadScoring score={leadScore} />}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="activity">
             <ActivityTimeline leadId={selectedLead.id} activities={leadActivities} />
-          </div>
+          </TabsContent>
 
-          <div className="space-y-6">
-            {leadScore && <LeadScoring score={leadScore} />}
+          <TabsContent value="communication">
+            <CommunicationCenter leadId={selectedLead.id} leadData={selectedLead} />
+          </TabsContent>
+
+          <TabsContent value="ai-insights">
+            <AIInsights leadId={selectedLead.id} leadData={selectedLead} />
+          </TabsContent>
+
+          <TabsContent value="nurturing">
+            <NurtureSequences />
+          </TabsContent>
+
+          <TabsContent value="reminders">
             <LeadReminders leadId={selectedLead.id} reminders={leadReminders} />
-          </div>
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
     )
   }
@@ -182,7 +215,7 @@ function LeadsList() {
           <div>
             <h1 className="ri-page-title">CRM & Prospecting</h1>
             <p className="ri-page-description">
-              Manage leads, track activities, and monitor sales pipeline
+              Manage leads, track activities, and monitor sales pipeline with AI-powered insights
             </p>
           </div>
           <Button className="shadow-sm">
@@ -239,14 +272,14 @@ function LeadsList() {
         </Card>
         <Card className="shadow-sm border-0 bg-gradient-to-br from-purple-50 to-purple-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-purple-900">Conversion Rate</CardTitle>
-            <BarChart3 className="h-4 w-4 text-purple-600" />
+            <CardTitle className="text-sm font-medium text-purple-900">AI Insights</CardTitle>
+            <Brain className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-900">24%</div>
+            <div className="text-2xl font-bold text-purple-900">47</div>
             <p className="text-xs text-purple-600 flex items-center mt-1">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              +2.1% from last month
+              <Brain className="h-3 w-3 mr-1" />
+              Active recommendations
             </p>
           </CardContent>
         </Card>
@@ -254,9 +287,10 @@ function LeadsList() {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="leads" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="leads">Leads</TabsTrigger>
           <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
+          <TabsTrigger value="nurturing">Nurturing</TabsTrigger>
           <TabsTrigger value="forms">Intake Forms</TabsTrigger>
           <TabsTrigger value="sources">Sources</TabsTrigger>
         </TabsList>
@@ -321,7 +355,7 @@ function LeadsList() {
             <CardHeader>
               <CardTitle className="text-xl">Leads ({filteredLeads.length})</CardTitle>
               <CardDescription>
-                Manage your sales prospects and customer relationships
+                Manage your sales prospects with AI-powered insights and automated nurturing
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -342,6 +376,10 @@ function LeadsList() {
                               {lead.score}
                             </Badge>
                           )}
+                          <Badge variant="outline" className="text-xs">
+                            <Brain className="h-3 w-3 mr-1" />
+                            AI Ready
+                          </Badge>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm text-muted-foreground">
                           <span className="flex items-center">
@@ -373,14 +411,15 @@ function LeadsList() {
                         e.stopPropagation()
                         // Handle quick actions
                       }}>
-                        <Phone className="h-3 w-3 mr-1" />
+                        <MessageSquare className="h-3 w-3 mr-1" />
                         Contact
                       </Button>
                       <Button variant="outline" size="sm" className="shadow-sm" onClick={(e) => {
                         e.stopPropagation()
                         setSelectedLead(lead)
                       }}>
-                        View Details
+                        <Brain className="h-3 w-3 mr-1" />
+                        AI Insights
                       </Button>
                     </div>
                   </div>
@@ -392,6 +431,10 @@ function LeadsList() {
 
         <TabsContent value="pipeline">
           <PipelineDashboard />
+        </TabsContent>
+
+        <TabsContent value="nurturing">
+          <NurtureSequences />
         </TabsContent>
 
         <TabsContent value="forms">
