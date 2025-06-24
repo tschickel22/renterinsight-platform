@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { X, Save, Plus, Trash2, Download, Send, Calculator, Package, Percent, DollarSign, FileText } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { useInventoryManagement } from '@/modules/inventory-management/hooks/useInventoryManagement'
 import { formatCurrency } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 
@@ -123,6 +124,7 @@ const mockPricingRules: PricingRule[] = [
 
 export function QuoteBuilder({ quote, customerId, onSave, onCancel }: QuoteBuilderProps) {
   const { toast } = useToast()
+  const { getAvailableVehicles, getVehicleById } = useInventoryManagement()
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('items')
   
@@ -141,6 +143,7 @@ export function QuoteBuilder({ quote, customerId, onSave, onCancel }: QuoteBuild
 
   const [selectedProduct, setSelectedProduct] = useState<string>('')
   const [showAddItem, setShowAddItem] = useState(false)
+  const [selectedVehicle, setSelectedVehicle] = useState<string>('')
   const [newItem, setNewItem] = useState<Partial<QuoteLineItem>>({
     description: '',
     quantity: 1,
@@ -148,6 +151,9 @@ export function QuoteBuilder({ quote, customerId, onSave, onCancel }: QuoteBuild
     discount: 0,
     discountType: 'percentage'
   })
+
+  // Get available vehicles for selection
+  const availableVehicles = getAvailableVehicles()
 
   useEffect(() => {
     if (quote) {
@@ -216,6 +222,34 @@ export function QuoteBuilder({ quote, customerId, onSave, onCancel }: QuoteBuild
     })
     setSelectedProduct('')
     setShowAddItem(false)
+  }
+
+  const addVehicleToQuote = (vehicleId: string) => {
+    const vehicle = getVehicleById(vehicleId)
+    if (!vehicle) return
+
+    const item: QuoteLineItem = {
+      id: Math.random().toString(36).substr(2, 9),
+      productId: vehicle.id,
+      description: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
+      quantity: 1,
+      unitPrice: vehicle.price,
+      discount: 0,
+      discountType: 'percentage',
+      total: vehicle.price
+    }
+
+    setQuoteData(prev => ({
+      ...prev,
+      items: [...prev.items, item]
+    }))
+
+    setSelectedVehicle('')
+    
+    toast({
+      title: 'Vehicle Added',
+      description: `${vehicle.year} ${vehicle.make} ${vehicle.model} added to quote`,
+    })
   }
 
   const addProductToQuote = (productId: string) => {
@@ -455,10 +489,30 @@ Terms: ${quoteData.terms}
             <TabsContent value="items" className="space-y-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">Quote Line Items</h3>
-                <Button onClick={() => setShowAddItem(true)} size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Custom Item
-                </Button>
+                <div className="flex space-x-2">
+                  <Select value={selectedVehicle} onValueChange={setSelectedVehicle}>
+                    <SelectTrigger className="w-64">
+                      <SelectValue placeholder="Add vehicle from inventory" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableVehicles.map(vehicle => (
+                        <SelectItem key={vehicle.id} value={vehicle.id}>
+                          {vehicle.year} {vehicle.make} {vehicle.model} - {formatCurrency(vehicle.price)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedVehicle && (
+                    <Button onClick={() => addVehicleToQuote(selectedVehicle)} size="sm">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Vehicle
+                    </Button>
+                  )}
+                  <Button onClick={() => setShowAddItem(true)} size="sm" variant="outline">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Custom Item
+                  </Button>
+                </div>
               </div>
 
               {/* Add Custom Item Form */}
@@ -661,7 +715,62 @@ Terms: ${quoteData.terms}
 
             <TabsContent value="products" className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold mb-4">Available Products</h3>
+                <h3 className="text-lg font-semibold mb-4">Available Inventory & Products</h3>
+                
+                {/* Available Vehicles Section */}
+                <div className="mb-8">
+                  <h4 className="text-md font-semibold mb-3 text-blue-600">Available Vehicles</h4>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {availableVehicles.map(vehicle => (
+                      <Card key={vehicle.id} className="shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                        <CardContent className="pt-6">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <h4 className="font-semibold">{vehicle.year} {vehicle.make} {vehicle.model}</h4>
+                                <Badge className="bg-blue-50 text-blue-700 border-blue-200">
+                                  {vehicle.type.replace('_', ' ').toUpperCase()}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-muted-foreground mb-2">VIN: {vehicle.vin}</p>
+                              <p className="text-sm text-muted-foreground mb-2">Location: {vehicle.location}</p>
+                              <div className="text-lg font-bold text-primary">{formatCurrency(vehicle.price)}</div>
+                              
+                              {vehicle.features.length > 0 && (
+                                <div className="mt-3">
+                                  <div className="flex flex-wrap gap-1">
+                                    {vehicle.features.slice(0, 3).map((feature, index) => (
+                                      <Badge key={index} variant="outline" className="text-xs">
+                                        {feature}
+                                      </Badge>
+                                    ))}
+                                    {vehicle.features.length > 3 && (
+                                      <Badge variant="outline" className="text-xs">
+                                        +{vehicle.features.length - 3} more
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            <Button
+                              onClick={() => addVehicleToQuote(vehicle.id)}
+                              size="sm"
+                              className="ml-4"
+                            >
+                              <Plus className="h-4 w-4 mr-1" />
+                              Add
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Available Products Section */}
+                <div>
+                  <h4 className="text-md font-semibold mb-3 text-green-600">Available Products & Services</h4>
                 <div className="grid gap-4 md:grid-cols-2">
                   {mockProducts.map(product => (
                     <Card key={product.id} className="shadow-sm hover:shadow-md transition-shadow cursor-pointer">
@@ -706,6 +815,7 @@ Terms: ${quoteData.terms}
                       </CardContent>
                     </Card>
                   ))}
+                </div>
                 </div>
               </div>
             </TabsContent>

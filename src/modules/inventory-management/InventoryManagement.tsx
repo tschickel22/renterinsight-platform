@@ -7,47 +7,11 @@ import { Badge } from '@/components/ui/badge'
 import { Package, Plus, Search, Filter, Eye, Edit, Trash2, TrendingUp, DollarSign } from 'lucide-react'
 import { Vehicle, VehicleStatus, VehicleType } from '@/types'
 import { formatCurrency } from '@/lib/utils'
+import { useInventoryManagement } from './hooks/useInventoryManagement'
 import { cn } from '@/lib/utils'
 
-const mockVehicles: Vehicle[] = [
-  {
-    id: '1',
-    vin: '1FDXE4FS8KDC12345',
-    make: 'Forest River',
-    model: 'Georgetown',
-    year: 2024,
-    type: VehicleType.MOTORHOME,
-    status: VehicleStatus.AVAILABLE,
-    price: 125000,
-    cost: 95000,
-    location: 'Lot A-15',
-    features: ['Slide-out', 'Generator', 'Solar Panel'],
-    images: ['https://images.pexels.com/photos/1319515/pexels-photo-1319515.jpeg'],
-    customFields: {},
-    createdAt: new Date('2024-01-10'),
-    updatedAt: new Date('2024-01-15')
-  },
-  {
-    id: '2',
-    vin: '1FDXE4FS8KDC67890',
-    make: 'Winnebago',
-    model: 'View',
-    year: 2023,
-    type: VehicleType.RV,
-    status: VehicleStatus.RESERVED,
-    price: 89000,
-    cost: 72000,
-    location: 'Lot B-08',
-    features: ['Compact Design', 'Fuel Efficient'],
-    images: ['https://images.pexels.com/photos/2506923/pexels-photo-2506923.jpeg'],
-    customFields: {},
-    createdAt: new Date('2024-01-08'),
-    updatedAt: new Date('2024-01-12')
-  }
-]
-
 function InventoryList() {
-  const [vehicles] = useState<Vehicle[]>(mockVehicles)
+  const { vehicles } = useInventoryManagement()
   const [searchTerm, setSearchTerm] = useState('')
 
   const getStatusColor = (status: VehicleStatus) => {
