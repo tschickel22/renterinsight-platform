@@ -119,7 +119,6 @@ export function NurtureSequences() {
     setEditingSequence(null)
   }
 
-  const chatGPTSuggestions = generateChatGPTSuggestions(leadData)
 
   return (
     <div className="space-y-6">
