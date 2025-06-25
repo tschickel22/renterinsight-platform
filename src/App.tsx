@@ -17,6 +17,7 @@ import CRMSalesDeal from '@/modules/crm-sales-deal/CRMSalesDeal'
 import AgreementVault from '@/modules/agreement-vault/AgreementVault'
 import ServiceOps from '@/modules/service-ops/ServiceOps'
 import DeliveryTracker from '@/modules/delivery-tracker/DeliveryTracker'
+import PDIChecklist from '@/modules/pdi-checklist/PDIChecklist'
 import CommissionEngine from '@/modules/commission-engine/CommissionEngine'
 import ClientPortal from '@/modules/client-portal/ClientPortal'
 import InvoicePayments from '@/modules/invoice-payments/InvoicePayments'
@@ -46,6 +47,7 @@ function App() {
                           <Route path="/quotes/*" element={<QuoteBuilder />} />
                           <Route path="/agreements/*" element={<AgreementVault />} />
                           <Route path="/service/*" element={<ServiceOps />} />
+                          <Route path="/pdi/*" element={<PDIChecklist />} />
                           <Route path="/delivery/*" element={<DeliveryTracker />} />
                           <Route path="/commissions/*" element={<CommissionEngine />} />
                           <Route path="/portal/*" element={<ClientPortal />} />
