@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Vehicle, VehicleStatus, VehicleType } from '@/types'
+import { Vehicle, VehicleStatus, VehicleType, VehicleCategory } from '@/types'
 import { saveToLocalStorage, loadFromLocalStorage } from '@/lib/utils'
 
 export function useInventoryManagement() {
@@ -19,6 +19,7 @@ export function useInventoryManagement() {
         make: 'Forest River',
         model: 'Georgetown',
         year: 2024,
+        category: VehicleCategory.RV,
         type: VehicleType.MOTORHOME,
         status: VehicleStatus.AVAILABLE,
         price: 125000,
@@ -26,6 +27,7 @@ export function useInventoryManagement() {
         location: 'Lot A-15',
         features: ['Slide-out', 'Generator', 'Solar Panel'],
         images: ['https://images.pexels.com/photos/1319515/pexels-photo-1319515.jpeg'],
+        videos: [],
         customFields: {},
         createdAt: new Date('2024-01-10'),
         updatedAt: new Date('2024-01-15')
@@ -36,6 +38,7 @@ export function useInventoryManagement() {
         make: 'Winnebago',
         model: 'View',
         year: 2023,
+        category: VehicleCategory.RV,
         type: VehicleType.RV,
         status: VehicleStatus.AVAILABLE,
         price: 89000,
@@ -43,6 +46,7 @@ export function useInventoryManagement() {
         location: 'Lot B-08',
         features: ['Compact Design', 'Fuel Efficient'],
         images: ['https://images.pexels.com/photos/2506923/pexels-photo-2506923.jpeg'],
+        videos: [],
         customFields: {},
         createdAt: new Date('2024-01-08'),
         updatedAt: new Date('2024-01-12')
@@ -53,6 +57,7 @@ export function useInventoryManagement() {
         make: 'Jayco',
         model: 'Eagle',
         year: 2024,
+        category: VehicleCategory.RV,
         type: VehicleType.FIFTH_WHEEL,
         status: VehicleStatus.AVAILABLE,
         price: 75000,
@@ -60,6 +65,7 @@ export function useInventoryManagement() {
         location: 'Lot C-12',
         features: ['Bunk Beds', 'Outdoor Kitchen', 'Fireplace'],
         images: ['https://images.pexels.com/photos/1319515/pexels-photo-1319515.jpeg'],
+        videos: [],
         customFields: {},
         createdAt: new Date('2024-01-05'),
         updatedAt: new Date('2024-01-10')
@@ -70,6 +76,7 @@ export function useInventoryManagement() {
         make: 'Airstream',
         model: 'Flying Cloud',
         year: 2024,
+        category: VehicleCategory.RV,
         type: VehicleType.TRAVEL_TRAILER,
         status: VehicleStatus.AVAILABLE,
         price: 95000,
@@ -77,6 +84,7 @@ export function useInventoryManagement() {
         location: 'Lot D-05',
         features: ['Aluminum Construction', 'Premium Interior', 'Smart Technology'],
         images: ['https://images.pexels.com/photos/2506923/pexels-photo-2506923.jpeg'],
+        videos: [],
         customFields: {},
         createdAt: new Date('2024-01-03'),
         updatedAt: new Date('2024-01-08')
@@ -87,6 +95,7 @@ export function useInventoryManagement() {
         make: 'Grand Design',
         model: 'Momentum',
         year: 2023,
+        category: VehicleCategory.RV,
         type: VehicleType.TOY_HAULER,
         status: VehicleStatus.AVAILABLE,
         price: 110000,
@@ -94,6 +103,7 @@ export function useInventoryManagement() {
         location: 'Lot E-18',
         features: ['Garage Space', 'Fuel Station', 'Generator'],
         images: ['https://images.pexels.com/photos/1319515/pexels-photo-1319515.jpeg'],
+        videos: [],
         customFields: {},
         createdAt: new Date('2024-01-01'),
         updatedAt: new Date('2024-01-05')
@@ -115,6 +125,17 @@ export function useInventoryManagement() {
     return vehicles.find(vehicle => vehicle.id === id)
   }
 
+  const updateVehicle = async (vehicleId: string, updates: Partial<Vehicle>) => {
+    const updatedVehicles = vehicles.map(vehicle =>
+      vehicle.id === vehicleId
+        ? { ...vehicle, ...updates, updatedAt: new Date() }
+        : vehicle
+    )
+    setVehicles(updatedVehicles)
+    saveVehiclesToStorage(updatedVehicles)
+    return updatedVehicles.find(v => v.id === vehicleId)
+  }
+
   const updateVehicleStatus = async (vehicleId: string, status: VehicleStatus) => {
     const updatedVehicles = vehicles.map(vehicle =>
       vehicle.id === vehicleId
@@ -134,6 +155,7 @@ export function useInventoryManagement() {
         make: vehicleData.make || '',
         model: vehicleData.model || '',
         year: vehicleData.year || new Date().getFullYear(),
+        category: vehicleData.category || VehicleCategory.RV,
         type: vehicleData.type || VehicleType.RV,
         status: VehicleStatus.AVAILABLE,
         price: vehicleData.price || 0,
@@ -141,6 +163,7 @@ export function useInventoryManagement() {
         location: vehicleData.location || '',
         features: vehicleData.features || [],
         images: vehicleData.images || [],
+        videos: vehicleData.videos || [],
         customFields: vehicleData.customFields || {},
         createdAt: new Date(),
         updatedAt: new Date()
@@ -162,6 +185,8 @@ export function useInventoryManagement() {
     getAvailableVehicles,
     getVehicleById,
     updateVehicleStatus,
-    createVehicle
+    updateVehicle,
+    createVehicle,
+    saveVehiclesToStorage
   }
 }

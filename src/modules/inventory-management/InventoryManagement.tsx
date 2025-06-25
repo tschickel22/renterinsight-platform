@@ -4,15 +4,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Package, Plus, Search, Filter, Eye, Edit, Trash2, TrendingUp, DollarSign } from 'lucide-react'
-import { Vehicle, VehicleStatus, VehicleType } from '@/types'
+import { Package, Plus, Search, Filter, Eye, Edit, Trash2, TrendingUp, DollarSign, Video } from 'lucide-react'
+import { Vehicle, VehicleStatus, VehicleType, VehicleCategory } from '@/types'
 import { formatCurrency } from '@/lib/utils'
 import { useInventoryManagement } from './hooks/useInventoryManagement'
+import { VehicleForm } from './components/VehicleForm'
+import { CSVHandler } from './components/CSVHandler'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import { useToast } from '@/hooks/use-toast'
 
 function InventoryList() {
-  const { vehicles } = useInventoryManagement()
+  const { vehicles, createVehicle, updateVehicle, saveVehiclesToStorage } = useInventoryManagement()
+  const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [locationFilter, setLocationFilter] = useState<string>('all')
+  const [showVehicleForm, setShowVehicleForm] = useState(false)
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | undefined>(undefined)
 
   const getStatusColor = (status: VehicleStatus) => {
     switch (status) {
@@ -30,25 +39,153 @@ function InventoryList() {
         return 'bg-gray-50 text-gray-700 border-gray-200'
     }
   }
+  
+  const getCategoryLabel = (category: VehicleCategory) => {
+    switch (category) {
+      case VehicleCategory.RV:
+        return 'RV'
+      case VehicleCategory.MANUFACTURED_HOME:
+        return 'Manufactured Home'
+      default:
+        return category
+    }
+  }
 
   const filteredVehicles = vehicles.filter(vehicle =>
-    `${vehicle.make} ${vehicle.model}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    vehicle.vin.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    vehicle.year.toString().includes(searchTerm)
+    (
+      `${vehicle.make} ${vehicle.model}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vehicle.vin.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vehicle.year.toString().includes(searchTerm) ||
+      vehicle.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      Object.values(vehicle.customFields || {}).some(value => 
+        value && value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    ) &&
+    (statusFilter === 'all' || vehicle.status === statusFilter) &&
+    (locationFilter === 'all' || vehicle.location === locationFilter)
   )
+  
+  const uniqueLocations = Array.from(new Set(vehicles.map(v => v.location))).filter(Boolean)
+  
+  const handleAddVehicle = () => {
+    setSelectedVehicle(undefined)
+    setShowVehicleForm(true)
+  }
+  
+  const handleEditVehicle = (vehicle: Vehicle) => {
+    setSelectedVehicle(vehicle)
+    setShowVehicleForm(true)
+  }
+  
+  const handleSaveVehicle = async (vehicleData: Partial<Vehicle>) => {
+    try {
+      if (selectedVehicle) {
+        // Update existing vehicle
+        await updateVehicle(selectedVehicle.id, vehicleData)
+      } else {
+        // Create new vehicle
+        await createVehicle(vehicleData)
+      }
+      setShowVehicleForm(false)
+    } catch (error) {
+      console.error('Error saving vehicle:', error)
+      toast({
+        title: 'Error',
+        description: `Failed to ${selectedVehicle ? 'update' : 'create'} vehicle`,
+        variant: 'destructive'
+      })
+    }
+  }
+  
+  const handleImportCSV = async (importedVehicles: Partial<Vehicle>[]) => {
+    try {
+      const updatedVehicles = [...vehicles]
+      
+      for (const importedVehicle of importedVehicles) {
+        // Check if vehicle with this VIN already exists
+        const existingIndex = updatedVehicles.findIndex(v => v.vin === importedVehicle.vin)
+        
+        if (existingIndex >= 0) {
+          // Update existing vehicle
+          updatedVehicles[existingIndex] = {
+            ...updatedVehicles[existingIndex],
+            ...importedVehicle,
+            updatedAt: new Date()
+          }
+        } else {
+          // Create new vehicle
+          const newVehicle: Vehicle = {
+            id: Math.random().toString(36).substr(2, 9),
+            vin: importedVehicle.vin || '',
+            make: importedVehicle.make || '',
+            model: importedVehicle.model || '',
+            year: importedVehicle.year || new Date().getFullYear(),
+            category: importedVehicle.category || VehicleCategory.RV,
+            type: importedVehicle.type || VehicleType.RV,
+            status: importedVehicle.status || VehicleStatus.AVAILABLE,
+            price: importedVehicle.price || 0,
+            cost: importedVehicle.cost || 0,
+            location: importedVehicle.location || '',
+            features: importedVehicle.features || [],
+            images: importedVehicle.images || [],
+            videos: importedVehicle.videos || [],
+            customFields: importedVehicle.customFields || {},
+            createdAt: new Date(),
+            updatedAt: new Date()
+          }
+          updatedVehicles.push(newVehicle)
+        }
+      }
+      
+      saveVehiclesToStorage(updatedVehicles)
+    } catch (error) {
+      console.error('Error importing vehicles:', error)
+      toast({
+        title: 'Import Error',
+        description: 'Failed to import vehicles from CSV',
+        variant: 'destructive'
+      })
+    }
+  }
+  
+  const handleExportCSV = () => {
+    // This is just a callback for after export completes
+    // The actual export logic is in the CSVHandler component
+  }
+  
+  const handleDeleteVehicle = (vehicleId: string) => {
+    if (window.confirm('Are you sure you want to delete this vehicle?')) {
+      const updatedVehicles = vehicles.filter(v => v.id !== vehicleId)
+      saveVehiclesToStorage(updatedVehicles)
+      
+      toast({
+        title: 'Vehicle Deleted',
+        description: 'Vehicle has been removed from inventory',
+      })
+    }
+  }
 
   return (
     <div className="space-y-8">
+      {/* Vehicle Form Modal */}
+      {showVehicleForm && (
+        <VehicleForm
+          vehicle={selectedVehicle}
+          onSave={handleSaveVehicle}
+          onCancel={() => setShowVehicleForm(false)}
+        />
+      )}
+
       {/* Page Header */}
       <div className="ri-page-header">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="ri-page-title">Inventory Management</h1>
             <p className="ri-page-description">
-              Manage your RV and motorhome inventory
+              Manage your RV and manufactured home inventory
             </p>
           </div>
-          <Button className="shadow-sm">
+          <Button className="shadow-sm" onClick={handleAddVehicle}>
             <Plus className="h-4 w-4 mr-2" />
             Add Vehicle
           </Button>
@@ -118,7 +255,7 @@ function InventoryList() {
       </div>
 
       {/* Search and Filters */}
-      <div className="flex gap-4">
+      <div className="flex flex-wrap gap-4">
         <div className="ri-search-bar">
           <Search className="ri-search-icon" />
           <Input
@@ -128,10 +265,37 @@ function InventoryList() {
             className="ri-search-input shadow-sm"
           />
         </div>
-        <Button variant="outline" className="shadow-sm">
-          <Filter className="h-4 w-4 mr-2" />
-          Filter
-        </Button>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value={VehicleStatus.AVAILABLE}>Available</SelectItem>
+            <SelectItem value={VehicleStatus.RESERVED}>Reserved</SelectItem>
+            <SelectItem value={VehicleStatus.SOLD}>Sold</SelectItem>
+            <SelectItem value={VehicleStatus.SERVICE}>In Service</SelectItem>
+            <SelectItem value={VehicleStatus.DELIVERED}>Delivered</SelectItem>
+          </SelectContent>
+        </Select>
+        
+        <Select value={locationFilter} onValueChange={setLocationFilter}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Location" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Locations</SelectItem>
+            {uniqueLocations.map(location => (
+              <SelectItem key={location} value={location}>{location}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        
+        <CSVHandler 
+          vehicles={vehicles}
+          onImport={handleImportCSV}
+          onExport={handleExportCSV}
+        />
       </div>
 
       {/* Inventory Grid */}
@@ -173,11 +337,19 @@ function InventoryList() {
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
                     <span className="text-muted-foreground">Location:</span>
-                    <div className="font-medium">{vehicle.location}</div>
+                      {vehicle.year} {vehicle.make} {vehicle.model} 
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Type:</span>
-                    <div className="font-medium">{vehicle.type.replace('_', ' ').toUpperCase()}</div>
+                    <span className="text-muted-foreground">Status:</span>
+                    <div className="font-medium">{vehicle.status.replace('_', ' ').toUpperCase()}</div>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <Badge variant="outline" className="text-xs">
+                        {getCategoryLabel(vehicle.category)}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {vehicle.type.replace('_', ' ').toUpperCase()}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
                 {vehicle.features.length > 0 && (
@@ -196,17 +368,35 @@ function InventoryList() {
                     </div>
                   </div>
                 )}
+                {vehicle.videos && vehicle.videos.length > 0 && (
+                  <div className="pt-2">
+                    <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                      <Video className="h-3 w-3" />
+                      <span>{vehicle.videos.length} video{vehicle.videos.length !== 1 ? 's' : ''}</span>
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="flex justify-between mt-6 pt-4 border-t gap-2">
                 <Button variant="outline" size="sm" className="flex-1 shadow-sm">
                   <Eye className="h-3 w-3 mr-1" />
                   View
                 </Button>
-                <Button variant="outline" size="sm" className="flex-1 shadow-sm">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1 shadow-sm"
+                  onClick={() => handleEditVehicle(vehicle)}
+                >
                   <Edit className="h-3 w-3 mr-1" />
                   Edit
                 </Button>
-                <Button variant="outline" size="sm" className="shadow-sm">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="shadow-sm"
+                  onClick={() => handleDeleteVehicle(vehicle.id)}
+                >
                   <Trash2 className="h-3 w-3" />
                 </Button>
               </div>
@@ -214,6 +404,14 @@ function InventoryList() {
           </Card>
         ))}
       </div>
+      
+      {filteredVehicles.length === 0 && (
+        <div className="text-center py-12 text-muted-foreground">
+          <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+          <p>No vehicles found</p>
+          <p className="text-sm">Try adjusting your search or filters</p>
+        </div>
+      )}
     </div>
   )
 }
