@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { X, Save, Plus, Trash2, DollarSign, Calendar, User, Target, Package } from 'lucide-react'
 import { Deal, DealStage, DealStatus, DealPriority, DealProduct } from '../types'
+import { NewLeadForm } from '@/modules/crm-prospecting/components/NewLeadForm'
 import { formatCurrency } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
@@ -47,6 +48,7 @@ export function DealForm({ deal, customers, salesReps, territories, products, on
   })
 
   const [showAddProduct, setShowAddProduct] = useState(false)
+  const [showNewCustomerForm, setShowNewCustomerForm] = useState(false)
   const [newProduct, setNewProduct] = useState<Partial<DealProduct>>({
     productId: '',
     productName: '',
@@ -191,8 +193,31 @@ export function DealForm({ deal, customers, salesReps, territories, products, on
     }
   }
 
+  const handleNewCustomerSuccess = (newCustomer: any) => {
+    // Update the customer dropdown with the new customer and select it
+    setFormData(prev => ({
+      ...prev,
+      customerId: newCustomer.id,
+      customerName: `${newCustomer.firstName} ${newCustomer.lastName}`
+    }))
+    setShowNewCustomerForm(false)
+    
+    toast({
+      title: 'Customer Added',
+      description: `${newCustomer.firstName} ${newCustomer.lastName} has been added as a customer.`,
+    })
+  }
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      {/* New Customer Form Modal */}
+      {showNewCustomerForm && (
+        <NewLeadForm
+          onClose={() => setShowNewCustomerForm(false)}
+          onSuccess={handleNewCustomerSuccess}
+        />
+      )}
+      
       <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -230,13 +255,25 @@ export function DealForm({ deal, customers, salesReps, territories, products, on
                 <div>
                   <Label htmlFor="customerId">Customer *</Label>
                   <Select 
-                    value={formData.customerId} 
+                    value={formData.customerId || ''} 
                     onValueChange={(value) => setFormData(prev => ({ ...prev, customerId: value }))}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select customer" />
                     </SelectTrigger>
                     <SelectContent>
+                      <div className="px-2 py-1.5">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full justify-start" 
+                          onClick={() => setShowNewCustomerForm(true)}
+                        >
+                          <Plus className="h-3.5 w-3.5 mr-2" />
+                          Add New Customer
+                        </Button>
+                      </div>
+                      <div className="px-2 py-1 border-t"></div>
                       {customers.map(customer => (
                         <SelectItem key={customer.id} value={customer.id}>
                           {customer.firstName} {customer.lastName}
