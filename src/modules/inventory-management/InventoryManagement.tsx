@@ -11,6 +11,7 @@ import { useInventoryManagement } from './hooks/useInventoryManagement'
 import { VehicleForm } from './components/VehicleForm'
 import { CSVHandler } from './components/CSVHandler'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
 
@@ -146,35 +147,37 @@ export default function InventoryManagement() {
   const {
     vehicles,
     loading,
-    searchTerm,
-    setSearchTerm,
-    statusFilter,
-    setStatusFilter,
-    typeFilter,
-    setTypeFilter,
-    categoryFilter,
-    setCategoryFilter,
     addVehicle,
     updateVehicle,
     deleteVehicle,
     refreshVehicles
   } = useInventoryManagement()
 
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [typeFilter, setTypeFilter] = useState<string>('all')
+  const [categoryFilter, setCategoryFilter] = useState<string>('all')
+  const [locationFilter, setLocationFilter] = useState<string>('all')
   const [showForm, setShowForm] = useState(false)
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null)
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
   const [showCSVHandler, setShowCSVHandler] = useState(false)
 
-  const filteredVehicles = vehicles.filter(vehicle => {
-    const matchesSearch = vehicle.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         vehicle.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         vehicle.vin.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === 'all' || vehicle.status === statusFilter
-    const matchesType = typeFilter === 'all' || vehicle.type === typeFilter
-    const matchesCategory = categoryFilter === 'all' || vehicle.category === categoryFilter
-    
-    return matchesSearch && matchesStatus && matchesType && matchesCategory
-  })
+  const filteredVehicles = vehicles.filter(vehicle =>
+    (
+      `${vehicle.make || ''} ${vehicle.model || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (vehicle.vin || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vehicle.year?.toString().includes(searchTerm) ||
+      (vehicle.location || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      Object.values(vehicle.customFields || {}).some(value => 
+        value?.toString().toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    ) &&
+    (statusFilter === 'all' || vehicle.status === statusFilter) &&
+    (typeFilter === 'all' || vehicle.type === typeFilter) &&
+    (categoryFilter === 'all' || vehicle.category === categoryFilter) &&
+    (locationFilter === 'all' || (vehicle.location || '') === locationFilter)
+  )
 
   const handleAddVehicle = async (vehicleData: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
@@ -390,6 +393,17 @@ export default function InventoryManagement() {
                 <SelectItem value={VehicleCategory.MANUFACTURED_HOME}>Manufactured Home</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={locationFilter} onValueChange={setLocationFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Location" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Locations</SelectItem>
+                {Array.from(new Set(vehicles.map(v => v.location).filter(Boolean))).map(location => (
+                  <SelectItem key={location} value={location}>{location}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
@@ -529,6 +543,7 @@ export default function InventoryManagement() {
       {/* CSV Handler Modal */}
       {showCSVHandler && (
         <CSVHandler
+          vehicles={vehicles}
           onClose={() => setShowCSVHandler(false)}
           onImport={refreshVehicles}
         />
