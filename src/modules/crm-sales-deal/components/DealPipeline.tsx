@@ -7,6 +7,7 @@ import { Deal, DealStage, DealStatus } from '../types'
 import { formatCurrency } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { Calendar, DollarSign, User, TrendingUp, AlertCircle } from 'lucide-react'
+import { DropResult, DraggableLocation } from 'react-beautiful-dnd'
 
 const stageConfig = [
   { stage: DealStage.PROSPECTING, name: 'Prospecting', color: 'bg-blue-500' },
@@ -63,7 +64,7 @@ export function DealPipeline({ deals, onDealStageChange, onDealClick }: DealPipe
     return new Date(deal.expectedCloseDate) < new Date() && deal.status === DealStatus.ACTIVE
   }
 
-  const onDragEnd = (result) => {
+  const onDragEnd = (result: DropResult) => {
     setDraggedDeal(null)
     
     // If there's no destination or the item was dropped back in its original position, do nothing
@@ -76,7 +77,7 @@ export function DealPipeline({ deals, onDealStageChange, onDealClick }: DealPipe
     onDealStageChange(dealId, newStage)
   }
 
-  const onDragStart = (start: any) => {
+  const onDragStart = (start: { draggableId: string }) => {
     setDraggedDeal(start.draggableId)
   }
 

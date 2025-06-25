@@ -20,7 +20,7 @@ import { TerritoryManagement } from './components/TerritoryManagement'
 import { ApprovalWorkflows } from './components/ApprovalWorkflows'
 import { DealForm } from './components/DealForm'
 import { useLeadManagement } from '@/modules/crm-prospecting/hooks/useLeadManagement'
-import { useInventoryManagement } from '@/modules/inventory-management/hooks/useInventoryManagement.ts'
+import { useInventoryManagement } from '@/modules/inventory-management/hooks/useInventoryManagement'
 
 function DealsList() {
   const {
