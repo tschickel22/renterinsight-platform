@@ -140,3 +140,399 @@ function VehicleDetail({ vehicle, onClose }: VehicleDetailProps) {
     </div>
   )
 }
+
+export default function InventoryManagement() {
+  const { toast } = useToast()
+  const {
+    vehicles,
+    loading,
+    searchTerm,
+    setSearchTerm,
+    statusFilter,
+    setStatusFilter,
+    typeFilter,
+    setTypeFilter,
+    categoryFilter,
+    setCategoryFilter,
+    addVehicle,
+    updateVehicle,
+    deleteVehicle,
+    refreshVehicles
+  } = useInventoryManagement()
+
+  const [showForm, setShowForm] = useState(false)
+  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null)
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
+  const [showCSVHandler, setShowCSVHandler] = useState(false)
+
+  const filteredVehicles = vehicles.filter(vehicle => {
+    const matchesSearch = vehicle.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         vehicle.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         vehicle.vin.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = statusFilter === 'all' || vehicle.status === statusFilter
+    const matchesType = typeFilter === 'all' || vehicle.type === typeFilter
+    const matchesCategory = categoryFilter === 'all' || vehicle.category === categoryFilter
+    
+    return matchesSearch && matchesStatus && matchesType && matchesCategory
+  })
+
+  const handleAddVehicle = async (vehicleData: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      await addVehicle(vehicleData)
+      setShowForm(false)
+      toast({
+        title: "Success",
+        description: "Vehicle added successfully",
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add vehicle",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleUpdateVehicle = async (vehicleData: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (!editingVehicle) return
+    
+    try {
+      await updateVehicle(editingVehicle.id, vehicleData)
+      setEditingVehicle(null)
+      setShowForm(false)
+      toast({
+        title: "Success",
+        description: "Vehicle updated successfully",
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update vehicle",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleDeleteVehicle = async (vehicleId: string) => {
+    try {
+      await deleteVehicle(vehicleId)
+      toast({
+        title: "Success",
+        description: "Vehicle deleted successfully",
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete vehicle",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const getStatusColor = (status: VehicleStatus) => {
+    switch (status) {
+      case VehicleStatus.AVAILABLE:
+        return 'bg-green-50 text-green-700 border-green-200'
+      case VehicleStatus.RESERVED:
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200'
+      case VehicleStatus.SOLD:
+        return 'bg-blue-50 text-blue-700 border-blue-200'
+      case VehicleStatus.SERVICE:
+        return 'bg-orange-50 text-orange-700 border-orange-200'
+      case VehicleStatus.DELIVERED:
+        return 'bg-purple-50 text-purple-700 border-purple-200'
+      default:
+        return 'bg-gray-50 text-gray-700 border-gray-200'
+    }
+  }
+
+  const getCategoryLabel = (category: VehicleCategory) => {
+    switch (category) {
+      case VehicleCategory.RV:
+        return 'RV'
+      case VehicleCategory.MANUFACTURED_HOME:
+        return 'Manufactured Home'
+      default:
+        return category
+    }
+  }
+
+  const totalValue = vehicles.reduce((sum, vehicle) => sum + vehicle.price, 0)
+  const availableCount = vehicles.filter(v => v.status === VehicleStatus.AVAILABLE).length
+  const soldCount = vehicles.filter(v => v.status === VehicleStatus.SOLD).length
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Inventory Management</h1>
+          <p className="text-muted-foreground">
+            Manage your vehicle inventory, track status, and monitor performance
+          </p>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            onClick={() => setShowCSVHandler(true)}
+          >
+            Import/Export
+          </Button>
+          <Button onClick={() => setShowForm(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Vehicle
+          </Button>
+        </div>
+      </div>
+
+      {/* Metrics Cards */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Inventory</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{vehicles.length}</div>
+            <p className="text-xs text-muted-foreground">
+              vehicles in system
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Available</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{availableCount}</div>
+            <p className="text-xs text-muted-foreground">
+              ready for sale
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Sold</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{soldCount}</div>
+            <p className="text-xs text-muted-foreground">
+              this period
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Value</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(totalValue)}</div>
+            <p className="text-xs text-muted-foreground">
+              inventory value
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Search & Filter</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by make, model, or VIN..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value={VehicleStatus.AVAILABLE}>Available</SelectItem>
+                <SelectItem value={VehicleStatus.RESERVED}>Reserved</SelectItem>
+                <SelectItem value={VehicleStatus.SOLD}>Sold</SelectItem>
+                <SelectItem value={VehicleStatus.SERVICE}>Service</SelectItem>
+                <SelectItem value={VehicleStatus.DELIVERED}>Delivered</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value={VehicleType.RV}>RV</SelectItem>
+                <SelectItem value={VehicleType.MOTORHOME}>Motorhome</SelectItem>
+                <SelectItem value={VehicleType.TRAVEL_TRAILER}>Travel Trailer</SelectItem>
+                <SelectItem value={VehicleType.FIFTH_WHEEL}>Fifth Wheel</SelectItem>
+                <SelectItem value={VehicleType.TOY_HAULER}>Toy Hauler</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value={VehicleCategory.RV}>RV</SelectItem>
+                <SelectItem value={VehicleCategory.MANUFACTURED_HOME}>Manufactured Home</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Vehicle Grid */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {loading ? (
+          Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <div className="aspect-video bg-muted" />
+              <CardContent className="p-4">
+                <div className="space-y-2">
+                  <div className="h-4 bg-muted rounded" />
+                  <div className="h-4 bg-muted rounded w-2/3" />
+                  <div className="h-4 bg-muted rounded w-1/2" />
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : filteredVehicles.length === 0 ? (
+          <Card className="col-span-full">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Package className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No vehicles found</h3>
+              <p className="text-muted-foreground text-center mb-4">
+                {vehicles.length === 0 
+                  ? "Get started by adding your first vehicle to the inventory."
+                  : "Try adjusting your search or filter criteria."
+                }
+              </p>
+              {vehicles.length === 0 && (
+                <Button onClick={() => setShowForm(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Vehicle
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          filteredVehicles.map((vehicle) => (
+            <Card key={vehicle.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+              <div className="aspect-video bg-muted relative overflow-hidden">
+                {vehicle.images.length > 0 ? (
+                  <img
+                    src={vehicle.images[0]}
+                    alt={`${vehicle.make} ${vehicle.model}`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Package className="h-12 w-12 text-muted-foreground" />
+                  </div>
+                )}
+                <div className="absolute top-2 right-2">
+                  <Badge className={cn("ri-badge-status", getStatusColor(vehicle.status))}>
+                    {vehicle.status.toUpperCase()}
+                  </Badge>
+                </div>
+              </div>
+              <CardContent className="p-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-lg">
+                      {vehicle.year} {vehicle.make} {vehicle.model}
+                    </h3>
+                  </div>
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <span>VIN: {vehicle.vin}</span>
+                    <Badge variant="outline">{getCategoryLabel(vehicle.category)}</Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-primary text-lg">
+                      {formatCurrency(vehicle.price)}
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      Cost: {formatCurrency(vehicle.cost)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between pt-2">
+                    <div className="flex items-center space-x-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedVehicle(vehicle)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setEditingVehicle(vehicle)
+                          setShowForm(true)
+                        }}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteVehicle(vehicle.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {vehicle.location}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+
+      {/* Vehicle Form Modal */}
+      {showForm && (
+        <VehicleForm
+          vehicle={editingVehicle}
+          onSubmit={editingVehicle ? handleUpdateVehicle : handleAddVehicle}
+          onCancel={() => {
+            setShowForm(false)
+            setEditingVehicle(null)
+          }}
+        />
+      )}
+
+      {/* Vehicle Detail Modal */}
+      {selectedVehicle && (
+        <VehicleDetail
+          vehicle={selectedVehicle}
+          onClose={() => setSelectedVehicle(null)}
+        />
+      )}
+
+      {/* CSV Handler Modal */}
+      {showCSVHandler && (
+        <CSVHandler
+          onClose={() => setShowCSVHandler(false)}
+          onImport={refreshVehicles}
+        />
+      )}
+    </div>
+  )
+}
