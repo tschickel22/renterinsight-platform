@@ -13,6 +13,7 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import CRMProspecting from '@/modules/crm-prospecting/CRMProspecting'
 import InventoryManagement from '@/modules/inventory-management/InventoryManagement'
 import QuoteBuilder from '@/modules/quote-builder/QuoteBuilder'
+import FinanceModule from '@/modules/finance/FinanceModule'
 import CRMSalesDeal from '@/modules/crm-sales-deal/CRMSalesDeal'
 import AgreementVault from '@/modules/agreement-vault/AgreementVault'
 import ServiceOps from '@/modules/service-ops/ServiceOps'
@@ -44,6 +45,7 @@ function App() {
                           <Route path="/crm/*" element={<CRMProspecting />} />
                           <Route path="/inventory/*" element={<InventoryManagement />} />
                           <Route path="/deals/*" element={<CRMSalesDeal />} />
+                          <Route path="/finance/*" element={<FinanceModule />} />
                           <Route path="/quotes/*" element={<QuoteBuilder />} />
                           <Route path="/agreements/*" element={<AgreementVault />} />
                           <Route path="/service/*" element={<ServiceOps />} />
