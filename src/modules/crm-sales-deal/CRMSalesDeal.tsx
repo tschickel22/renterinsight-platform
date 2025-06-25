@@ -86,7 +86,7 @@ function DealsList() {
       if (deal) {
         toast({
           title: 'Deal Stage Updated',
-          description: `${deal.name} moved to ${newStage.replace('_', ' ').toLowerCase()}`,
+          description: `${deal.name} moved to ${newStage.replace('_', ' ')}`,
         })
       }
     } catch (error) {

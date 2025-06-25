@@ -71,7 +71,7 @@ export function DealPipeline({ deals, onDealStageChange, onDealClick }: DealPipe
     if (!result.destination || result.source.droppableId === result.destination.droppableId) return
 
     const dealId = result.draggableId
-    const newStage = result.destination.droppableId
+    const newStage = result.destination.droppableId as DealStage
 
     // Call the callback to update the deal stage
     onDealStageChange(dealId, newStage)
