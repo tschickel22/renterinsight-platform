@@ -12,6 +12,24 @@ import { NewLoanForm } from './components/NewLoanForm'
 import { formatCurrency } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
 
+interface Loan {
+  id: string;
+  customerId: string;
+  customerName: string;
+  vehicleId: string;
+  vehicleInfo: string;
+  amount: number;
+  downPayment: number;
+  term: number;
+  rate: number;
+  paymentAmount: number;
+  startDate: Date;
+  status: string;
+  remainingBalance: number;
+  nextPaymentDate: Date;
+  createdAt: Date;
+}
+
 const mockLoans = [
   {
     id: '1',
@@ -96,11 +114,6 @@ const mockLoans = [
   }
 
 
-function FinanceDashboard() {
-  const [loans] = useState(mockLoans)
-  const [setLoans] = useState(mockLoans)
-  const [activeTab, setActiveTab] = useState('dashboard')
-  const [searchTerm, setSearchTerm] = useState('')
   const [showCalculator, setShowCalculator] = useState(false)
   const [showNewLoanForm, setShowNewLoanForm] = useState(false)
   const [selectedLoan, setSelectedLoan] = useState(null)
@@ -108,11 +121,15 @@ function FinanceDashboard() {
 
   const totalLoans = loans.length
   const totalPortfolio = loans.reduce((sum, loan) => sum + loan.remainingBalance, 0)
+  const [activeTab, setActiveTab] = useState('dashboard')
+  const [searchTerm, setSearchTerm] = useState('')
+  
+  const handleCreateLoan = () => setShowNewLoanForm(true)
   const avgInterestRate = loans.reduce((sum, loan) => sum + loan.rate, 0) / loans.length
   const monthlyRevenue = loans.reduce((sum, loan) => sum + loan.paymentAmount, 0)
 
-  const handleCreateLoan = () => {
-    setShowNewLoanForm(true)
+function FinanceDashboard() {
+  const [loans, setLoans] = useState<Loan[]>(mockLoans)
   }
 
   const handleSaveLoan = async (loanData: any) => {
@@ -168,7 +185,7 @@ function FinanceDashboard() {
       {/* New Loan Form Modal */}
       {showNewLoanForm && (
         <NewLoanForm
-          onSave={handleSaveLoan}
+          onSave={(loanData) => handleSaveLoan(loanData)}
           onCancel={() => setShowNewLoanForm(false)}
         />
       )}
@@ -183,7 +200,7 @@ function FinanceDashboard() {
             </p>
           </div>
           <div className="flex space-x-2">  
-            <Button 
+            <Button
               variant="outline" 
               className="shadow-sm"
               onClick={() => setShowCalculator(true)}

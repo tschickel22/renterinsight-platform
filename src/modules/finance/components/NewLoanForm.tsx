@@ -200,13 +200,13 @@ export function NewLoanForm({ onSave, onCancel }: NewLoanFormProps) {
                   </div>
                   
                   <div>
-                    <Label htmlFor="vehicleId">Vehicle *</Label>
+                    <Label htmlFor="vehicleId">Home/Vehicle *</Label>
                     <Select 
                       value={formData.vehicleId} 
                       onValueChange={(value) => setFormData(prev => ({ ...prev, vehicleId: value }))}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select vehicle" />
+                        <SelectValue placeholder="Select home/vehicle" />
                       </SelectTrigger>
                       <SelectContent>
                         {availableVehicles.map(vehicle => (
