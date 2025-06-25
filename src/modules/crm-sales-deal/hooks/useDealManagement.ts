@@ -217,9 +217,13 @@ export function useDealManagement() {
   const updateDealStage = async (dealId: string, newStage: DealStage, notes?: string) => {
     const deal = deals.find(d => d.id === dealId)
     if (!deal) return
-
+    
     const oldStage = deal.stage
     const probability = getStageProbability(newStage)
+    const status = newStage === DealStage.CLOSED_WON ? DealStatus.WON : 
+                   newStage === DealStage.CLOSED_LOST ? DealStatus.LOST : 
+                   DealStatus.ACTIVE
+    const actualCloseDate = (newStage === DealStage.CLOSED_WON || newStage === DealStage.CLOSED_LOST) ? new Date() : undefined
     
     // Update deal
     const updatedDeals = deals.map(d => 
@@ -228,10 +232,8 @@ export function useDealManagement() {
             ...d, 
             stage: newStage, 
             probability,
-            status: newStage === DealStage.CLOSED_WON ? DealStatus.WON : 
-                   newStage === DealStage.CLOSED_LOST ? DealStatus.LOST : 
-                   DealStatus.ACTIVE,
-            actualCloseDate: (newStage === DealStage.CLOSED_WON || newStage === DealStage.CLOSED_LOST) ? new Date() : undefined,
+            status,
+            actualCloseDate,
             updatedAt: new Date() 
           }
         : d
@@ -240,7 +242,9 @@ export function useDealManagement() {
     saveDealsToStorage(updatedDeals)
 
     // Log stage change
-    await logStageChange(dealId, oldStage, newStage, 'current-user', notes)
+    await logStageChange(dealId, oldStage, newStage, 'current-user', notes || `Stage changed from ${oldStage?.replace('_', ' ') || 'none'} to ${newStage.replace('_', ' ')}`)
+    
+    return updatedDeals.find(d => d.id === dealId)
   }
 
   const logStageChange = async (dealId: string, fromStage: DealStage | undefined, toStage: DealStage, changedBy: string, notes?: string) => {

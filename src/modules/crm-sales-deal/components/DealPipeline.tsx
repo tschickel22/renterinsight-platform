@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd'
 import { Deal, DealStage, DealStatus } from '../types'
 import { useDealManagement } from '../hooks/useDealManagement'
 import { formatCurrency } from '@/lib/utils'
@@ -64,14 +64,16 @@ export function DealPipeline({ deals, onDealStageChange, onDealClick }: DealPipe
     return new Date(deal.expectedCloseDate) < new Date() && deal.status === DealStatus.ACTIVE
   }
 
-  const onDragEnd = (result: any) => {
+  const onDragEnd = (result: DropResult) => {
     setDraggedDeal(null)
     
-    if (!result.destination) return
+    // If there's no destination or the item was dropped back in its original position, do nothing
+    if (!result.destination || result.source.droppableId === result.destination.droppableId) return
 
     const dealId = result.draggableId
     const newStage = result.destination.droppableId as DealStage
 
+    // Call the callback to update the deal stage
     onDealStageChange(dealId, newStage)
   }
 
@@ -131,10 +133,8 @@ export function DealPipeline({ deals, onDealStageChange, onDealClick }: DealPipe
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className={cn(
-                    "space-y-3 p-3 rounded-lg border-2 border-dashed transition-colors",
-                    snapshot.isDraggingOver ? "border-primary bg-primary/5" : "border-muted"
-                  )}
+                  className={cn("space-y-3 p-3 rounded-lg border-2 border-dashed transition-colors min-h-[200px]",
+                    snapshot.isDraggingOver ? "border-primary bg-primary/5" : "border-muted")}
                 >
                   <div className="flex items-center space-x-2 mb-4">
                     <div className={cn("w-3 h-3 rounded-full", config.color)} />
@@ -159,7 +159,7 @@ export function DealPipeline({ deals, onDealStageChange, onDealClick }: DealPipe
                             <div className="space-y-3">
                               <div>
                                 <h4 className="font-semibold text-sm line-clamp-2">{deal.name}</h4>
-                                <p className="text-xs text-muted-foreground">{deal.customerName}</p>
+                                <p className="text-xs text-muted-foreground truncate">{deal.customerName}</p>
                               </div>
 
                               <div className="flex items-center justify-between">
@@ -191,13 +191,6 @@ export function DealPipeline({ deals, onDealStageChange, onDealClick }: DealPipe
                                   </div>
                                 )}
                               </div>
-
-                              {deal.requiresApproval && (
-                                <div className="flex items-center space-x-1 text-orange-500">
-                                  <AlertCircle className="h-3 w-3" />
-                                  <span className="text-xs">Requires Approval</span>
-                                </div>
-                              )}
                             </div>
                           </CardContent>
                         </Card>
