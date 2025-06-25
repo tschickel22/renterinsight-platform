@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast'
 import { ServiceTicketForm } from './components/ServiceTicketForm'
 import { ServiceTicketDetail } from './components/ServiceTicketDetail'
 import { CustomerPortalView } from './components/CustomerPortalView'
+import { NewLeadForm } from '@/modules/crm-prospecting/components/NewLeadForm'
 
 function ServiceTicketsList() {
   const { tickets, createTicket, updateTicket, deleteTicket, updateTicketStatus } = useServiceManagement()
@@ -24,6 +25,7 @@ function ServiceTicketsList() {
   const [showTicketForm, setShowTicketForm] = useState(false)
   const [showTicketDetail, setShowTicketDetail] = useState(false)
   const [showCustomerPortal, setShowCustomerPortal] = useState(false)
+  const [showLeadModal, setShowLeadModal] = useState(false)
   const [selectedTicket, setSelectedTicket] = useState<ServiceTicket | null>(null)
 
   const getStatusColor = (status: ServiceStatus) => {
@@ -149,8 +151,27 @@ function ServiceTicketsList() {
     }
   }
 
+  const handleNewCustomerSuccess = (newCustomer: any) => {
+    toast({
+      title: 'Customer Added',
+      description: `${newCustomer.firstName} ${newCustomer.lastName} has been added.`,
+    })
+    // Open the service ticket form with the new customer selected
+    setSelectedTicket(null)
+    setShowLeadModal(false)
+    setShowTicketForm(true)
+  }
+
   return (
     <div className="space-y-8">
+      {/* New Customer Form Modal */}
+      {showLeadModal && (
+        <NewLeadForm
+          onClose={() => setShowLeadModal(false)}
+          onSuccess={handleNewCustomerSuccess}
+        />
+      )}
+      
       {/* Service Ticket Form Modal */}
       {showTicketForm && (
         <ServiceTicketForm

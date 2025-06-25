@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast'
 import { formatCurrency } from '@/lib/utils'
 import { useInventoryManagement } from '@/modules/inventory-management/hooks/useInventoryManagement'
 import { useLeadManagement } from '@/modules/crm-prospecting/hooks/useLeadManagement'
+import { NewLeadForm } from '@/modules/crm-prospecting/components/NewLeadForm'
 
 interface ServiceTicketFormProps {
   ticket?: ServiceTicket
@@ -25,6 +26,7 @@ export function ServiceTicketForm({ ticket, onSave, onCancel }: ServiceTicketFor
   const { vehicles } = useInventoryManagement()
   const { leads } = useLeadManagement()
   const [loading, setLoading] = useState(false)
+  const [showNewCustomerForm, setShowNewCustomerForm] = useState(false)
   const [formData, setFormData] = useState<Partial<ServiceTicket>>({
     customerId: '',
     vehicleId: '',
@@ -129,6 +131,27 @@ export function ServiceTicketForm({ ticket, onSave, onCancel }: ServiceTicketFor
     }
   }
 
+  const handleCustomerSelect = (value: string) => {
+    if (value === 'add-new') {
+      setShowNewCustomerForm(true)
+    } else {
+      setFormData(prev => ({ ...prev, customerId: value }))
+    }
+  }
+
+  const handleNewCustomerSuccess = (newCustomer: any) => {
+    setFormData(prev => ({
+      ...prev,
+      customerId: newCustomer.id
+    }))
+    setShowNewCustomerForm(false)
+    
+    toast({
+      title: 'Customer Added',
+      description: `${newCustomer.firstName} ${newCustomer.lastName} has been added as a customer.`,
+    })
+  }
+
   const addPart = () => {
     if (!newPart.partNumber || !newPart.description) {
       toast({
@@ -230,6 +253,14 @@ export function ServiceTicketForm({ ticket, onSave, onCancel }: ServiceTicketFor
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      {/* New Customer Form Modal */}
+      {showNewCustomerForm && (
+        <NewLeadForm
+          onClose={() => setShowNewCustomerForm(false)}
+          onSuccess={handleNewCustomerSuccess}
+        />
+      )}
+      
       <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -253,14 +284,26 @@ export function ServiceTicketForm({ ticket, onSave, onCancel }: ServiceTicketFor
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <Label htmlFor="customerId">Customer *</Label>
-                  <Select 
-                    value={formData.customerId} 
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, customerId: value }))}
+                  <Select
+                    value={formData.customerId}
+                    onValueChange={handleCustomerSelect}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select customer" />
                     </SelectTrigger>
                     <SelectContent>
+                      <div className="px-2 py-1.5">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full justify-start" 
+                          onClick={() => handleCustomerSelect('add-new')}
+                        >
+                          <Plus className="h-3.5 w-3.5 mr-2" />
+                          Add New Customer
+                        </Button>
+                      </div>
+                      <div className="px-2 py-1 border-t"></div>
                       {leads.map(lead => (
                         <SelectItem key={lead.id} value={lead.id}>
                           {lead.firstName} {lead.lastName}
