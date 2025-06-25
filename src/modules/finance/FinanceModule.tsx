@@ -8,6 +8,7 @@ import { DollarSign, Calculator, Clock, Calendar, CreditCard, FileText, Plus, Se
 import { LoanCalculator } from './components/LoanCalculator'
 import { PaymentHistory } from './components/PaymentHistory'
 import { LoanSettings } from './components/LoanSettings'
+import { NewLoanForm } from './components/NewLoanForm'
 import { formatCurrency } from '@/lib/utils'
 
 const mockLoans = [
@@ -46,12 +47,60 @@ const mockLoans = [
     createdAt: new Date('2023-11-25')
   }
 ]
+  const handleCreateLoan = () => {
+    setShowNewLoanForm(true)
+  }
+
+  const handleSaveLoan = async (loanData: any) => {
+    try {
+      // In a real app, this would save to the database
+      console.log('Creating new loan:', loanData)
+      
+      // Add the new loan to the state
+      const newLoan = {
+        id: Math.random().toString(36).substr(2, 9),
+        customerId: loanData.customerId,
+        customerName: loanData.customerName,
+        vehicleId: loanData.vehicleId,
+        vehicleInfo: loanData.vehicleInfo,
+        amount: loanData.amount,
+        downPayment: loanData.downPayment,
+        term: loanData.term,
+        rate: loanData.rate,
+        paymentAmount: loanData.paymentAmount,
+        startDate: new Date(loanData.startDate),
+        status: loanData.status,
+        remainingBalance: loanData.amount - loanData.downPayment,
+        nextPaymentDate: new Date(new Date(loanData.startDate).setMonth(new Date(loanData.startDate).getMonth() + 1)),
+        createdAt: new Date()
+      }
+      
+      // Update the loans state
+      setLoans([...loans, newLoan])
+      
+      // Close the form
+      setShowNewLoanForm(false)
+      
+      toast({
+        title: 'Success',
+        description: 'Loan created successfully',
+      })
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to create loan',
+        variant: 'destructive'
+      })
+    }
+  }
+
 
 function FinanceDashboard() {
   const [loans] = useState(mockLoans)
   const [activeTab, setActiveTab] = useState('dashboard')
   const [searchTerm, setSearchTerm] = useState('')
   const [showCalculator, setShowCalculator] = useState(false)
+  const [showNewLoanForm, setShowNewLoanForm] = useState(false)
   const [selectedLoan, setSelectedLoan] = useState(null)
 
   const totalLoans = loans.length
@@ -66,6 +115,14 @@ function FinanceDashboard() {
 
   return (
     <div className="space-y-8">
+      {/* New Loan Form Modal */}
+      {showNewLoanForm && (
+        <NewLoanForm
+          onSave={handleSaveLoan}
+          onCancel={() => setShowNewLoanForm(false)}
+        />
+      )}
+
       {/* Page Header */}
       <div className="ri-page-header">
         <div className="flex items-center justify-between">
@@ -84,7 +141,7 @@ function FinanceDashboard() {
               <Calculator className="h-4 w-4 mr-2" />
               Loan Calculator
             </Button>
-            <Button className="shadow-sm">
+            <Button className="shadow-sm" onClick={handleCreateLoan}>
               <Plus className="h-4 w-4 mr-2" />
               New Loan
             </Button>
