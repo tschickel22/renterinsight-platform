@@ -125,7 +125,7 @@ export function PDINewInspectionForm({
                 onValueChange={setSelectedVehicleId}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a vehicle" />
+                  <SelectValue placeholder="Select a home/vehicle" />
                 </SelectTrigger>
                 <SelectContent>
                   {vehicles.map(vehicle => (
@@ -147,7 +147,7 @@ export function PDINewInspectionForm({
                 <SelectTrigger>
                   <SelectValue placeholder={
                     availableTemplates.length === 0 
-                      ? "Select a vehicle first" 
+                      ? "Select a home/vehicle first" 
                       : "Select a template"
                   } />
                 </SelectTrigger>

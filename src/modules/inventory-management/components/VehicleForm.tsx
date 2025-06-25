@@ -196,9 +196,9 @@ export function VehicleForm({ vehicle, onSave, onCancel, onScanBarcode }: Vehicl
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>{vehicle ? 'Edit Vehicle' : 'Add New Vehicle'}</CardTitle>
+              <CardTitle>{vehicle ? 'Edit Vehicle' : 'Add New Home'}</CardTitle>
               <CardDescription>
-                {vehicle ? 'Update vehicle details' : 'Add a new vehicle to inventory'}
+                {vehicle ? 'Update vehicle details' : 'Add a new home to inventory'}
               </CardDescription>
             </div>
             <Button variant="ghost" size="sm" onClick={onCancel}>
@@ -918,7 +918,7 @@ export function VehicleForm({ vehicle, onSave, onCancel, onScanBarcode }: Vehicl
                 ) : (
                   <>
                     <Save className="h-4 w-4 mr-2" />
-                    {vehicle ? 'Update' : 'Create'} Vehicle
+                    {vehicle ? 'Update' : 'Create'} Home
                   </>
                 )}
               </Button>
