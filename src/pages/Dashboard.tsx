@@ -80,15 +80,12 @@ export default function Dashboard() {
         setShowNewLeadForm(true)
         break
       case 'add-inventory':
-        // Navigate to inventory management
         window.location.href = '/inventory'
         break
       case 'create-quote':
-        // Navigate to quote builder
         window.location.href = '/quotes'
         break
       case 'schedule-service':
-        // Navigate to service operations
         window.location.href = '/service'
         break
       default:

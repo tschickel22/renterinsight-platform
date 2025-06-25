@@ -3,86 +3,28 @@ import { Routes, Route } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Wrench, Plus, Search, Filter, Calendar, Clock, User, TrendingUp, DollarSign } from 'lucide-react'
 import { ServiceTicket, ServiceStatus, Priority } from '@/types'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import { cn } from '@/lib/utils'
-
-const mockServiceTickets: ServiceTicket[] = [
-  {
-    id: '1',
-    customerId: 'cust-1',
-    vehicleId: 'veh-1',
-    title: 'Annual Maintenance Service',
-    description: 'Complete annual maintenance including oil change, filter replacement, and system checks',
-    priority: Priority.MEDIUM,
-    status: ServiceStatus.IN_PROGRESS,
-    assignedTo: 'Tech-001',
-    scheduledDate: new Date('2024-01-20'),
-    parts: [
-      {
-        id: '1',
-        partNumber: 'OIL-001',
-        description: 'Engine Oil Filter',
-        quantity: 1,
-        unitCost: 25.99,
-        total: 25.99
-      }
-    ],
-    labor: [
-      {
-        id: '1',
-        description: 'Annual Maintenance',
-        hours: 3,
-        rate: 85,
-        total: 255
-      }
-    ],
-    notes: 'Customer requested additional inspection of brake system',
-    customFields: {},
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-18')
-  },
-  {
-    id: '2',
-    customerId: 'cust-2',
-    vehicleId: 'veh-2',
-    title: 'AC System Repair',
-    description: 'Air conditioning not cooling properly, needs diagnostic and repair',
-    priority: Priority.HIGH,
-    status: ServiceStatus.WAITING_PARTS,
-    assignedTo: 'Tech-002',
-    scheduledDate: new Date('2024-01-22'),
-    parts: [
-      {
-        id: '2',
-        partNumber: 'AC-COMP-001',
-        description: 'AC Compressor',
-        quantity: 1,
-        unitCost: 450.00,
-        total: 450.00
-      }
-    ],
-    labor: [
-      {
-        id: '2',
-        description: 'AC System Diagnostic',
-        hours: 2,
-        rate: 85,
-        total: 170
-      }
-    ],
-    notes: 'Waiting for compressor part to arrive',
-    customFields: {},
-    createdAt: new Date('2024-01-12'),
-    updatedAt: new Date('2024-01-16')
-  }
-]
+import { useServiceManagement } from './hooks/useServiceManagement'
+import { useToast } from '@/hooks/use-toast'
+import { ServiceTicketForm } from './components/ServiceTicketForm'
+import { ServiceTicketDetail } from './components/ServiceTicketDetail'
+import { CustomerPortalView } from './components/CustomerPortalView'
 
 function ServiceTicketsList() {
-  const [tickets] = useState<ServiceTicket[]>(mockServiceTickets)
+  const { tickets, createTicket, updateTicket, deleteTicket, updateTicketStatus } = useServiceManagement()
+  const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [priorityFilter, setpriorityFilter] = useState<string>('all')
+  const [showTicketForm, setShowTicketForm] = useState(false)
+  const [showTicketDetail, setShowTicketDetail] = useState(false)
+  const [showCustomerPortal, setShowCustomerPortal] = useState(false)
+  const [selectedTicket, setSelectedTicket] = useState<ServiceTicket | null>(null)
 
   const getStatusColor = (status: ServiceStatus) => {
     switch (status) {
@@ -119,11 +61,125 @@ function ServiceTicketsList() {
   const filteredTickets = tickets.filter(ticket =>
     ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     ticket.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ticket.customerId.toLowerCase().includes(searchTerm.toLowerCase())
+    ticket.customerId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    ticket.id.toLowerCase().includes(searchTerm.toLowerCase())
   )
+  .filter(ticket => statusFilter === 'all' || ticket.status === statusFilter)
+  .filter(ticket => priorityFilter === 'all' || ticket.priority === priorityFilter)
+
+  const handleCreateTicket = () => {
+    setSelectedTicket(null)
+    setShowTicketForm(true)
+  }
+
+  const handleEditTicket = (ticket: ServiceTicket) => {
+    setSelectedTicket(ticket)
+    setShowTicketForm(true)
+  }
+
+  const handleViewTicket = (ticket: ServiceTicket) => {
+    setSelectedTicket(ticket)
+    setShowTicketDetail(true)
+  }
+
+  const handleViewCustomerPortal = (ticket: ServiceTicket) => {
+    setSelectedTicket(ticket)
+    setShowCustomerPortal(true)
+  }
+
+  const handleSaveTicket = async (ticketData: Partial<ServiceTicket>) => {
+    try {
+      if (selectedTicket) {
+        // Update existing ticket
+        await updateTicket(selectedTicket.id, ticketData)
+        toast({
+          title: 'Success',
+          description: 'Service ticket updated successfully',
+        })
+      } else {
+        // Create new ticket
+        await createTicket(ticketData)
+        toast({
+          title: 'Success',
+          description: 'Service ticket created successfully',
+        })
+      }
+      setShowTicketForm(false)
+      setSelectedTicket(null)
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: `Failed to ${selectedTicket ? 'update' : 'create'} service ticket`,
+        variant: 'destructive'
+      })
+    }
+  }
+
+  const handleDeleteTicket = async (ticketId: string) => {
+    if (window.confirm('Are you sure you want to delete this service ticket?')) {
+      try {
+        await deleteTicket(ticketId)
+        toast({
+          title: 'Success',
+          description: 'Service ticket deleted successfully',
+        })
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to delete service ticket',
+          variant: 'destructive'
+        })
+      }
+    }
+  }
+
+  const handleStatusChange = async (ticketId: string, status: ServiceStatus) => {
+    try {
+      await updateTicketStatus(ticketId, status)
+      toast({
+        title: 'Status Updated',
+        description: `Ticket status changed to ${status.replace('_', ' ')}`,
+      })
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update ticket status',
+        variant: 'destructive'
+      })
+    }
+  }
 
   return (
     <div className="space-y-8">
+      {/* Service Ticket Form Modal */}
+      {showTicketForm && (
+        <ServiceTicketForm
+          ticket={selectedTicket || undefined}
+          onSave={handleSaveTicket}
+          onCancel={() => {
+            setShowTicketForm(false)
+            setSelectedTicket(null)
+          }}
+        />
+      )}
+      
+      {/* Service Ticket Detail Modal */}
+      {showTicketDetail && selectedTicket && (
+        <ServiceTicketDetail
+          ticket={selectedTicket}
+          onClose={() => setShowTicketDetail(false)}
+          onEdit={handleEditTicket}
+        />
+      )}
+      
+      {/* Customer Portal View Modal */}
+      {showCustomerPortal && selectedTicket && (
+        <CustomerPortalView
+          ticket={selectedTicket}
+          onClose={() => setShowCustomerPortal(false)}
+        />
+      )}
+
       {/* Page Header */}
       <div className="ri-page-header">
         <div className="flex items-center justify-between">
@@ -133,7 +189,7 @@ function ServiceTicketsList() {
               Manage service tickets and maintenance schedules
             </p>
           </div>
-          <Button className="shadow-sm">
+          <Button className="shadow-sm" onClick={handleCreateTicket}>
             <Plus className="h-4 w-4 mr-2" />
             New Service Ticket
           </Button>
@@ -215,10 +271,39 @@ function ServiceTicketsList() {
             className="ri-search-input shadow-sm"
           />
         </div>
-        <Button variant="outline" className="shadow-sm">
-          <Filter className="h-4 w-4 mr-2" />
-          Filter
-        </Button>
+        <div className="flex gap-2">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value={ServiceStatus.OPEN}>Open</SelectItem>
+              <SelectItem value={ServiceStatus.IN_PROGRESS}>In Progress</SelectItem>
+              <SelectItem value={ServiceStatus.WAITING_PARTS}>Waiting Parts</SelectItem>
+              <SelectItem value={ServiceStatus.COMPLETED}>Completed</SelectItem>
+              <SelectItem value={ServiceStatus.CANCELLED}>Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Select value={priorityFilter} onValueChange={setpriorityFilter}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Priority" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Priorities</SelectItem>
+              <SelectItem value={Priority.LOW}>Low</SelectItem>
+              <SelectItem value={Priority.MEDIUM}>Medium</SelectItem>
+              <SelectItem value={Priority.HIGH}>High</SelectItem>
+              <SelectItem value={Priority.URGENT}>Urgent</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Button variant="outline" className="shadow-sm">
+            <Filter className="h-4 w-4 mr-2" />
+            More Filters
+          </Button>
+        </div>
       </div>
 
       {/* Service Tickets Table */}
@@ -293,15 +378,43 @@ function ServiceTicketsList() {
                   </div>
                 </div>
                 <div className="ri-action-buttons">
-                  <Button variant="outline" size="sm" className="shadow-sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="shadow-sm"
+                    onClick={() => handleViewTicket(ticket)}
+                  >
                     View
                   </Button>
-                  <Button variant="outline" size="sm" className="shadow-sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="shadow-sm"
+                    onClick={() => handleEditTicket(ticket)}
+                  >
                     Edit
                   </Button>
+                  {ticket.customFields?.customerPortalAccess !== false && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="shadow-sm"
+                      onClick={() => handleViewCustomerPortal(ticket)}
+                    >
+                      Customer View
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}
+            
+            {filteredTickets.length === 0 && (
+              <div className="text-center py-12 text-muted-foreground">
+                <Wrench className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                <p>No service tickets found</p>
+                <p className="text-sm">Try adjusting your search or filters</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -312,7 +425,6 @@ function ServiceTicketsList() {
 export default function ServiceOps() {
   return (
     <Routes>
-      <Route path="/" element={<ServiceTicketsList />} />
       <Route path="/*" element={<ServiceTicketsList />} />
     </Routes>
   )
