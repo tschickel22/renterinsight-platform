@@ -1,5 +1,12 @@
 import { User, Vehicle } from '@/types'
 
+export enum PDIInspectionStatus {
+  IN_PROGRESS = 'in_progress',
+  COMPLETED = 'completed',
+  APPROVED = 'approved',
+  REJECTED = 'rejected'
+}
+
 export interface PDITemplate {
   id: string
   name: string
@@ -40,7 +47,7 @@ export interface PDIInspection {
   vehicle?: Vehicle
   inspectorId: string
   inspector?: User
-  status: PDIInspectionStatus
+  status: string
   startedAt: Date
   completedAt?: Date
   notes?: string
@@ -50,13 +57,6 @@ export interface PDIInspection {
   signoffs: PDISignoff[]
   createdAt: Date
   updatedAt: Date
-}
-
-export enum PDIInspectionStatus {
-  IN_PROGRESS = 'in_progress',
-  COMPLETED = 'completed',
-  APPROVED = 'approved',
-  REJECTED = 'rejected'
 }
 
 export interface PDIInspectionItem {
