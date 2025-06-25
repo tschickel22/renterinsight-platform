@@ -21,7 +21,8 @@ import {
 import { 
   PDIInspection, 
   PDIInspectionItemStatus, 
-  PDIDefectSeverity,
+  PDIDefectSeverity, 
+  PDIInspectionStatus,
   PDISignoff,
   PDISignoffRole
 } from '../types'

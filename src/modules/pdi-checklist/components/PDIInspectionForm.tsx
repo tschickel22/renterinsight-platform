@@ -22,7 +22,8 @@ import {
 import { 
   PDIInspection, 
   PDIInspectionItem, 
-  PDIInspectionItemStatus, 
+  PDIInspectionItemStatus,
+  PDIInspectionStatus,
   PDIDefect,
   PDIDefectSeverity,
   PDIPhoto
@@ -629,7 +630,7 @@ export function PDIInspectionForm({
                   <Button 
                     type="button" 
                     onClick={handleComplete} 
-                    disabled={loading || inspection.status !== PDIInspectionStatus.IN_PROGRESS}
+                    disabled={loading || inspection.status !== 'in_progress'}
                   >
                     <ClipboardCheck className="h-4 w-4 mr-2" />
                     Complete Inspection

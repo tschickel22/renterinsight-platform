@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { ClipboardCheck, Plus, Search, Filter, Eye, CheckCircle, AlertCircle, Clock } from 'lucide-react'
-import { PDIInspection, PDIInspectionStatus } from '../types'
+import { PDIInspection } from '../types'
 import { formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 
@@ -34,30 +34,30 @@ export function PDIInspectionList({
     return matchesSearch && matchesStatus
   })
 
-  const getStatusColor = (status: PDIInspectionStatus) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case PDIInspectionStatus.IN_PROGRESS:
+      case 'in_progress':
         return 'bg-yellow-50 text-yellow-700 border-yellow-200'
-      case PDIInspectionStatus.COMPLETED:
+      case 'completed':
         return 'bg-blue-50 text-blue-700 border-blue-200'
-      case PDIInspectionStatus.APPROVED:
+      case 'approved':
         return 'bg-green-50 text-green-700 border-green-200'
-      case PDIInspectionStatus.REJECTED:
+      case 'rejected':
         return 'bg-red-50 text-red-700 border-red-200'
       default:
         return 'bg-gray-50 text-gray-700 border-gray-200'
     }
   }
 
-  const getStatusIcon = (status: PDIInspectionStatus) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
-      case PDIInspectionStatus.IN_PROGRESS:
+      case 'in_progress':
         return <Clock className="h-4 w-4 text-yellow-500" />
-      case PDIInspectionStatus.COMPLETED:
+      case 'completed':
         return <CheckCircle className="h-4 w-4 text-blue-500" />
-      case PDIInspectionStatus.APPROVED:
+      case 'approved':
         return <CheckCircle className="h-4 w-4 text-green-500" />
-      case PDIInspectionStatus.REJECTED:
+      case 'rejected':
         return <AlertCircle className="h-4 w-4 text-red-500" />
       default:
         return <Clock className="h-4 w-4 text-gray-500" />
@@ -168,7 +168,7 @@ export function PDIInspectionList({
                   </div>
                 </div>
                 <div className="ri-action-buttons">
-                  {inspection.status === PDIInspectionStatus.IN_PROGRESS ? (
+                  {inspection.status === 'in_progress' ? (
                     <Button 
                       variant="outline" 
                       size="sm" 

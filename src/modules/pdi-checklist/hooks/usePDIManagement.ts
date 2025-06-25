@@ -2,13 +2,12 @@ import { useState, useEffect } from 'react'
 import { 
   PDITemplate, 
   PDITemplateSection, 
-  PDITemplateItem, 
+  PDITemplateItem,
   PDIInspection, 
   PDIInspectionItem, 
   PDIDefect, 
   PDIPhoto, 
   PDISignoff,
-  PDIInspectionStatus,
   PDIInspectionItemStatus,
   PDIDefectStatus,
   PDIDefectSeverity,
@@ -361,10 +360,10 @@ export function usePDIManagement() {
       const newInspection: PDIInspection = {
         id: Math.random().toString(36).substr(2, 9),
         templateId: inspectionData.templateId || '',
-        template,
+        template: template || undefined,
         vehicleId: inspectionData.vehicleId || '',
         inspectorId: inspectionData.inspectorId || '',
-        status: PDIInspectionStatus.IN_PROGRESS,
+        status: 'in_progress',
         startedAt: new Date(),
         notes: inspectionData.notes || '',
         items: [],
@@ -455,7 +454,7 @@ export function usePDIManagement() {
 
     const updatedInspection = {
       ...inspection,
-      status: PDIInspectionStatus.COMPLETED,
+      status: 'completed',
       completedAt: new Date(),
       notes: notes || inspection.notes,
       updatedAt: new Date()
@@ -616,7 +615,7 @@ export function usePDIManagement() {
     
     // If this is a manager signoff, update the inspection status to approved
     if (signoffData.role === PDISignoffRole.MANAGER) {
-      updatedStatus = PDIInspectionStatus.APPROVED
+      updatedStatus = 'approved'
     }
 
     const updatedInspection = {
