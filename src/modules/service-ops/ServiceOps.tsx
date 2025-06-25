@@ -77,6 +77,7 @@ function ServiceTicketsList() {
   const handleEditTicket = (ticket: ServiceTicket) => {
     setSelectedTicket(ticket)
     setShowTicketForm(true)
+    setShowTicketDetail(false)
   }
 
   const handleViewTicket = (ticket: ServiceTicket) => {
