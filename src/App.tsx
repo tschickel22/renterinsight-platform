@@ -28,8 +28,8 @@ function App() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="renter-insight-theme">
       <AuthProvider>
-        <TenantProvider>
-          <Router>
+        <Router>
+          <TenantProvider>
             <div className="min-h-screen bg-background">
               <Routes>
                 <Route path="/login" element={<Login />} />
@@ -42,7 +42,7 @@ function App() {
                           <Route path="/" element={<Dashboard />} />
                           <Route path="/crm/*" element={<CRMProspecting />} />
                           <Route path="/inventory/*" element={<InventoryManagement />} />
-                         <Route path="/deals/*" element={<CRMSalesDeal />} />
+                          <Route path="/deals/*" element={<CRMSalesDeal />} />
                           <Route path="/quotes/*" element={<QuoteBuilder />} />
                           <Route path="/agreements/*" element={<AgreementVault />} />
                           <Route path="/service/*" element={<ServiceOps />} />
@@ -61,8 +61,8 @@ function App() {
               </Routes>
               <Toaster />
             </div>
-          </Router>
-        </TenantProvider>
+          </TenantProvider>
+        </Router>
       </AuthProvider>
     </ThemeProvider>
   )
