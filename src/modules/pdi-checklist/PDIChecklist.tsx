@@ -311,9 +311,9 @@ function PDIChecklistDashboard() {
       <div className="ri-page-header">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="ri-page-title">PDI Checklist</h1>
+            <h1 className="ri-page-title">PDI Checklist - Home/Vehicle</h1>
             <p className="ri-page-description">
-              Manage pre-delivery inspections and quality control
+              Manage pre-delivery inspections and quality control for homes and vehicles
             </p>
           </div>
           <Button className="shadow-sm" onClick={handleCreateInspection}>

@@ -103,9 +103,9 @@ export function PDIInspectionList({
       {/* Inspections List */}
       <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle className="text-xl">PDI Inspections ({filteredInspections.length})</CardTitle>
+          <CardTitle className="text-xl">Home/Vehicle PDI Inspections ({filteredInspections.length})</CardTitle>
           <CardDescription>
-            Manage pre-delivery inspections for vehicles
+            Manage pre-delivery inspections for homes and vehicles
           </CardDescription>
         </CardHeader>
         <CardContent>
