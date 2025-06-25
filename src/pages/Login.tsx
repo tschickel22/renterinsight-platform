@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useNavigate } from 'react-router-dom'
 import { useToast } from '@/hooks/use-toast'
 
 export default function Login() {
@@ -10,11 +11,13 @@ export default function Login() {
   const [password, setPassword] = useState('password')
   const { login, isLoading } = useAuth()
   const { toast } = useToast()
+  const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
       await login(email, password)
+      navigate('/')
     } catch (error) {
       toast({
         title: 'Login Failed',

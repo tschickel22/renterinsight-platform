@@ -53,9 +53,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const login = async (email: string, password: string) => {
     setIsLoading(true)
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
       const mockUser: User = {
         id: '1',
         email,
@@ -71,10 +68,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       
       setUser(mockUser)
       saveToLocalStorage('auth_token', 'mock-token')
+      
+      // Force a re-render by updating the loading state after setting the user
+      setIsLoading(false)
     } catch (error) {
       throw new Error('Login failed')
     } finally {
-      setIsLoading(false)
+      // We've already set isLoading to false in the try block
+      // This prevents the state update from happening after the component might unmount
     }
   }
 
