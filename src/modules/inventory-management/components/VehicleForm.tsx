@@ -283,11 +283,6 @@ export function VehicleForm({ vehicle, onSave, onCancel, onScanBarcode }: Vehicl
                       <SelectItem value={VehicleType.TRAVEL_TRAILER}>Travel Trailer</SelectItem>
                       <SelectItem value={VehicleType.FIFTH_WHEEL}>Fifth Wheel</SelectItem>
                       <SelectItem value={VehicleType.TOY_HAULER}>Toy Hauler</SelectItem>
-                      <SelectItem value={VehicleType.SINGLE_WIDE}>Single Wide MH</SelectItem>
-                      <SelectItem value={VehicleType.DOUBLE_WIDE}>Double Wide MH</SelectItem>
-                      <SelectItem value={VehicleType.TRIPLE_WIDE}>Triple Wide MH</SelectItem>
-                      <SelectItem value={VehicleType.PARK_MODEL}>Park Model</SelectItem>
-                      <SelectItem value={VehicleType.MODULAR_HOME}>Modular Home</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -385,6 +380,129 @@ export function VehicleForm({ vehicle, onSave, onCancel, onScanBarcode }: Vehicl
                 )}
               </div>
             </div>
+
+            {/* MH-specific fields */}
+            {(formData.type === VehicleType.SINGLE_WIDE || 
+              formData.type === VehicleType.DOUBLE_WIDE || 
+              formData.type === VehicleType.TRIPLE_WIDE || 
+              formData.type === VehicleType.PARK_MODEL || 
+              formData.type === VehicleType.MODULAR_HOME) && (
+              <div className="grid gap-4 md:grid-cols-3">
+                <div>
+                  <Label htmlFor="squareFootage">Square Footage</Label>
+                  <Input
+                    id="squareFootage"
+                    value={formData.customFields?.squareFootage || ''}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      customFields: {
+                        ...prev.customFields,
+                        squareFootage: e.target.value
+                      }
+                    }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="constructionType">Construction Type</Label>
+                  <Select 
+                    value={formData.customFields?.constructionType || ''} 
+                    onValueChange={(value) => setFormData(prev => ({
+                      ...prev,
+                      customFields: {
+                        ...prev.customFields,
+                        constructionType: value
+                      }
+                    }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Manufactured">Manufactured</SelectItem>
+                      <SelectItem value="Modular">Modular</SelectItem>
+                      <SelectItem value="Park Model">Park Model</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="bedrooms">Bedrooms</Label>
+                  <Select 
+                    value={formData.customFields?.bedrooms || ''} 
+                    onValueChange={(value) => setFormData(prev => ({
+                      ...prev,
+                      customFields: {
+                        ...prev.customFields,
+                        bedrooms: value
+                      }
+                    }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select number" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1</SelectItem>
+                      <SelectItem value="2">2</SelectItem>
+                      <SelectItem value="3">3</SelectItem>
+                      <SelectItem value="4">4</SelectItem>
+                      <SelectItem value="5+">5+</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="bathrooms">Bathrooms</Label>
+                  <Select 
+                    value={formData.customFields?.bathrooms || ''} 
+                    onValueChange={(value) => setFormData(prev => ({
+                      ...prev,
+                      customFields: {
+                        ...prev.customFields,
+                        bathrooms: value
+                      }
+                    }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select number" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1</SelectItem>
+                      <SelectItem value="1.5">1.5</SelectItem>
+                      <SelectItem value="2">2</SelectItem>
+                      <SelectItem value="2.5">2.5</SelectItem>
+                      <SelectItem value="3">3</SelectItem>
+                      <SelectItem value="3+">3+</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="exteriorSiding">Exterior Siding</Label>
+                  <Input
+                    id="exteriorSiding"
+                    value={formData.customFields?.exteriorSiding || ''}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      customFields: {
+                        ...prev.customFields,
+                        exteriorSiding: e.target.value
+                      }
+                    }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="roofType">Roof Type</Label>
+                  <Input
+                    id="roofType"
+                    value={formData.customFields?.roofType || ''}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      customFields: {
+                        ...prev.customFields,
+                        roofType: e.target.value
+                      }
+                    }))}
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Custom Fields */}
             <div className="space-y-4">
