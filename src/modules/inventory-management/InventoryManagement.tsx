@@ -215,7 +215,7 @@ function InventoryList() {
             </Button>
             <Button onClick={handleCreateVehicle}>
               <Plus className="h-4 w-4 mr-2" />
-              Add Vehicle
+              Add Home
             </Button>
           </div>
         </div>
