@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils'
 import {
   Users,
   Package,
+  Target,
   FileText,
   FileCheck,
   Wrench,
@@ -21,6 +22,7 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
   { name: 'CRM & Prospecting', href: '/crm', icon: Users },
   { name: 'Inventory Management', href: '/inventory', icon: Package },
+  { name: 'Sales Deals', href: '/deals', icon: Target },
   { name: 'Quote Builder', href: '/quotes', icon: FileText },
   { name: 'Agreement Vault', href: '/agreements', icon: FileCheck },
   { name: 'Service Operations', href: '/service', icon: Wrench },

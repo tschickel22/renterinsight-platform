@@ -13,6 +13,7 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.8.1",
     "react-hook-form": "^7.43.1",
+    "react-beautiful-dnd": "^13.1.1",
     "@hookform/resolvers": "^2.9.11",
     "zod": "^3.20.6",
     "zustand": "^4.3.6",
@@ -54,6 +55,7 @@
   "devDependencies": {
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
+    "@types/react-beautiful-dnd": "^13.1.7",
     "@typescript-eslint/eslint-plugin": "^5.57.1",
     "@typescript-eslint/parser": "^5.57.1",
     "@vitejs/plugin-react": "^4.0.0",
