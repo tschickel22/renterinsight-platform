@@ -8,7 +8,6 @@ import { Deal, ApprovalWorkflow, ApprovalStatus, ApprovalStep } from '../types'
 import { Textarea } from '@/components/ui/textarea'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
-import { Textarea } from '@/components/ui/textarea'
 
 interface ApprovalWorkflowsProps {
   deals: Deal[]
