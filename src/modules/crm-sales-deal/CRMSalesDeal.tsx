@@ -14,6 +14,7 @@ import { useDealManagement } from './hooks/useDealManagement'
 import { DealPipeline } from './components/DealPipeline'
 import { DealMetrics } from './components/DealMetrics'
 import { WinLossAnalysis } from './components/WinLossAnalysis'
+import { DealDetail } from './components/DealDetail'
 import { TerritoryManagement } from './components/TerritoryManagement'
 import { ApprovalWorkflows } from './components/ApprovalWorkflows'
 import { DealForm } from './components/DealForm'
@@ -44,6 +45,7 @@ function DealsList() {
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null)
   const [showDealForm, setShowDealForm] = useState(false)
   const [activeTab, setActiveTab] = useState('pipeline')
+  const [showDealDetail, setShowDealDetail] = useState(false)
 
   const getStatusColor = (status: DealStatus) => {
     switch (status) {
@@ -79,6 +81,7 @@ function DealsList() {
 
   const handleDealClick = (deal: Deal) => {
     setSelectedDeal(deal)
+    setShowDealDetail(true)
   }
 
   const handleCreateDeal = () => {
@@ -142,6 +145,15 @@ function DealsList() {
 
   return (
     <div className="space-y-8">
+      {/* Deal Detail Modal */}
+      {showDealDetail && selectedDeal && (
+        <DealDetail
+          deal={selectedDeal}
+          onClose={() => setShowDealDetail(false)}
+          onEdit={handleEditDeal}
+        />
+      )}
+
       {/* Deal Form Modal */}
       {showDealForm && (
         <DealForm
@@ -345,9 +357,9 @@ function DealsList() {
                     <div className="ri-action-buttons">
                       <Button variant="outline" size="sm" className="shadow-sm" onClick={(e) => {
                         e.stopPropagation()
-                        handleEditDeal(deal)
+                        handleDealClick(deal)
                       }}>
-                        Edit
+                        View
                       </Button>
                       {deal.requiresApproval && (
                         <Button variant="outline" size="sm" className="shadow-sm" onClick={(e) => {
