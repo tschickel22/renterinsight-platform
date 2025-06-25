@@ -2,9 +2,8 @@ import React, { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd'
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 import { Deal, DealStage, DealStatus } from '../types'
-import { useDealManagement } from '../hooks/useDealManagement'
 import { formatCurrency } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { Calendar, DollarSign, User, TrendingUp, AlertCircle } from 'lucide-react'
@@ -64,14 +63,14 @@ export function DealPipeline({ deals, onDealStageChange, onDealClick }: DealPipe
     return new Date(deal.expectedCloseDate) < new Date() && deal.status === DealStatus.ACTIVE
   }
 
-  const onDragEnd = (result: DropResult) => {
+  const onDragEnd = (result) => {
     setDraggedDeal(null)
     
     // If there's no destination or the item was dropped back in its original position, do nothing
     if (!result.destination || result.source.droppableId === result.destination.droppableId) return
 
     const dealId = result.draggableId
-    const newStage = result.destination.droppableId as DealStage
+    const newStage = result.destination.droppableId
 
     // Call the callback to update the deal stage
     onDealStageChange(dealId, newStage)
@@ -94,7 +93,7 @@ export function DealPipeline({ deals, onDealStageChange, onDealClick }: DealPipe
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-10">
       {/* Pipeline Overview */}
       <div className="grid gap-4 md:grid-cols-7">
         {stageConfig.map((config) => {
@@ -125,7 +124,10 @@ export function DealPipeline({ deals, onDealStageChange, onDealClick }: DealPipe
       </div>
 
       {/* Pipeline Board */}
-      <DragDropContext onDragEnd={onDragEnd} onDragStart={onDragStart}>
+      <DragDropContext 
+        onDragEnd={onDragEnd} 
+        onDragStart={onDragStart}
+      >
         <div className="grid gap-4 grid-cols-1 md:grid-cols-7 min-h-[600px]">
           {stageConfig.map((config) => (
             <Droppable key={config.stage} droppableId={config.stage}>
@@ -145,6 +147,7 @@ export function DealPipeline({ deals, onDealStageChange, onDealClick }: DealPipe
                     <Draggable key={deal.id} draggableId={deal.id} index={index}>
                       {(provided, snapshot) => (
                         <Card
+                          key={deal.id}
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
@@ -156,7 +159,7 @@ export function DealPipeline({ deals, onDealStageChange, onDealClick }: DealPipe
                           onClick={() => onDealClick(deal)}
                         >
                           <CardContent className="p-4">
-                            <div className="space-y-3">
+                            <div className="space-y-2">
                               <div>
                                 <h4 className="font-semibold text-sm line-clamp-2">{deal.name}</h4>
                                 <p className="text-xs text-muted-foreground truncate">{deal.customerName}</p>
@@ -166,7 +169,7 @@ export function DealPipeline({ deals, onDealStageChange, onDealClick }: DealPipe
                                 <span className="font-bold text-primary">{formatCurrency(deal.value)}</span>
                                 <Badge className={cn("ri-badge-status text-xs", getPriorityColor(deal.priority))}>
                                   {deal.priority.toUpperCase()}
-                                </Badge>
+                                </Badge> 
                               </div>
 
                               <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -175,8 +178,8 @@ export function DealPipeline({ deals, onDealStageChange, onDealClick }: DealPipe
                                   <span>{deal.probability}%</span>
                                 </div>
                                 <div className="flex items-center space-x-1">
-                                  <Calendar className="h-3 w-3" />
-                                  <span>{new Date(deal.expectedCloseDate).toLocaleDateString()}</span>
+                                  <Calendar className="h-3 w-3 flex-shrink-0" />
+                                  <span className="truncate">{new Date(deal.expectedCloseDate).toLocaleDateString()}</span>
                                 </div>
                               </div>
 
@@ -186,7 +189,7 @@ export function DealPipeline({ deals, onDealStageChange, onDealClick }: DealPipe
                                 </Badge>
                                 {isOverdue(deal) && (
                                   <div className="flex items-center space-x-1 text-red-500">
-                                    <AlertCircle className="h-3 w-3" />
+                                    <AlertCircle className="h-3 w-3 flex-shrink-0" />
                                     <span className="text-xs">Overdue</span>
                                   </div>
                                 )}
@@ -200,7 +203,7 @@ export function DealPipeline({ deals, onDealStageChange, onDealClick }: DealPipe
                   {provided.placeholder}
                 </div>
               )}
-            </Droppable>
+            </Droppable> 
           ))}
         </div>
       </DragDropContext>

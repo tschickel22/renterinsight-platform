@@ -12,10 +12,10 @@ import { formatCurrency, formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
 import { useDealManagement } from './hooks/useDealManagement'
-import { DealPipeline } from './components/DealPipeline'
+import { DealPipeline } from './components/DealPipeline.tsx'
 import { DealMetrics } from './components/DealMetrics'
 import { WinLossAnalysis } from './components/WinLossAnalysis'
-import { DealDetail } from './components/DealDetail.tsx'
+import { DealDetail } from './components/DealDetail'
 import { TerritoryManagement } from './components/TerritoryManagement'
 import { ApprovalWorkflows } from './components/ApprovalWorkflows'
 import { DealForm } from './components/DealForm'
@@ -80,13 +80,13 @@ function DealsList() {
   const handleDealStageChange = async (dealId: string, newStage: DealStage) => {
     try {
       await updateDealStage(dealId, newStage)
-      
+
       // Show success toast
       const deal = deals.find(d => d.id === dealId)
       if (deal) {
         toast({
           title: 'Deal Stage Updated',
-          description: `${deal.name} moved to ${newStage.replace('_', ' ')}`,
+          description: `${deal.name} moved to ${newStage.replace('_', ' ').toLowerCase()}`,
         })
       }
     } catch (error) {
@@ -274,7 +274,7 @@ function DealsList() {
         <TabsContent value="pipeline" className="space-y-6">
           <DealPipeline 
             deals={deals} 
-            onDealStageChange={handleDealStageChange}
+            onDealStageChange={handleDealStageChange} 
             onDealClick={handleDealClick}
           />
         </TabsContent>
