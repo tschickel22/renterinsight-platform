@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CheckCircle, XCircle, AlertTriangle, Clock, User, ArrowRight, ThumbsUp, ThumbsDown, MessageSquare } from 'lucide-react'
 import { Deal, ApprovalWorkflow, ApprovalStatus, ApprovalStep } from '../types'
+import { Textarea } from '@/components/ui/textarea'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { Textarea } from '@/components/ui/textarea'
@@ -162,6 +163,17 @@ export function ApprovalWorkflows({ deals, approvalWorkflows, onApprove, onRejec
                     <p className="text-sm">{selectedWorkflow.currentStep} of {selectedWorkflow.totalSteps}</p>
                   </div>
                 </div>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium">Comments</label>
+                <Textarea
+                  id="comments"
+                  value={comments}
+                  onChange={(e) => setComments(e.target.value)}
+                  placeholder="Add your comments here..."
+                  rows={3}
+                />
               </div>
 
               {/* Approval Steps */}
