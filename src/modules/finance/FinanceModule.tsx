@@ -66,54 +66,9 @@ const mockLoans = [
     createdAt: new Date('2023-11-25')
   }
 ]
-  const handleCreateLoan = () => {
-    setShowNewLoanForm(true)
-  }
 
-  const handleSaveLoan = async (loanData: any) => {
-    try {
-      // In a real app, this would save to the database
-      console.log('Creating new loan:', loanData)
-      
-      // Add the new loan to the state
-      const newLoan = {
-        id: Math.random().toString(36).substr(2, 9),
-        customerId: loanData.customerId,
-        customerName: loanData.customerName,
-        vehicleId: loanData.vehicleId,
-        vehicleInfo: loanData.vehicleInfo,
-        amount: loanData.amount,
-        downPayment: loanData.downPayment,
-        term: loanData.term,
-        rate: loanData.rate,
-        paymentAmount: loanData.paymentAmount,
-        startDate: new Date(loanData.startDate),
-        status: loanData.status,
-        remainingBalance: loanData.amount - loanData.downPayment,
-        nextPaymentDate: new Date(new Date(loanData.startDate).setMonth(new Date(loanData.startDate).getMonth() + 1)),
-        createdAt: new Date()
-      }
-      
-      // Update the loans state
-      setLoans([...loans, newLoan])
-      
-      // Close the form
-      setShowNewLoanForm(false)
-      
-      toast({
-        title: 'Success',
-        description: 'Loan created successfully',
-      })
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to create loan',
-        variant: 'destructive'
-      })
-    }
-  }
-
-
+function FinanceDashboard() {
+  const [loans, setLoans] = useState<Loan[]>(mockLoans)
   const [showCalculator, setShowCalculator] = useState(false)
   const [showNewLoanForm, setShowNewLoanForm] = useState(false)
   const [selectedLoan, setSelectedLoan] = useState(null)
@@ -127,10 +82,6 @@ const mockLoans = [
   const handleCreateLoan = () => setShowNewLoanForm(true)
   const avgInterestRate = loans.reduce((sum, loan) => sum + loan.rate, 0) / loans.length
   const monthlyRevenue = loans.reduce((sum, loan) => sum + loan.paymentAmount, 0)
-
-function FinanceDashboard() {
-  const [loans, setLoans] = useState<Loan[]>(mockLoans)
-  }
 
   const handleSaveLoan = async (loanData: any) => {
     try {
