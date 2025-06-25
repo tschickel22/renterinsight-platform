@@ -10,6 +10,7 @@ import { Target, Plus, Search, Filter, DollarSign, TrendingUp, Users, MapPin, Se
 import { Deal, DealStage, DealStatus, Territory, ApprovalWorkflow, WinLossReport } from './types'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
+import { useToast } from '@/hooks/use-toast'
 import { useDealManagement } from './hooks/useDealManagement'
 import { DealPipeline } from './components/DealPipeline'
 import { DealMetrics } from './components/DealMetrics'
@@ -46,6 +47,7 @@ function DealsList() {
   const [showDealForm, setShowDealForm] = useState(false)
   const [activeTab, setActiveTab] = useState('pipeline')
   const [showDealDetail, setShowDealDetail] = useState(false)
+  const { toast } = useToast()
 
   const getStatusColor = (status: DealStatus) => {
     switch (status) {
@@ -76,7 +78,24 @@ function DealsList() {
   })
 
   const handleDealStageChange = async (dealId: string, newStage: DealStage) => {
-    await updateDealStage(dealId, newStage)
+    try {
+      await updateDealStage(dealId, newStage)
+      
+      // Show success toast
+      const deal = deals.find(d => d.id === dealId)
+      if (deal) {
+        toast({
+          title: 'Deal Stage Updated',
+          description: `${deal.name} moved to ${newStage.replace('_', ' ')}`,
+        })
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update deal stage',
+        variant: 'destructive'
+      })
+    }
   }
 
   const handleDealClick = (deal: Deal) => {
