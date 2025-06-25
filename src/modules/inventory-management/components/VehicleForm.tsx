@@ -283,6 +283,11 @@ export function VehicleForm({ vehicle, onSave, onCancel, onScanBarcode }: Vehicl
                       <SelectItem value={VehicleType.TRAVEL_TRAILER}>Travel Trailer</SelectItem>
                       <SelectItem value={VehicleType.FIFTH_WHEEL}>Fifth Wheel</SelectItem>
                       <SelectItem value={VehicleType.TOY_HAULER}>Toy Hauler</SelectItem>
+                      <SelectItem value={VehicleType.SINGLE_WIDE}>Single Wide MH</SelectItem>
+                      <SelectItem value={VehicleType.DOUBLE_WIDE}>Double Wide MH</SelectItem>
+                      <SelectItem value={VehicleType.TRIPLE_WIDE}>Triple Wide MH</SelectItem>
+                      <SelectItem value={VehicleType.PARK_MODEL}>Park Model</SelectItem>
+                      <SelectItem value={VehicleType.MODULAR_HOME}>Modular Home</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

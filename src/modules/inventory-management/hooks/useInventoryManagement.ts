@@ -98,6 +98,31 @@ export function useInventoryManagement() {
         customFields: {},
         createdAt: new Date('2024-01-01'),
         updatedAt: new Date('2024-01-05')
+      },
+      {
+        id: '6',
+        vin: 'MH12345678901234',
+        make: 'Clayton Homes',
+        model: 'Inspiration',
+        year: 2024,
+        type: VehicleType.DOUBLE_WIDE,
+        status: VehicleStatus.AVAILABLE,
+        price: 125000,
+        cost: 95000,
+        location: 'MH Section A-10',
+        features: ['3 Bedroom', '2 Bathroom', 'Open Floor Plan', 'Energy Efficient'],
+        images: ['https://images.pexels.com/photos/2506923/pexels-photo-2506923.jpeg'],
+        customFields: {
+          length: '76',
+          width: '28',
+          squareFootage: '2128',
+          constructionType: 'Manufactured',
+          roofType: 'Shingle',
+          exteriorSiding: 'Vinyl',
+          insulationRating: 'R-21'
+        },
+        createdAt: new Date('2024-01-15'),
+        updatedAt: new Date('2024-01-15')
       }
     ])
 

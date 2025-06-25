@@ -269,6 +269,11 @@ export function InventoryTable({
                 <SelectItem value={VehicleStatus.SOLD}>Sold</SelectItem>
                 <SelectItem value={VehicleStatus.SERVICE}>Service</SelectItem>
                 <SelectItem value={VehicleStatus.DELIVERED}>Delivered</SelectItem>
+                <SelectItem value={VehicleType.SINGLE_WIDE}>Single Wide MH</SelectItem>
+                <SelectItem value={VehicleType.DOUBLE_WIDE}>Double Wide MH</SelectItem>
+                <SelectItem value={VehicleType.TRIPLE_WIDE}>Triple Wide MH</SelectItem>
+                <SelectItem value={VehicleType.PARK_MODEL}>Park Model</SelectItem>
+                <SelectItem value={VehicleType.MODULAR_HOME}>Modular Home</SelectItem>
               </SelectContent>
             </Select>
             <Button variant="outline" size="sm" onClick={handleExportCSV}>
