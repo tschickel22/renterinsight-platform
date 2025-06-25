@@ -389,7 +389,10 @@ export function useDealManagement() {
     if (closedDeals.length === 0) return 0
 
     const totalDays = closedDeals.reduce((sum, deal) => {
-      const days = Math.floor((deal.actualCloseDate!.getTime() - deal.createdAt.getTime()) / (1000 * 60 * 60 * 24))
+      const closeDate = new Date(deal.actualCloseDate!)
+      const days = !isNaN(closeDate.getTime()) 
+        ? Math.floor((closeDate.getTime() - deal.createdAt.getTime()) / (1000 * 60 * 60 * 24))
+        : 0
       return sum + days
     }, 0)
 
