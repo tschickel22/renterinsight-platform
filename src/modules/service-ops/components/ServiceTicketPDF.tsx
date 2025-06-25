@@ -1,8 +1,8 @@
 import React from 'react'
 import { ServiceTicket } from '@/types'
 import { formatCurrency, formatDate } from '@/lib/utils'
-import { jsPDF } from 'jspdf'
-import 'jspdf-autotable'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 import { useToast } from '@/hooks/use-toast'
 
 interface ServiceTicketPDFProps {
@@ -79,9 +79,8 @@ export function generateServiceTicketPDF(ticket: ServiceTicket) {
     doc.text('Parts', 20, yPos)
     
     yPos += 5
-    
-    // @ts-ignore - jspdf-autotable types
-    doc.autoTable({
+
+    autoTable(doc, {
       startY: yPos,
       head: [['Part Number', 'Description', 'Quantity', 'Unit Cost', 'Total']],
       body: ticket.parts.map(part => [
@@ -96,8 +95,8 @@ export function generateServiceTicketPDF(ticket: ServiceTicket) {
       margin: { left: 20, right: 20 }
     })
     
-    // @ts-ignore - jspdf-autotable types
-    yPos = doc.lastAutoTable.finalY + 10
+    // Get the final Y position after the table
+    yPos = (doc as any).lastAutoTable.finalY + 10
   }
   
   // Add labor table
@@ -106,9 +105,8 @@ export function generateServiceTicketPDF(ticket: ServiceTicket) {
     doc.text('Labor', 20, yPos)
     
     yPos += 5
-    
-    // @ts-ignore - jspdf-autotable types
-    doc.autoTable({
+
+    autoTable(doc, {
       startY: yPos,
       head: [['Description', 'Hours', 'Rate', 'Total']],
       body: ticket.labor.map(labor => [
@@ -122,8 +120,8 @@ export function generateServiceTicketPDF(ticket: ServiceTicket) {
       margin: { left: 20, right: 20 }
     })
     
-    // @ts-ignore - jspdf-autotable types
-    yPos = doc.lastAutoTable.finalY + 10
+    // Get the final Y position after the table
+    yPos = (doc as any).lastAutoTable.finalY + 10
   }
   
   // Add totals
