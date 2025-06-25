@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { X, Save, DollarSign, Calendar, User, Package, Calculator } from 'lucide-react'
@@ -12,18 +12,21 @@ import { LoanCalculator } from './LoanCalculator'
 import { formatCurrency } from '@/lib/utils'
 import { useLeadManagement } from '@/modules/crm-prospecting/hooks/useLeadManagement'
 import { useInventoryManagement } from '@/modules/inventory-management/hooks/useInventoryManagement'
+import { NewLeadForm } from '@/modules/crm-prospecting/components/NewLeadForm'
 
 interface NewLoanFormProps {
   onSave: (loanData: any) => Promise<void>
   onCancel: () => void
+  onAddNewCustomer?: () => void
 }
 
-export function NewLoanForm({ onSave, onCancel }: NewLoanFormProps) {
+export function NewLoanForm({ onSave, onCancel, onAddNewCustomer }: NewLoanFormProps) {
   const { toast } = useToast()
   const { leads } = useLeadManagement()
   const { vehicles, getAvailableVehicles } = useInventoryManagement()
   const [loading, setLoading] = useState(false)
   const [showCalculator, setShowCalculator] = useState(false)
+  const [showNewLeadForm, setShowNewLeadForm] = useState(false)
   const [calculatorResults, setCalculatorResults] = useState<any>(null)
   
   const [formData, setFormData] = useState({
@@ -131,8 +134,43 @@ export function NewLoanForm({ onSave, onCancel }: NewLoanFormProps) {
     setShowCalculator(false)
   }
 
+  const handleCustomerSelect = (value: string) => {
+    if (value === "add-new") {
+      if (onAddNewCustomer) {
+        onAddNewCustomer();
+      } else {
+        setShowNewLeadForm(true);
+      }
+    } else {
+      setFormData(prev => ({ ...prev, customerId: value }));
+    }
+  }
+
+  const handleNewCustomerSuccess = (newCustomer: any) => {
+    // Update the customer dropdown with the new customer and select it
+    setFormData(prev => ({
+      ...prev,
+      customerId: newCustomer.id,
+      customerName: `${newCustomer.firstName} ${newCustomer.lastName}`
+    }));
+    setShowNewLeadForm(false);
+    
+    toast({
+      title: 'Customer Added',
+      description: `${newCustomer.firstName} ${newCustomer.lastName} has been added as a customer.`,
+    });
+  }
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      {/* New Customer Form Modal */}
+      {showNewLeadForm && (
+        <NewLeadForm
+          onClose={() => setShowNewLeadForm(false)}
+          onSuccess={handleNewCustomerSuccess}
+        />
+      )}
+      
       {showCalculator ? (
         <div className="bg-background rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
           <div className="p-6">
@@ -183,13 +221,15 @@ export function NewLoanForm({ onSave, onCancel }: NewLoanFormProps) {
                   <div>
                     <Label htmlFor="customerId">Customer *</Label>
                     <Select 
-                      value={formData.customerId} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, customerId: value }))}
+                      value={formData.customerId}
+                      onValueChange={handleCustomerSelect}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select customer" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="add-new">➕ Add New Customer</SelectItem>
+                        <SelectSeparator />
                         {leads.map(customer => (
                           <SelectItem key={customer.id} value={customer.id}>
                             {customer.firstName} {customer.lastName}

@@ -9,6 +9,7 @@ import { LoanCalculator } from './components/LoanCalculator'
 import { PaymentHistory } from './components/PaymentHistory'
 import { LoanSettings } from './components/LoanSettings'
 import { NewLoanForm } from './components/NewLoanForm'
+import { NewLeadForm } from '@/modules/crm-prospecting/components/NewLeadForm'
 import { formatCurrency } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
 
@@ -72,6 +73,7 @@ function FinanceDashboard() {
   const [showCalculator, setShowCalculator] = useState(false)
   const [showNewLoanForm, setShowNewLoanForm] = useState(false)
   const [selectedLoan, setSelectedLoan] = useState(null)
+  const [showLeadModal, setShowLeadModal] = useState(false)
   const { toast } = useToast()
 
   const totalLoans = loans.length
@@ -126,6 +128,14 @@ function FinanceDashboard() {
     }
   }
 
+  const handleNewCustomerSuccess = (newCustomer: any) => {
+    toast({
+      title: 'Customer Added',
+      description: `${newCustomer.firstName} ${newCustomer.lastName} has been added as a customer.`,
+    });
+    setShowLeadModal(false);
+  }
+
   const filteredLoans = loans.filter(loan =>
     loan.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     loan.vehicleInfo.toLowerCase().includes(searchTerm.toLowerCase())
@@ -133,11 +143,20 @@ function FinanceDashboard() {
 
   return (
     <div className="space-y-8">
+      {/* New Lead Form Modal */}
+      {showLeadModal && (
+        <NewLeadForm
+          onClose={() => setShowLeadModal(false)}
+          onSuccess={handleNewCustomerSuccess}
+        />
+      )}
+
       {/* New Loan Form Modal */}
       {showNewLoanForm && (
         <NewLoanForm
           onSave={(loanData) => handleSaveLoan(loanData)}
           onCancel={() => setShowNewLoanForm(false)}
+          onAddNewCustomer={() => setShowLeadModal(true)}
         />
       )}
 
