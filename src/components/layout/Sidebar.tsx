@@ -11,7 +11,6 @@ import {
   ClipboardCheck,
   Wrench,
   Truck,
-  DollarSign,
   Globe,
   Receipt,
   Settings,
