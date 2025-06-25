@@ -4,85 +4,39 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Wrench, Plus, Search, Filter, Calendar, Clock, User, TrendingUp, DollarSign } from 'lucide-react'
+import { Wrench, Plus, Search, Filter, Calendar, Clock, User, TrendingUp, DollarSign, ShieldCheck, FileText } from 'lucide-react'
 import { ServiceTicket, ServiceStatus, Priority } from '@/types'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import { cn } from '@/lib/utils'
-
-const mockServiceTickets: ServiceTicket[] = [
-  {
-    id: '1',
-    customerId: 'cust-1',
-    vehicleId: 'veh-1',
-    title: 'Annual Maintenance Service',
-    description: 'Complete annual maintenance including oil change, filter replacement, and system checks',
-    priority: Priority.MEDIUM,
-    status: ServiceStatus.IN_PROGRESS,
-    assignedTo: 'Tech-001',
-    scheduledDate: new Date('2024-01-20'),
-    parts: [
-      {
-        id: '1',
-        partNumber: 'OIL-001',
-        description: 'Engine Oil Filter',
-        quantity: 1,
-        unitCost: 25.99,
-        total: 25.99
-      }
-    ],
-    labor: [
-      {
-        id: '1',
-        description: 'Annual Maintenance',
-        hours: 3,
-        rate: 85,
-        total: 255
-      }
-    ],
-    notes: 'Customer requested additional inspection of brake system',
-    customFields: {},
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-18')
-  },
-  {
-    id: '2',
-    customerId: 'cust-2',
-    vehicleId: 'veh-2',
-    title: 'AC System Repair',
-    description: 'Air conditioning not cooling properly, needs diagnostic and repair',
-    priority: Priority.HIGH,
-    status: ServiceStatus.WAITING_PARTS,
-    assignedTo: 'Tech-002',
-    scheduledDate: new Date('2024-01-22'),
-    parts: [
-      {
-        id: '2',
-        partNumber: 'AC-COMP-001',
-        description: 'AC Compressor',
-        quantity: 1,
-        unitCost: 450.00,
-        total: 450.00
-      }
-    ],
-    labor: [
-      {
-        id: '2',
-        description: 'AC System Diagnostic',
-        hours: 2,
-        rate: 85,
-        total: 170
-      }
-    ],
-    notes: 'Waiting for compressor part to arrive',
-    customFields: {},
-    createdAt: new Date('2024-01-12'),
-    updatedAt: new Date('2024-01-16')
-  }
-]
+import { useServiceManagement } from './hooks/useServiceManagement'
+import { useLeadManagement } from '@/modules/crm-prospecting/hooks/useLeadManagement'
+import { useInventoryManagement } from '@/modules/inventory-management/hooks/useInventoryManagement'
+import { ServiceTicketDetail } from './components/ServiceTicketDetail'
+import { ServiceTicketForm } from './components/ServiceTicketForm'
+import { CustomerPortalView } from './components/CustomerPortalView'
+import { useToast } from '@/hooks/use-toast'
 
 function ServiceTicketsList() {
-  const [tickets] = useState<ServiceTicket[]>(mockServiceTickets)
+  const { 
+    tickets, 
+    technicians, 
+    createTicket, 
+    updateTicket, 
+    updateTicketStatus, 
+    assignTechnician, 
+    generatePDF, 
+    shareWithCustomer,
+    submitCustomerFeedback
+  } = useServiceManagement()
+  const { leads } = useLeadManagement()
+  const { vehicles } = useInventoryManagement()
+  const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [showTicketDetail, setShowTicketDetail] = useState(false)
+  const [showTicketForm, setShowTicketForm] = useState(false)
+  const [showCustomerView, setShowCustomerView] = useState(false)
+  const [selectedTicket, setSelectedTicket] = useState<ServiceTicket | null>(null)
 
   const getStatusColor = (status: ServiceStatus) => {
     switch (status) {
@@ -116,24 +70,181 @@ function ServiceTicketsList() {
     }
   }
 
-  const filteredTickets = tickets.filter(ticket =>
-    ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ticket.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ticket.customerId.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredTickets = tickets.filter(ticket => {
+    const matchesSearch = 
+      ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ticket.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ticket.customerId.toLowerCase().includes(searchTerm.toLowerCase())
+    
+    const matchesStatus = statusFilter === 'all' || ticket.status === statusFilter
+    
+    return matchesSearch && matchesStatus
+  })
+
+  const handleCreateTicket = () => {
+    setSelectedTicket(null)
+    setShowTicketForm(true)
+  }
+
+  const handleEditTicket = (ticket: ServiceTicket) => {
+    setSelectedTicket(ticket)
+    setShowTicketForm(true)
+  }
+
+  const handleViewTicket = (ticket: ServiceTicket) => {
+    setSelectedTicket(ticket)
+    setShowTicketDetail(true)
+  }
+
+  const handleViewCustomerPortal = (ticket: ServiceTicket) => {
+    setSelectedTicket(ticket)
+    setShowCustomerView(true)
+  }
+
+  const handleSaveTicket = async (ticketData: Partial<ServiceTicket>) => {
+    try {
+      if (selectedTicket) {
+        await updateTicket(selectedTicket.id, ticketData)
+        toast({
+          title: 'Success',
+          description: 'Service ticket updated successfully',
+        })
+      } else {
+        await createTicket(ticketData)
+        toast({
+          title: 'Success',
+          description: 'Service ticket created successfully',
+        })
+      }
+      setShowTicketForm(false)
+      setSelectedTicket(null)
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: `Failed to ${selectedTicket ? 'update' : 'create'} service ticket`,
+        variant: 'destructive'
+      })
+    }
+  }
+
+  const handleGeneratePDF = (ticketId: string) => {
+    try {
+      generatePDF(ticketId)
+      toast({
+        title: 'Success',
+        description: 'PDF generated and downloaded',
+      })
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to generate PDF',
+        variant: 'destructive'
+      })
+    }
+  }
+
+  const handleShareWithCustomer = async (ticketId: string) => {
+    try {
+      await shareWithCustomer(ticketId)
+      toast({
+        title: 'Success',
+        description: 'Service ticket shared with customer',
+      })
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to share with customer',
+        variant: 'destructive'
+      })
+    }
+  }
+
+  const handleSubmitFeedback = async (ticketId: string, feedback: string, rating: number) => {
+    try {
+      await submitCustomerFeedback(ticketId, feedback, rating)
+      setShowCustomerView(false)
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to submit feedback',
+        variant: 'destructive'
+      })
+    }
+  }
+
+  const handleAssignTechnician = async (ticketId: string, technicianId: string) => {
+    try {
+      await assignTechnician(ticketId, technicianId)
+      toast({
+        title: 'Success',
+        description: 'Technician assigned successfully',
+      })
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to assign technician',
+        variant: 'destructive'
+      })
+    }
+  }
+
+  // Calculate stats
+  const totalTickets = tickets.length
+  const inProgressTickets = tickets.filter(t => t.status === ServiceStatus.IN_PROGRESS).length
+  const waitingPartsTickets = tickets.filter(t => t.status === ServiceStatus.WAITING_PARTS).length
+  const totalRevenue = tickets.reduce((sum, t) => 
+    sum + t.parts.reduce((pSum, p) => pSum + p.total, 0) + 
+    t.labor.reduce((lSum, l) => lSum + l.total, 0), 0)
+  const warrantyTickets = tickets.filter(t => t.customFields?.isWarrantyCovered).length
 
   return (
     <div className="space-y-8">
+      {/* Service Ticket Detail Modal */}
+      {showTicketDetail && selectedTicket && (
+        <ServiceTicketDetail
+          ticket={selectedTicket}
+          onClose={() => setShowTicketDetail(false)}
+          onEdit={handleEditTicket}
+          onGeneratePDF={handleGeneratePDF}
+          onShareWithCustomer={handleShareWithCustomer}
+        />
+      )}
+      
+      {/* Service Ticket Form Modal */}
+      {showTicketForm && (
+        <ServiceTicketForm
+          ticket={selectedTicket || undefined}
+          customers={leads}
+          vehicles={vehicles}
+          technicians={technicians}
+          onSave={handleSaveTicket}
+          onCancel={() => {
+            setShowTicketForm(false)
+            setSelectedTicket(null)
+          }}
+        />
+      )}
+      
+      {/* Customer Portal View Modal */}
+      {showCustomerView && selectedTicket && (
+        <CustomerPortalView
+          ticket={selectedTicket}
+          onClose={() => setShowCustomerView(false)}
+          onDownloadPDF={handleGeneratePDF}
+          onSubmitFeedback={handleSubmitFeedback}
+        />
+      )}
+
       {/* Page Header */}
       <div className="ri-page-header">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="ri-page-title">Service Operations</h1>
             <p className="ri-page-description">
-              Manage service tickets and maintenance schedules
+              Manage service tickets, technician assignments, and warranty claims
             </p>
           </div>
-          <Button className="shadow-sm">
+          <Button className="shadow-sm" onClick={handleCreateTicket}>
             <Plus className="h-4 w-4 mr-2" />
             New Service Ticket
           </Button>
@@ -148,7 +259,7 @@ function ServiceTicketsList() {
             <Wrench className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-900">{tickets.length}</div>
+            <div className="text-2xl font-bold text-blue-900">{totalTickets}</div>
             <p className="text-xs text-blue-600 flex items-center mt-1">
               <TrendingUp className="h-3 w-3 mr-1" />
               All service requests
@@ -161,9 +272,7 @@ function ServiceTicketsList() {
             <Wrench className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-900">
-              {tickets.filter(t => t.status === ServiceStatus.IN_PROGRESS).length}
-            </div>
+            <div className="text-2xl font-bold text-yellow-900">{inProgressTickets}</div>
             <p className="text-xs text-yellow-600 flex items-center mt-1">
               <Clock className="h-3 w-3 mr-1" />
               Currently working
@@ -176,9 +285,7 @@ function ServiceTicketsList() {
             <Wrench className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-900">
-              {tickets.filter(t => t.status === ServiceStatus.WAITING_PARTS).length}
-            </div>
+            <div className="text-2xl font-bold text-orange-900">{waitingPartsTickets}</div>
             <p className="text-xs text-orange-600 flex items-center mt-1">
               <Clock className="h-3 w-3 mr-1" />
               Parts on order
@@ -191,14 +298,23 @@ function ServiceTicketsList() {
             <DollarSign className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-900">
-              {formatCurrency(tickets.reduce((sum, t) => 
-                sum + t.parts.reduce((pSum, p) => pSum + p.total, 0) + 
-                t.labor.reduce((lSum, l) => lSum + l.total, 0), 0))}
-            </div>
+            <div className="text-2xl font-bold text-green-900">{formatCurrency(totalRevenue)}</div>
             <p className="text-xs text-green-600 flex items-center mt-1">
               <TrendingUp className="h-3 w-3 mr-1" />
               Service revenue
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-purple-50 to-purple-100/50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-purple-900">Warranty Claims</CardTitle>
+            <ShieldCheck className="h-4 w-4 text-purple-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-purple-900">{warrantyTickets}</div>
+            <p className="text-xs text-purple-600 flex items-center mt-1">
+              <ShieldCheck className="h-3 w-3 mr-1" />
+              Warranty covered
             </p>
           </CardContent>
         </Card>
@@ -215,6 +331,19 @@ function ServiceTicketsList() {
             className="ri-search-input shadow-sm"
           />
         </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value={ServiceStatus.OPEN}>Open</SelectItem>
+            <SelectItem value={ServiceStatus.IN_PROGRESS}>In Progress</SelectItem>
+            <SelectItem value={ServiceStatus.WAITING_PARTS}>Waiting Parts</SelectItem>
+            <SelectItem value={ServiceStatus.COMPLETED}>Completed</SelectItem>
+            <SelectItem value={ServiceStatus.CANCELLED}>Cancelled</SelectItem>
+          </SelectContent>
+        </Select>
         <Button variant="outline" className="shadow-sm">
           <Filter className="h-4 w-4 mr-2" />
           Filter
@@ -243,6 +372,12 @@ function ServiceTicketsList() {
                       <Badge className={cn("ri-badge-status", getStatusColor(ticket.status))}>
                         {ticket.status.replace('_', ' ').toUpperCase()}
                       </Badge>
+                      {ticket.customFields?.isWarrantyCovered && (
+                        <Badge className="bg-green-50 text-green-700 border-green-200">
+                          <ShieldCheck className="h-3 w-3 mr-1" />
+                          WARRANTY
+                        </Badge>
+                      )}
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center">
@@ -292,16 +427,64 @@ function ServiceTicketsList() {
                     </div>
                   </div>
                 </div>
-                <div className="ri-action-buttons">
-                  <Button variant="outline" size="sm" className="shadow-sm">
+                <div className="flex items-center space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="shadow-sm"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleViewTicket(ticket)
+                    }}
+                  >
                     View
                   </Button>
-                  <Button variant="outline" size="sm" className="shadow-sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="shadow-sm"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleEditTicket(ticket)
+                    }}
+                  >
                     Edit
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="shadow-sm"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleViewCustomerPortal(ticket)
+                    }}
+                  >
+                    <User className="h-3 w-3 mr-1" />
+                    Customer View
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="shadow-sm"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleGeneratePDF(ticket.id)
+                    }}
+                  >
+                    <FileText className="h-3 w-3 mr-1" />
+                    PDF
                   </Button>
                 </div>
               </div>
             ))}
+            
+            {filteredTickets.length === 0 && (
+              <div className="text-center py-12 text-muted-foreground">
+                <Wrench className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                <p>No service tickets found</p>
+                <p className="text-sm">Create your first service ticket to get started</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
