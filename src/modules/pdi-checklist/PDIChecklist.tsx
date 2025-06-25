@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ClipboardCheck, Plus, CheckSquare, AlertTriangle, Image as ImageIcon, TrendingUp } from 'lucide-react'
-import { PDITemplate, PDIInspection } from './types'
+import { PDITemplate, PDIInspection, PDIInspectionStatus } from './types'
 import { usePDIManagement } from './hooks/usePDIManagement'
 import { useInventoryManagement } from '@/modules/inventory-management/hooks/useInventoryManagement'
 import { useAuth } from '@/contexts/AuthContext'
@@ -242,10 +242,10 @@ function PDIChecklistDashboard() {
   const activeTemplates = templates.filter(t => t.isActive).length
   const totalInspections = inspections.length
   const completedInspections = inspections.filter(i => 
-    i.status === 'completed' || 
-    i.status === 'approved'
+    i.status === PDIInspectionStatus.COMPLETED || 
+    i.status === PDIInspectionStatus.APPROVED
   ).length
-  const inProgressInspections = inspections.filter(i => i.status === 'in_progress').length
+  const inProgressInspections = inspections.filter(i => i.status === PDIInspectionStatus.IN_PROGRESS).length
   const totalDefects = inspections.reduce((sum, i) => sum + i.defects.length, 0)
   const openDefects = inspections.reduce((sum, i) => 
     sum + i.defects.filter(d => d.status === 'open' || d.status === 'in_progress').length, 0

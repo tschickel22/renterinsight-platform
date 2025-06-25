@@ -23,10 +23,10 @@ import {
   PDIInspection, 
   PDIInspectionItem, 
   PDIInspectionItemStatus,
-  PDIInspectionStatus,
   PDIDefect,
   PDIDefectSeverity,
-  PDIPhoto
+  PDIPhoto,
+  PDIInspectionStatus
 } from '../types'
 import { Vehicle } from '@/types'
 import { useToast } from '@/hooks/use-toast'

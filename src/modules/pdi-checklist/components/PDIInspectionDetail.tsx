@@ -22,9 +22,9 @@ import {
   PDIInspection, 
   PDIInspectionItemStatus, 
   PDIDefectSeverity, 
-  PDIInspectionStatus,
   PDISignoff,
-  PDISignoffRole
+  PDISignoffRole,
+  PDIInspectionStatus
 } from '../types'
 import { Vehicle } from '@/types'
 import { useToast } from '@/hooks/use-toast'
@@ -127,9 +127,9 @@ export function PDIInspectionDetail({
             <div className="flex items-center space-x-2">
               <Badge className={cn(
                 "ri-badge-status",
-                inspection.status === 'in_progress' ? "bg-yellow-50 text-yellow-700 border-yellow-200" :
-                inspection.status === 'completed' ? "bg-blue-50 text-blue-700 border-blue-200" :
-                inspection.status === 'approved' ? "bg-green-50 text-green-700 border-green-200" :
+                inspection.status === PDIInspectionStatus.IN_PROGRESS ? "bg-yellow-50 text-yellow-700 border-yellow-200" :
+                inspection.status === PDIInspectionStatus.COMPLETED ? "bg-blue-50 text-blue-700 border-blue-200" :
+                inspection.status === PDIInspectionStatus.APPROVED ? "bg-green-50 text-green-700 border-green-200" :
                 "bg-red-50 text-red-700 border-red-200"
               )}>
                 {inspection.status.replace('_', ' ').toUpperCase()}

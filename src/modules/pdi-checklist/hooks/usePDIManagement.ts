@@ -8,6 +8,7 @@ import {
   PDIDefect, 
   PDIPhoto, 
   PDISignoff,
+  PDIInspectionStatus,
   PDIInspectionItemStatus,
   PDIDefectStatus,
   PDIDefectSeverity,
@@ -363,7 +364,7 @@ export function usePDIManagement() {
         template: template || undefined,
         vehicleId: inspectionData.vehicleId || '',
         inspectorId: inspectionData.inspectorId || '',
-        status: 'in_progress',
+        status: PDIInspectionStatus.IN_PROGRESS,
         startedAt: new Date(),
         notes: inspectionData.notes || '',
         items: [],
@@ -454,7 +455,7 @@ export function usePDIManagement() {
 
     const updatedInspection = {
       ...inspection,
-      status: 'completed',
+      status: PDIInspectionStatus.COMPLETED,
       completedAt: new Date(),
       notes: notes || inspection.notes,
       updatedAt: new Date()
@@ -615,7 +616,7 @@ export function usePDIManagement() {
     
     // If this is a manager signoff, update the inspection status to approved
     if (signoffData.role === PDISignoffRole.MANAGER) {
-      updatedStatus = 'approved'
+      updatedStatus = PDIInspectionStatus.APPROVED
     }
 
     const updatedInspection = {
