@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Vehicle, VehicleStatus, VehicleType } from '@/types'
 import { saveToLocalStorage, loadFromLocalStorage } from '@/lib/utils'
+import Papa from 'papaparse'
 
 export function useInventoryManagement() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
@@ -125,6 +126,12 @@ export function useInventoryManagement() {
     saveVehiclesToStorage(updatedVehicles)
   }
 
+  const deleteVehicle = async (vehicleId: string) => {
+    const updatedVehicles = vehicles.filter(vehicle => vehicle.id !== vehicleId)
+    setVehicles(updatedVehicles)
+    saveVehiclesToStorage(updatedVehicles)
+  }
+
   const createVehicle = async (vehicleData: Partial<Vehicle>) => {
     setLoading(true)
     try {
@@ -156,12 +163,84 @@ export function useInventoryManagement() {
     }
   }
 
+  const importVehiclesFromCSV = async (file: File) => {
+    return new Promise<Partial<Vehicle>[]>((resolve, reject) => {
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          const importedVehicles = results.data.map((row: any) => {
+            return {
+              vin: row.vin || '',
+              make: row.make || '',
+              model: row.model || '',
+              year: parseInt(row.year) || new Date().getFullYear(),
+              type: row.type as VehicleType || VehicleType.RV,
+              status: row.status as VehicleStatus || VehicleStatus.AVAILABLE,
+              price: parseFloat(row.price) || 0,
+              cost: parseFloat(row.cost) || 0,
+              location: row.location || '',
+              features: row.features ? row.features.split(',').map((f: string) => f.trim()) : [],
+              images: [],
+              customFields: {
+                exteriorColor: row.exteriorColor || '',
+                interiorColor: row.interiorColor || '',
+                length: row.length || '',
+                weight: row.weight || '',
+                sleeps: row.sleeps || '',
+                slideouts: row.slideouts || '',
+                fuelType: row.fuelType || '',
+                mileage: row.mileage || '',
+                condition: row.condition || 'New'
+              }
+            }
+          })
+          resolve(importedVehicles)
+        },
+        error: (error) => {
+          reject(error)
+        }
+      })
+    })
+  }
+
+  const exportVehiclesToCSV = () => {
+    const data = vehicles.map(vehicle => ({
+      id: vehicle.id,
+      vin: vehicle.vin,
+      make: vehicle.make,
+      model: vehicle.model,
+      year: vehicle.year,
+      type: vehicle.type,
+      status: vehicle.status,
+      price: vehicle.price,
+      cost: vehicle.cost,
+      location: vehicle.location,
+      features: vehicle.features.join(', '),
+      exteriorColor: vehicle.customFields?.exteriorColor || '',
+      interiorColor: vehicle.customFields?.interiorColor || '',
+      length: vehicle.customFields?.length || '',
+      weight: vehicle.customFields?.weight || '',
+      sleeps: vehicle.customFields?.sleeps || '',
+      slideouts: vehicle.customFields?.slideouts || '',
+      fuelType: vehicle.customFields?.fuelType || '',
+      mileage: vehicle.customFields?.mileage || '',
+      condition: vehicle.customFields?.condition || ''
+    }))
+
+    const csv = Papa.unparse(data)
+    return csv
+  }
+
   return {
     vehicles,
     loading,
     getAvailableVehicles,
     getVehicleById,
     updateVehicleStatus,
-    createVehicle
+    createVehicle,
+    deleteVehicle,
+    importVehiclesFromCSV,
+    exportVehiclesToCSV
   }
 }
