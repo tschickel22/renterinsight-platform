@@ -11,7 +11,6 @@ import { useInventoryManagement } from './hooks/useInventoryManagement'
 import { VehicleForm } from './components/VehicleForm'
 import { CSVHandler } from './components/CSVHandler'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
 
