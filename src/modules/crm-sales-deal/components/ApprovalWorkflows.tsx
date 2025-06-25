@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CheckCircle, XCircle, AlertTriangle, Clock, User, ArrowRight, ThumbsUp, ThumbsDown, MessageSquare } from 'lucide-react'
 import { Deal, ApprovalWorkflow, ApprovalStatus, ApprovalStep } from '../types'
@@ -165,7 +166,7 @@ export function ApprovalWorkflows({ deals, approvalWorkflows, onApprove, onRejec
               </div>
               
               <div>
-                <label className="text-sm font-medium">Comments</label>
+                <Label htmlFor="comments">Comments</Label>
                 <Textarea
                   id="comments"
                   value={comments}
