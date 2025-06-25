@@ -333,6 +333,11 @@ export enum VehicleType {
   TRAVEL_TRAILER = 'travel_trailer',
   FIFTH_WHEEL = 'fifth_wheel',
   TOY_HAULER = 'toy_hauler'
+  SINGLE_WIDE = 'single_wide',
+  DOUBLE_WIDE = 'double_wide',
+  TRIPLE_WIDE = 'triple_wide',
+  PARK_MODEL = 'park_model',
+  MODULAR_HOME = 'modular_home'
 }
 
 export enum VehicleStatus {
