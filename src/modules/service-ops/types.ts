@@ -68,7 +68,8 @@ export enum WarrantyType {
   MANUFACTURER = 'manufacturer',
   EXTENDED = 'extended',
   DEALER = 'dealer',
-  NONE = 'none'
+  NONE = 'none',
+  FACTORY = 'factory'
 }
 
 export enum WarrantyClaimStatus {

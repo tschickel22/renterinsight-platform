@@ -9,12 +9,80 @@ import { ServiceTicket, ServiceStatus, Priority } from '@/types'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { useServiceManagement } from './hooks/useServiceManagement'
-import { useLeadManagement } from '@/modules/crm-prospecting/hooks/useLeadManagement'
-import { useInventoryManagement } from '@/modules/inventory-management/hooks/useInventoryManagement'
+import { Lead } from '@/types'
 import { ServiceTicketDetail } from './components/ServiceTicketDetail'
 import { ServiceTicketForm } from './components/ServiceTicketForm'
 import { CustomerPortalView } from './components/CustomerPortalView'
 import { useToast } from '@/hooks/use-toast'
+
+// Mock data for customers and vehicles since we're not importing the hooks
+const mockCustomers: Lead[] = [
+  {
+    id: 'cust-1',
+    firstName: 'John',
+    lastName: 'Smith',
+    email: 'john.smith@email.com',
+    phone: '(555) 123-4567',
+    source: 'Website',
+    sourceId: '1',
+    status: 'new' as any,
+    notes: '',
+    customFields: {},
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  {
+    id: 'cust-2',
+    firstName: 'Sarah',
+    lastName: 'Johnson',
+    email: 'sarah.j@email.com',
+    phone: '(555) 987-6543',
+    source: 'Referral',
+    sourceId: '2',
+    status: 'qualified' as any,
+    notes: '',
+    customFields: {},
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }
+]
+
+const mockVehicles = [
+  {
+    id: 'veh-1',
+    vin: '1FDXE4FS8KDC12345',
+    make: 'Forest River',
+    model: 'Georgetown',
+    year: 2024,
+    type: 'motorhome',
+    status: 'available',
+    price: 125000,
+    cost: 95000,
+    location: 'Lot A-15',
+    features: ['Slide-out', 'Generator', 'Solar Panel'],
+    images: ['https://images.pexels.com/photos/1319515/pexels-photo-1319515.jpeg'],
+    customFields: {},
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  {
+    id: 'veh-2',
+    vin: '1FDXE4FS8KDC67890',
+    make: 'Winnebago',
+    model: 'View',
+    year: 2023,
+    type: 'rv',
+    status: 'available',
+    price: 89000,
+    cost: 72000,
+    location: 'Lot B-08',
+    features: ['Compact Design', 'Fuel Efficient'],
+    images: ['https://images.pexels.com/photos/2506923/pexels-photo-2506923.jpeg'],
+    customFields: {},
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }
+]
 
 function ServiceTicketsList() {
   const { 
@@ -28,8 +96,6 @@ function ServiceTicketsList() {
     shareWithCustomer,
     submitCustomerFeedback
   } = useServiceManagement()
-  const { leads } = useLeadManagement()
-  const { vehicles } = useInventoryManagement()
   const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -214,8 +280,8 @@ function ServiceTicketsList() {
       {showTicketForm && (
         <ServiceTicketForm
           ticket={selectedTicket || undefined}
-          customers={leads}
-          vehicles={vehicles}
+          customers={mockCustomers}
+          vehicles={mockVehicles}
           technicians={technicians}
           onSave={handleSaveTicket}
           onCancel={() => {
