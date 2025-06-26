@@ -48,7 +48,10 @@ export function VehicleDetail({ vehicle, onClose, onEdit }: VehicleDetailProps) 
               </CardDescription>
             </div>
             <div className="flex items-center space-x-2">
-              <Button onClick={() => onEdit(vehicle)} size="sm">
+              <Button onClick={() => {
+                onClose();
+                onEdit(vehicle);
+              }} size="sm">
                 <Edit className="h-4 w-4 mr-2" />
                 Edit Vehicle
               </Button>
