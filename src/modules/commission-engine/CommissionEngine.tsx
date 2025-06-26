@@ -21,7 +21,7 @@ import {
 } from 'lucide-react'
 import { Commission, CommissionStatus, CommissionType } from '@/types'
 import { formatCurrency, formatDate, cn } from '@/lib/utils'
-import { CommissionModal } from '../../components/CommissionModal'
+import { CommissionModal } from '../../../apps/commission-engine/src/components/CommissionModal'
 
 const mockCommissions: Commission[] = [
   {
