@@ -1,13 +1,26 @@
 import React, { useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { DollarSign, Plus, Search, Filter, TrendingUp, User, Calendar } from 'lucide-react'
+import {
+  DollarSign,
+  Plus,
+  Search,
+  Filter,
+  TrendingUp,
+  User,
+  Calendar
+} from 'lucide-react'
 import { Commission, CommissionStatus, CommissionType } from '@/types'
 import { formatCurrency, formatDate, cn } from '@/lib/utils'
-
 import { CommissionModal } from '@/components/CommissionModal'
 
 const mockCommissions: Commission[] = [
@@ -23,7 +36,7 @@ const mockCommissions: Commission[] = [
     notes: 'Commission for Georgetown sale',
     customFields: {},
     createdAt: new Date('2024-01-18'),
-    updatedAt: new Date('2024-01-20'),
+    updatedAt: new Date('2024-01-20')
   },
   {
     id: '2',
@@ -36,8 +49,8 @@ const mockCommissions: Commission[] = [
     notes: 'Flat commission for service contract',
     customFields: {},
     createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-15'),
-  },
+    updatedAt: new Date('2024-01-15')
+  }
 ]
 
 function CommissionsList() {
@@ -72,7 +85,6 @@ function CommissionsList() {
       </div>
 
       <div className="ri-stats-grid">
-        {/* Card 1 */}
         <Card className="shadow-sm border-0 bg-gradient-to-br from-blue-50 to-blue-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-blue-900">Total Commissions</CardTitle>
@@ -86,7 +98,6 @@ function CommissionsList() {
             </p>
           </CardContent>
         </Card>
-        {/* Other cards omitted for brevity, but keep them if you had them */}
       </div>
 
       <div className="flex gap-4">
@@ -117,7 +128,9 @@ function CommissionsList() {
                 <div className="flex items-center space-x-4 flex-1">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="font-semibold text-foreground">Commission #{commission.id}</h3>
+                      <h3 className="font-semibold text-foreground">
+                        Commission #{commission.id}
+                      </h3>
                       <Badge className={cn("ri-badge-status", getTypeColor(commission.type))}>
                         {commission.type.toUpperCase()}
                       </Badge>
@@ -125,7 +138,6 @@ function CommissionsList() {
                         {commission.status.toUpperCase()}
                       </Badge>
                     </div>
-                    {/* Fields */}
                     <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center">
                         <User className="h-3 w-3 mr-2 text-blue-500" />
