@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { X, Save, Plus, Trash2, DollarSign, Percent, AlertTriangle } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { CommissionType, TierLevel } from '@/types'
+import { toast } from 'sonner'
 
 export interface CommissionRule {
   id: string
@@ -64,39 +65,31 @@ export function CommissionRuleForm({ rule, onSave, onCancel }: CommissionRuleFor
     e.preventDefault()
     
     if (!formData.name) {
-      toast({
-        title: 'Validation Error',
-        description: 'Rule name is required',
-        variant: 'destructive'
-      })
+      toast.error('Validation Error', {
+        description: 'Rule name is required'
+      });
       return
     }
 
     // Validate based on rule type
     if (formData.type === 'flat' && (formData.flatAmount === undefined || formData.flatAmount < 0)) {
-      toast({
-        title: 'Validation Error',
-        description: 'Flat amount must be a positive number',
-        variant: 'destructive'
-      })
+      toast.error('Validation Error', {
+        description: 'Flat amount must be a positive number'
+      });
       return
     }
 
     if (formData.type === 'percentage' && (formData.percentageRate === undefined || formData.percentageRate < 0 || formData.percentageRate > 100)) {
-      toast({
-        title: 'Validation Error',
-        description: 'Percentage rate must be between 0 and 100',
-        variant: 'destructive'
-      })
+      toast.error('Validation Error', {
+        description: 'Percentage rate must be between 0 and 100'
+      });
       return
     }
 
     if (formData.type === 'tiered' && (!formData.tiers || formData.tiers.length === 0)) {
-      toast({
-        title: 'Validation Error',
-        description: 'At least one tier is required for tiered commission',
-        variant: 'destructive'
-      })
+      toast.error('Validation Error', {
+        description: 'At least one tier is required for tiered commission'
+      });
       return
     }
 
@@ -109,20 +102,16 @@ export function CommissionRuleForm({ rule, onSave, onCancel }: CommissionRuleFor
         const nextTier = sortedTiers[i + 1]
         
         if (currentTier.maxAmount === null) {
-          toast({
-            title: 'Validation Error',
-            description: 'Only the last tier can have an unlimited maximum',
-            variant: 'destructive'
-          })
+          toast.error('Validation Error', {
+            description: 'Only the last tier can have an unlimited maximum'
+          });
           return
         }
         
         if (currentTier.maxAmount >= nextTier.minAmount) {
-          toast({
-            title: 'Validation Error',
-            description: 'Tiers cannot overlap',
-            variant: 'destructive'
-          })
+          toast.error('Validation Error', {
+            description: 'Tiers cannot overlap'
+          });
           return
         }
       }
@@ -131,16 +120,9 @@ export function CommissionRuleForm({ rule, onSave, onCancel }: CommissionRuleFor
     setLoading(true)
     try {
       await onSave(formData)
-      toast({
-        title: 'Success',
-        description: `Commission rule ${rule ? 'updated' : 'created'} successfully`,
-      })
+      toast.success(`Commission rule ${rule ? 'updated' : 'created'} successfully`);
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: `Failed to ${rule ? 'update' : 'create'} commission rule`,
-        variant: 'destructive'
-      })
+      toast.error(`Failed to ${rule ? 'update' : 'create'} commission rule`);
     } finally {
       setLoading(false)
     }
@@ -148,11 +130,9 @@ export function CommissionRuleForm({ rule, onSave, onCancel }: CommissionRuleFor
 
   const addTier = () => {
     if (newTier.minAmount === undefined || newTier.rate === undefined) {
-      toast({
-        title: 'Validation Error',
-        description: 'Minimum amount and rate are required',
-        variant: 'destructive'
-      })
+      toast.error('Validation Error', {
+        description: 'Minimum amount and rate are required'
+      });
       return
     }
 

@@ -5,9 +5,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
 import { BarChart3, Download, Printer, Calendar, User, DollarSign, Filter } from 'lucide-react'
 import { Commission, CommissionStatus, CommissionType } from '../types'
-import { formatCurrency, formatDate } from '@/lib/utils'
+import { formatCurrency, formatDate } from '@/lib/utils' 
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { useToast } from '@/hooks/use-toast'
 import { jsPDF } from 'jspdf'
 import 'jspdf-autotable'
 
@@ -17,7 +17,6 @@ interface UserCommissionReportProps {
 }
 
 export function UserCommissionReport({ salesReps, generateCommissionReport }: UserCommissionReportProps) {
-  const { toast } = useToast()
   const [selectedSalesRep, setSelectedSalesRep] = useState<string>('')
   const [dateRange, setDateRange] = useState<string>('this_month')
   const [report, setReport] = useState<any | null>(null)
@@ -79,11 +78,9 @@ export function UserCommissionReport({ salesReps, generateCommissionReport }: Us
 
   const generateReport = () => {
     if (!selectedSalesRep) {
-      toast({
-        title: 'Selection Required',
-        description: 'Please select a sales rep to generate a report',
-        variant: 'destructive'
-      })
+      toast.error('Selection Required', {
+        description: 'Please select a sales rep to generate a report'
+      });
       return
     }
 
@@ -93,11 +90,9 @@ export function UserCommissionReport({ salesReps, generateCommissionReport }: Us
       const reportData = generateCommissionReport(selectedSalesRep, startDate, endDate)
       setReport(reportData)
     } catch (error) {
-      toast({
-        title: 'Report Generation Failed',
-        description: 'There was an error generating the report',
-        variant: 'destructive'
-      })
+      toast.error('Report Generation Failed', {
+        description: 'There was an error generating the report'
+      });
       console.error('Report generation error:', error)
     } finally {
       setLoading(false)
@@ -160,16 +155,13 @@ export function UserCommissionReport({ salesReps, generateCommissionReport }: Us
       link.click()
       document.body.removeChild(link)
       
-      toast({
-        title: 'Export Successful',
-        description: 'Commission report exported to CSV',
-      })
+      toast.success('Export Successful', {
+        description: 'Commission report exported to CSV'
+      });
     } catch (error) {
-      toast({
-        title: 'Export Failed',
-        description: 'There was an error exporting the report',
-        variant: 'destructive'
-      })
+      toast.error('Export Failed', {
+        description: 'There was an error exporting the report'
+      });
     }
   }
 
@@ -219,16 +211,13 @@ export function UserCommissionReport({ salesReps, generateCommissionReport }: Us
       // Save the PDF
       doc.save(`commission_report_${selectedSalesRep}_${dateRange}.pdf`)
       
-      toast({
-        title: 'Print Initiated',
-        description: 'Commission report PDF has been generated',
-      })
+      toast.success('Print Initiated', {
+        description: 'Commission report PDF has been generated'
+      });
     } catch (error) {
-      toast({
-        title: 'Print Failed',
-        description: 'There was an error generating the PDF',
-        variant: 'destructive'
-      })
+      toast.error('Print Failed', {
+        description: 'There was an error generating the PDF'
+      });
     }
   }
 

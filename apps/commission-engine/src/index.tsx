@@ -3,10 +3,10 @@ import { createRoot } from 'react-dom/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs' 
+import { toast } from 'sonner'
 import { DollarSign, Plus, Calculator, BarChart3, History, Settings, Users } from 'lucide-react'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
-import { useToast } from '@/hooks/use-toast'
 import { formatCurrency } from '@/lib/utils'
 import { Commission, CommissionStatus, CommissionType, AuditEntry } from './types'
 import { CommissionRuleForm, CommissionRule } from './components/CommissionRuleForm'
@@ -20,7 +20,6 @@ import { UserCommissionReport } from './components/UserCommissionReport'
 
 function CommissionEngineDashboard() {
   const { user } = useAuth()
-  const { toast } = useToast()
   const {
     commissions,
     rules,
@@ -54,26 +53,16 @@ function CommissionEngineDashboard() {
   const handleSaveRule = async (ruleData: Partial<CommissionRule>) => {
     try {
       if (selectedRule) {
-        await updateCommissionRule(selectedRule.id, ruleData)
-        toast({
-          title: 'Success',
-          description: 'Commission rule updated successfully',
-        })
+        await updateCommissionRule(selectedRule.id, ruleData) 
+        toast.success('Commission rule updated successfully');
       } else {
-        await createCommissionRule(ruleData)
-        toast({
-          title: 'Success',
-          description: 'Commission rule created successfully',
-        })
+        await createCommissionRule(ruleData) 
+        toast.success('Commission rule created successfully');
       }
       setShowRuleForm(false)
       setSelectedRule(null)
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: `Failed to ${selectedRule ? 'update' : 'create'} commission rule`,
-        variant: 'destructive'
-      })
+      toast.error(`Failed to ${selectedRule ? 'update' : 'create'} commission rule`);
     }
   }
 
@@ -81,16 +70,9 @@ function CommissionEngineDashboard() {
     if (window.confirm('Are you sure you want to delete this commission rule?')) {
       try {
         await deleteCommissionRule(ruleId)
-        toast({
-          title: 'Success',
-          description: 'Commission rule deleted successfully',
-        })
+        toast.success('Commission rule deleted successfully');
       } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to delete commission rule',
-          variant: 'destructive'
-        })
+        toast.error('Failed to delete commission rule');
       }
     }
   }
@@ -98,16 +80,9 @@ function CommissionEngineDashboard() {
   const handleDuplicateRule = async (rule: CommissionRule) => {
     try {
       await duplicateCommissionRule(rule.id)
-      toast({
-        title: 'Success',
-        description: 'Commission rule duplicated successfully',
-      })
+      toast.success('Commission rule duplicated successfully');
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to duplicate commission rule',
-        variant: 'destructive'
-      })
+      toast.error('Failed to duplicate commission rule');
     }
   }
 
@@ -125,20 +100,21 @@ function CommissionEngineDashboard() {
     // In a real app, this would save the calculation to the database
     console.log('Saving calculation:', calculationData)
     
-    // Add the calculation to the audit trail
-    await addAuditEntry({
-      dealId: selectedDealId,
-      userId: user?.id || '',
-      userName: user?.name || '',
-      action: 'manual_note',
-      description: `Calculated commission of ${formatCurrency(calculationData.commission)} using ${calculationData.ruleName}`,
-      timestamp: new Date()
-    });
-    
-    toast({
-      title: 'Success',
-      description: 'Calculation saved successfully',
-    })
+    try {
+      // Add the calculation to the audit trail
+      await addAuditEntry({
+        dealId: selectedDealId,
+        userId: user?.id || '',
+        userName: user?.name || '',
+        action: 'manual_note',
+        description: `Calculated commission of ${formatCurrency(calculationData.commission)} using ${calculationData.ruleName}`,
+        timestamp: new Date()
+      });
+      
+      toast.success('Calculation saved successfully');
+    } catch (error) {
+      toast.error('Failed to save calculation');
+    }
     
     return true;
   }

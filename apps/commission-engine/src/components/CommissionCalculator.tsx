@@ -8,7 +8,8 @@ import { Calculator, DollarSign, Percent, Save, ArrowRight } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
 import { CommissionRule } from './CommissionRuleForm'
-import { CommissionType } from '@/types'
+import { CommissionType } from '@/types' 
+import { toast } from 'sonner'
 
 interface CommissionCalculatorProps {
   rules: CommissionRule[]
@@ -31,21 +32,17 @@ export function CommissionCalculator({ rules, onSaveCalculation }: CommissionCal
 
   const handleCalculate = () => {
     if (!selectedRuleId || dealAmount <= 0) {
-      toast({
-        title: 'Validation Error',
-        description: 'Please select a rule and enter a valid deal amount',
-        variant: 'destructive'
-      })
+      toast.error('Validation Error', {
+        description: 'Please select a rule and enter a valid deal amount'
+      });
       return
     }
 
     const rule = rules.find(r => r.id === selectedRuleId)
     if (!rule) {
-      toast({
-        title: 'Error',
-        description: 'Selected rule not found',
-        variant: 'destructive'
-      })
+      toast.error('Error', {
+        description: 'Selected rule not found'
+      });
       return
     }
 
@@ -116,11 +113,9 @@ export function CommissionCalculator({ rules, onSaveCalculation }: CommissionCal
 
   const handleSave = async () => {
     if (calculatedCommission === null) {
-      toast({
-        title: 'Validation Error',
-        description: 'Please calculate commission first',
-        variant: 'destructive'
-      })
+      toast.error('Validation Error', {
+        description: 'Please calculate commission first'
+      });
       return
     }
 
@@ -141,16 +136,9 @@ export function CommissionCalculator({ rules, onSaveCalculation }: CommissionCal
         calculatedAt: new Date()
       });
       
-      toast({
-        title: 'Success',
-        description: 'Commission calculation saved',
-      });
+      toast.success('Commission calculation saved');
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to save calculation',
-        variant: 'destructive'
-      })
+      toast.error('Failed to save calculation');
     } finally {
       setLoading(false)
     }

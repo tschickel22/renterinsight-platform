@@ -6,9 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
 import { BarChart3, Download, Printer, Calendar, User, DollarSign, Filter, Search, AlertCircle } from 'lucide-react'
 import { Commission, CommissionStatus, CommissionType } from '../types'
-import { formatCurrency, formatDate } from '@/lib/utils'
+import { formatCurrency, formatDate } from '@/lib/utils' 
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { useToast } from '@/hooks/use-toast'
 
 interface CommissionReportViewProps {
   commissions: Commission[]
@@ -23,7 +23,6 @@ export function CommissionReportView({
   onExportCSV,
   onPrintReport
 }: CommissionReportViewProps) {
-  const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState('')
   const [dateRange, setDateRange] = useState<string>('this_month')
   const [salesRepFilter, setSalesRepFilter] = useState<string>('all')
@@ -115,32 +114,26 @@ export function CommissionReportView({
   const handleExport = () => {
     try {
       onExportCSV()
-      toast({
-        title: 'Export Successful',
-        description: 'Commission report exported to CSV',
-      })
+      toast.success('Export Successful', {
+        description: 'Commission report exported to CSV'
+      });
     } catch (error) {
-      toast({
-        title: 'Export Failed',
-        description: 'There was an error exporting the report',
-        variant: 'destructive'
-      })
+      toast.error('Export Failed', {
+        description: 'There was an error exporting the report'
+      });
     }
   }
 
   const handlePrint = () => {
     try {
       onPrintReport()
-      toast({
-        title: 'Print Initiated',
-        description: 'Commission report sent to printer',
-      })
+      toast.success('Print Initiated', {
+        description: 'Commission report sent to printer'
+      });
     } catch (error) {
-      toast({
-        title: 'Print Failed',
-        description: 'There was an error printing the report',
-        variant: 'destructive'
-      })
+      toast.error('Print Failed', {
+        description: 'There was an error printing the report'
+      });
     }
   }
 

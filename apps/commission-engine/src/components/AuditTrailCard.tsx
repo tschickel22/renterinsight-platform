@@ -3,9 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import { History, Edit, Save, X, Check, AlertTriangle, User, Clock, Plus, MessageSquare } from 'lucide-react'
+import { History, Edit, Save, X, Check, AlertTriangle, User, Clock, Plus, MessageSquare } from 'lucide-react' 
+import { toast } from 'sonner'
 import { formatDate } from '@/lib/utils'
-import { useToast } from '@/hooks/use-toast'
 import { AuditEntry } from '@/types'
 
 interface AuditTrailCardProps {
@@ -25,7 +25,6 @@ export function AuditTrailCard({
   onAddEntry,
   onUpdateEntry
 }: AuditTrailCardProps) {
-  const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null)
   const [editedNotes, setEditedNotes] = useState('')
@@ -33,11 +32,9 @@ export function AuditTrailCard({
 
   const handleAddEntry = async () => {
     if (!newEntryDescription.trim()) {
-      toast({
-        title: 'Validation Error',
-        description: 'Please enter a description for the audit entry',
-        variant: 'destructive'
-      })
+      toast.error('Validation Error', {
+        description: 'Please enter a description for the audit entry'
+      });
       return
     }
 
@@ -53,16 +50,9 @@ export function AuditTrailCard({
       })
       
       setNewEntryDescription('')
-      toast({
-        title: 'Success',
-        description: 'Audit entry added successfully',
-      })
+      toast.success('Audit entry added successfully');
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to add audit entry',
-        variant: 'destructive'
-      })
+      toast.error('Failed to add audit entry');
     } finally {
       setLoading(false)
     }
@@ -82,16 +72,9 @@ export function AuditTrailCard({
       
       setEditingEntryId(null)
       setEditedNotes('')
-      toast({
-        title: 'Success',
-        description: 'Notes updated successfully',
-      })
+      toast.success('Notes updated successfully');
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to update notes',
-        variant: 'destructive'
-      })
+      toast.error('Failed to update notes');
     } finally {
       setLoading(false)
     }
