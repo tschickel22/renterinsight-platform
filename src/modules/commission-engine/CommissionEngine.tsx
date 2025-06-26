@@ -1,274 +1,184 @@
-import React, { useState } from 'react'
-import { Routes, Route } from 'react-router-dom'
+// 🧩 FILE: apps/commission-engine/src/components/CommissionCalculator.tsx
+
+import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { DollarSign, Plus, Search, Filter, TrendingUp, User, Calendar } from 'lucide-react'
-import { Commission, CommissionStatus, CommissionType } from '@/types'
-import { formatCurrency, formatDate } from '@/lib/utils'
-import { cn } from '@/lib/utils'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
+import { Calculator, DollarSign, Save, ArrowRight } from 'lucide-react'
+import { formatCurrency } from '@/lib/utils'
+import { useToast } from '@/hooks/use-toast'
+import { CommissionRule, CommissionRuleType } from './CommissionRuleForm'
+import { ErrorBoundary } from 'react-error-boundary'
 
-const mockCommissions: Commission[] = [
-  {
-    id: '1',
-    salesPersonId: 'sales-001',
-    dealId: 'deal-001',
-    type: CommissionType.PERCENTAGE,
-    rate: 0.05,
-    amount: 6875,
-    status: CommissionStatus.APPROVED,
-    paidDate: new Date('2024-01-20'),
-    notes: 'Commission for Georgetown sale',
-    customFields: {},
-    createdAt: new Date('2024-01-18'),
-    updatedAt: new Date('2024-01-20')
-  },
-  {
-    id: '2',
-    salesPersonId: 'sales-002',
-    dealId: 'deal-002',
-    type: CommissionType.FLAT,
-    rate: 0,
-    amount: 2500,
-    status: CommissionStatus.PENDING,
-    notes: 'Flat commission for service contract',
-    customFields: {},
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-15')
-  }
-]
+interface CommissionCalculatorProps {
+  rules: CommissionRule[]
+  onSaveCalculation?: (calculationData: any) => Promise<void>
+}
 
-function CommissionsList() {
-  const [commissions] = useState<Commission[]>(mockCommissions)
-  const [searchTerm, setSearchTerm] = useState('')
+export function CommissionCalculator({ rules, onSaveCalculation }: CommissionCalculatorProps) {
+  const { toast } = useToast()
+  const [dealAmount, setDealAmount] = useState<number>(100000)
+  const [selectedRuleId, setSelectedRuleId] = useState<string>('')
+  const [calculatedCommission, setCalculatedCommission] = useState<number | null>(null)
+  const [calculationBreakdown, setCalculationBreakdown] = useState<string[]>([])
+  const [loading, setLoading] = useState(false)
 
-  const getStatusColor = (status: CommissionStatus) => {
-    switch (status) {
-      case CommissionStatus.PENDING:
-        return 'bg-yellow-50 text-yellow-700 border-yellow-200'
-      case CommissionStatus.APPROVED:
-        return 'bg-blue-50 text-blue-700 border-blue-200'
-      case CommissionStatus.PAID:
-        return 'bg-green-50 text-green-700 border-green-200'
-      case CommissionStatus.CANCELLED:
-        return 'bg-red-50 text-red-700 border-red-200'
-      default:
-        return 'bg-gray-50 text-gray-700 border-gray-200'
+  useEffect(() => {
+    setCalculatedCommission(null)
+    setCalculationBreakdown([])
+  }, [selectedRuleId, dealAmount])
+
+  const handleCalculate = () => {
+    if (!selectedRuleId || dealAmount <= 0) {
+      toast({
+        title: 'Input Required',
+        description: 'Please select a rule and enter a valid deal amount',
+        variant: 'destructive'
+      })
+      return
+    }
+
+    const rule = rules.find(r => r.id === selectedRuleId)
+    if (!rule) {
+      toast({ title: 'Rule Not Found', description: 'Selected rule not found', variant: 'destructive' })
+      return
+    }
+
+    try {
+      const { commission, breakdown } = calculateCommission(rule, dealAmount)
+      setCalculatedCommission(commission)
+      setCalculationBreakdown(breakdown)
+    } catch {
+      toast({ title: 'Calculation Error', description: 'Failed to calculate commission', variant: 'destructive' })
     }
   }
 
-  const getTypeColor = (type: CommissionType) => {
-    switch (type) {
-      case CommissionType.FLAT:
-        return 'bg-blue-50 text-blue-700 border-blue-200'
-      case CommissionType.PERCENTAGE:
-        return 'bg-green-50 text-green-700 border-green-200'
-      case CommissionType.TIERED:
-        return 'bg-purple-50 text-purple-700 border-purple-200'
+  const calculateCommission = (rule: CommissionRule, amount: number): { commission: number; breakdown: string[] } => {
+    const breakdown: string[] = []
+    let commission = 0
+
+    switch (rule.type) {
+      case 'flat':
+        commission = rule.flatAmount ?? 0
+        breakdown.push(`Flat: ${formatCurrency(commission)}`)
+        break
+      case 'percentage':
+        const rate = rule.percentageRate ?? 0
+        commission = (amount * rate) / 100
+        breakdown.push(`${rate}% of ${formatCurrency(amount)} = ${formatCurrency(commission)}`)
+        break
+      case 'tiered':
+        const sortedTiers = [...(rule.tiers ?? [])].sort((a, b) => (a.minAmount ?? 0) - (b.minAmount ?? 0))
+        const tier = sortedTiers.find(t => amount >= (t.minAmount ?? 0) && (t.maxAmount == null || amount <= t.maxAmount))
+        if (tier?.isPercentage) {
+          commission = (amount * (tier.rate ?? 0)) / 100
+          breakdown.push(`${tier.rate}% of ${formatCurrency(amount)} = ${formatCurrency(commission)}`)
+        } else {
+          commission = tier?.rate ?? 0
+          breakdown.push(`Flat: ${formatCurrency(commission)}`)
+        }
+        break
       default:
-        return 'bg-gray-50 text-gray-700 border-gray-200'
+        breakdown.push('Unknown rule type')
+    }
+
+    return { commission, breakdown }
+  }
+
+  const handleSave = async () => {
+    if (calculatedCommission === null) {
+      toast({ title: 'Calculate First', description: 'Calculate before saving', variant: 'destructive' })
+      return
+    }
+    setLoading(true)
+    try {
+      const rule = rules.find(r => r.id === selectedRuleId)
+      await onSaveCalculation?.({
+        dealAmount,
+        ruleId: selectedRuleId,
+        ruleType: rule?.type,
+        commission: calculatedCommission,
+        breakdown: calculationBreakdown,
+        calculatedAt: new Date()
+      })
+      toast({ title: 'Success', description: 'Saved calculation' })
+    } catch {
+      toast({ title: 'Error', description: 'Failed to save', variant: 'destructive' })
+    } finally {
+      setLoading(false)
     }
   }
 
-  const filteredCommissions = commissions.filter(commission =>
-    commission.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    commission.salesPersonId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    commission.dealId.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const activeRules = rules.filter(r => r.isActive)
 
-  return (
-    <div className="space-y-8">
-      {/* Page Header */}
-      <div className="ri-page-header">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="ri-page-title">Commission Engine</h1>
-            <p className="ri-page-description">
-              Manage sales commissions and payouts
-            </p>
+  const renderCalculator = () => (
+    <div className="grid gap-6 md:grid-cols-2">
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="dealAmount">Deal Amount</Label>
+          <div className="relative">
+            <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input id="dealAmount" type="number" min="0" value={dealAmount} onChange={(e) => setDealAmount(parseFloat(e.target.value))} className="pl-10" />
           </div>
-          <Button className="shadow-sm">
-            <Plus className="h-4 w-4 mr-2" />
-            New Commission
-          </Button>
         </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="ri-stats-grid">
-        <Card className="shadow-sm border-0 bg-gradient-to-br from-blue-50 to-blue-100/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-blue-900">Total Commissions</CardTitle>
-            <DollarSign className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-900">{commissions.length}</div>
-            <p className="text-xs text-blue-600 flex items-center mt-1">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              All commissions
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm border-0 bg-gradient-to-br from-yellow-50 to-yellow-100/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-yellow-900">Pending</CardTitle>
-            <DollarSign className="h-4 w-4 text-yellow-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-900">
-              {commissions.filter(c => c.status === CommissionStatus.PENDING).length}
-            </div>
-            <p className="text-xs text-yellow-600 flex items-center mt-1">
-              <Calendar className="h-3 w-3 mr-1" />
-              Awaiting approval
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm border-0 bg-gradient-to-br from-green-50 to-green-100/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-green-900">Paid This Month</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-900">
-              {formatCurrency(commissions.filter(c => c.status === CommissionStatus.PAID).reduce((sum, c) => sum + c.amount, 0))}
-            </div>
-            <p className="text-xs text-green-600 flex items-center mt-1">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              Paid out
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm border-0 bg-gradient-to-br from-purple-50 to-purple-100/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-purple-900">Total Value</CardTitle>
-            <DollarSign className="h-4 w-4 text-purple-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-900">
-              {formatCurrency(commissions.reduce((sum, c) => sum + c.amount, 0))}
-            </div>
-            <p className="text-xs text-purple-600 flex items-center mt-1">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              Total commission value
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Search and Filters */}
-      <div className="flex gap-4">
-        <div className="ri-search-bar">
-          <Search className="ri-search-icon" />
-          <Input
-            placeholder="Search commissions..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="ri-search-input shadow-sm"
-          />
+        <div>
+          <Label htmlFor="commissionRule">Commission Rule</Label>
+          <Select value={selectedRuleId} onValueChange={setSelectedRuleId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a rule" />
+            </SelectTrigger>
+            <SelectContent>
+              {activeRules.length > 0 ? (
+                activeRules.map(r => <SelectItem key={r.id} value={r.id}>{r.name} ({r.type})</SelectItem>)
+              ) : <SelectItem value="none" disabled>No rules</SelectItem>}
+            </SelectContent>
+          </Select>
         </div>
-        <Button variant="outline" className="shadow-sm">
-          <Filter className="h-4 w-4 mr-2" />
-          Filter
+        <Button onClick={handleCalculate} disabled={!selectedRuleId || dealAmount <= 0} className="w-full">
+          <Calculator className="h-4 w-4 mr-2" /> Calculate
         </Button>
       </div>
 
-      {/* Commissions Table */}
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-xl">Commissions</CardTitle>
-          <CardDescription>
-            Track and manage sales commissions
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {filteredCommissions.map((commission) => (
-              <div key={commission.id} className="ri-table-row">
-                <div className="flex items-center space-x-4 flex-1">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="font-semibold text-foreground">Commission #{commission.id}</h3>
-                      <Badge className={cn("ri-badge-status", getTypeColor(commission.type))}>
-                        {commission.type.toUpperCase()}
-                      </Badge>
-                      <Badge className={cn("ri-badge-status", getStatusColor(commission.status))}>
-                        {commission.status.toUpperCase()}
-                      </Badge>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center">
-                        <User className="h-3 w-3 mr-2 text-blue-500" />
-                        <span className="font-medium">Sales Person:</span> 
-                        <span className="ml-1">{commission.salesPersonId}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <TrendingUp className="h-3 w-3 mr-2 text-green-500" />
-                        <span className="font-medium">Deal:</span> 
-                        <span className="ml-1">{commission.dealId}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <DollarSign className="h-3 w-3 mr-2 text-purple-500" />
-                        <span className="font-medium">Amount:</span> 
-                        <span className="ml-1 font-bold text-primary">{formatCurrency(commission.amount)}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <Calendar className="h-3 w-3 mr-2 text-orange-500" />
-                        <span className="font-medium">Created:</span> 
-                        <span className="ml-1">{formatDate(commission.createdAt)}</span>
-                      </div>
-                    </div>
-                    {commission.type === CommissionType.PERCENTAGE && (
-                      <div className="mt-2 bg-green-50 p-2 rounded-md">
-                        <span className="text-sm text-green-700">
-                          <span className="font-medium">Rate:</span> {(commission.rate * 100).toFixed(2)}%
-                        </span>
-                      </div>
-                    )}
-                    {commission.paidDate && (
-                      <div className="mt-2 bg-blue-50 p-2 rounded-md">
-                        <span className="text-sm text-blue-700">
-                          <span className="font-medium">Paid Date:</span> {formatDate(commission.paidDate)}
-                        </span>
-                      </div>
-                    )}
-                    {commission.notes && (
-                      <div className="mt-2 bg-muted/30 p-2 rounded-md">
-                        <p className="text-sm text-muted-foreground">
-                          <span className="font-medium">Notes:</span> {commission.notes}
-                        </p>
-                      </div>
-                    )}
+      <div className="space-y-4">
+        <div className="p-4 bg-muted/30 rounded-lg">
+          <h3 className="font-semibold mb-2">Result</h3>
+          {calculatedCommission !== null ? (
+            <>
+              <div className="text-2xl font-bold text-primary mb-2">{formatCurrency(calculatedCommission)}</div>
+              <div className="space-y-1 text-sm">
+                {calculationBreakdown.map((line, idx) => (
+                  <div key={idx} className="flex items-center">
+                    <ArrowRight className="h-3 w-3 mr-1 text-muted-foreground" /> <span>{line}</span>
                   </div>
-                </div>
-                <div className="ri-action-buttons">
-                  <Button variant="outline" size="sm" className="shadow-sm">
-                    View
-                  </Button>
-                  <Button variant="outline" size="sm" className="shadow-sm">
-                    Edit
-                  </Button>
-                  {commission.status === CommissionStatus.PENDING && (
-                    <Button variant="outline" size="sm" className="shadow-sm">
-                      Approve
-                    </Button>
-                  )}
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            </>
+          ) : <p className="text-muted-foreground">Enter deal amount + rule</p>}
+        </div>
+        {calculatedCommission !== null && (
+          <Button variant="outline" onClick={handleSave} disabled={loading} className="w-full">
+            {loading ? 'Saving...' : <><Save className="h-4 w-4 mr-2" /> Save</>}
+          </Button>
+        )}
+      </div>
     </div>
   )
-}
 
-export default function CommissionEngine() {
   return (
-    <Routes>
-      <Route path="/" element={<CommissionsList />} />
-      <Route path="/*" element={<CommissionsList />} />
-    </Routes>
+    <Card className="shadow-sm">
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Calculator className="h-5 w-5 mr-2 text-primary" /> Commission Calculator
+        </CardTitle>
+        <CardDescription>Calculate commission based on rules</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <ErrorBoundary fallback={<div className="p-4 bg-red-50 text-red-700 rounded">Error loading calculator</div>}>
+          {renderCalculator()}
+        </ErrorBoundary>
+      </CardContent>
+    </Card>
   )
 }
