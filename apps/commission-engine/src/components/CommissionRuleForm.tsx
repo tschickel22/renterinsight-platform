@@ -72,7 +72,7 @@ export function CommissionRuleForm({ rule, onSave, onCancel }: CommissionRuleFor
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!formData.name) {
+    if (!formData.name?.trim()) {
       toast({
         title: 'Validation Error',
         description: 'Rule name is required',
@@ -112,10 +112,16 @@ export function CommissionRuleForm({ rule, onSave, onCancel }: CommissionRuleFor
     // Validate tiers if present
     if (formData.tiers && formData.tiers.length > 0) {
       // Check for overlapping tiers
-      const sortedTiers = [...formData.tiers].sort((a, b) => a.minAmount - b.minAmount)
+      const sortedTiers = [...formData.tiers].sort((a, b) => {
+        if (!a || !b) return 0;
+        return a.minAmount - b.minAmount;
+      });
+      
       for (let i = 0; i < sortedTiers.length - 1; i++) {
         const currentTier = sortedTiers[i]
         const nextTier = sortedTiers[i + 1]
+        
+        if (!currentTier || !nextTier) continue;
         
         if (currentTier.maxAmount === null) {
           toast({
@@ -141,7 +147,7 @@ export function CommissionRuleForm({ rule, onSave, onCancel }: CommissionRuleFor
     try {
       await onSave(formData)
       toast({
-        title: 'Success',
+        title: rule ? 'Rule Updated' : 'Rule Created',
         description: `Commission rule ${rule ? 'updated' : 'created'} successfully`,
       })
     } catch (error) {
@@ -159,7 +165,7 @@ export function CommissionRuleForm({ rule, onSave, onCancel }: CommissionRuleFor
     if (newTier.minAmount === undefined || newTier.rate === undefined) {
       toast({
         title: 'Validation Error',
-        description: 'Minimum amount and rate are required',
+        description: 'Minimum amount and rate are required for tier',
         variant: 'destructive'
       })
       return
@@ -168,7 +174,7 @@ export function CommissionRuleForm({ rule, onSave, onCancel }: CommissionRuleFor
     const tier: TierLevel = {
       id: Math.random().toString(36).substr(2, 9),
       minAmount: newTier.minAmount || 0,
-      maxAmount: newTier.maxAmount || null,
+      maxAmount: newTier.maxAmount === undefined || newTier.maxAmount === '' ? null : newTier.maxAmount,
       rate: newTier.rate || 0,
       isPercentage: newTier.isPercentage || true
     }

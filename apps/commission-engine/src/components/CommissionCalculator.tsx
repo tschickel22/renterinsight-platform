@@ -8,6 +8,7 @@ import { Calculator, DollarSign, Percent, Save, ArrowRight } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
 import { CommissionRule, CommissionRuleType } from './CommissionRuleForm'
+import { ErrorBoundary } from 'react-error-boundary'
 
 interface CommissionCalculatorProps {
   rules: CommissionRule[]
@@ -31,7 +32,7 @@ export function CommissionCalculator({ rules, onSaveCalculation }: CommissionCal
   const handleCalculate = () => {
     if (!selectedRuleId || dealAmount <= 0) {
       toast({
-        title: 'Validation Error',
+        title: 'Input Required',
         description: 'Please select a rule and enter a valid deal amount',
         variant: 'destructive'
       })
@@ -41,7 +42,7 @@ export function CommissionCalculator({ rules, onSaveCalculation }: CommissionCal
     const rule = rules.find(r => r.id === selectedRuleId)
     if (!rule) {
       toast({
-        title: 'Error',
+        title: 'Rule Not Found',
         description: 'Selected rule not found',
         variant: 'destructive'
       })
@@ -50,8 +51,10 @@ export function CommissionCalculator({ rules, onSaveCalculation }: CommissionCal
 
     try {
       const { commission, breakdown } = calculateCommission(rule, dealAmount)
-      setCalculatedCommission(commission)
-      setCalculationBreakdown(breakdown)
+      if (commission !== null && breakdown) {
+        setCalculatedCommission(commission)
+        setCalculationBreakdown(breakdown)
+      }
     } catch (error) {
       toast({
         title: 'Calculation Error',
@@ -116,7 +119,7 @@ export function CommissionCalculator({ rules, onSaveCalculation }: CommissionCal
   const handleSave = async () => {
     if (calculatedCommission === null) {
       toast({
-        title: 'Validation Error',
+        title: 'Calculate First',
         description: 'Please calculate commission first',
         variant: 'destructive'
       })
@@ -129,15 +132,17 @@ export function CommissionCalculator({ rules, onSaveCalculation }: CommissionCal
     try {
       const rule = rules.find(r => r.id === selectedRuleId)
       
-      await onSaveCalculation({
-        dealAmount,
-        ruleId: selectedRuleId,
-        ruleName: rule?.name,
-        ruleType: rule?.type,
-        commission: calculatedCommission,
-        breakdown: calculationBreakdown,
-        calculatedAt: new Date()
-      })
+      if (rule) {
+        await onSaveCalculation({
+          dealAmount,
+          ruleId: selectedRuleId,
+          ruleName: rule.name,
+          ruleType: rule.type,
+          commission: calculatedCommission,
+          breakdown: calculationBreakdown,
+          calculatedAt: new Date()
+        })
+      }
       
       toast({
         title: 'Success',
@@ -157,6 +162,113 @@ export function CommissionCalculator({ rules, onSaveCalculation }: CommissionCal
   // Filter to only active rules
   const activeRules = rules.filter(rule => rule.isActive)
 
+  const renderCalculator = () => (
+    <div className="grid gap-6 md:grid-cols-2">
+      {/* Input Section */}
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="dealAmount">Deal Amount</Label>
+          <div className="relative">
+            <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              id="dealAmount"
+              type="number"
+              min="0"
+              step="0.01"
+              value={dealAmount}
+              onChange={(e) => setDealAmount(parseFloat(e.target.value) || 0)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+        
+        <div>
+          <Label htmlFor="commissionRule">Commission Rule</Label>
+          <Select value={selectedRuleId} onValueChange={setSelectedRuleId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a commission rule" />
+            </SelectTrigger>
+            <SelectContent>
+              {activeRules.length > 0 ? (
+                activeRules.map(rule => (
+                  <SelectItem key={rule.id} value={rule.id}>
+                    {rule.name} ({rule.type})
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="none" disabled>
+                  No active rules available
+                </SelectItem>
+              )}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <Button 
+          onClick={handleCalculate} 
+          disabled={!selectedRuleId || dealAmount <= 0}
+          className="w-full"
+        >
+          <Calculator className="h-4 w-4 mr-2" />
+          Calculate Commission
+        </Button>
+      </div>
+
+      {/* Results Section */}
+      <div className="space-y-4">
+        <div className="p-4 bg-muted/30 rounded-lg">
+          <h3 className="font-semibold mb-2">Calculation Result</h3>
+          
+          {calculatedCommission !== null ? (
+            <>
+              <div className="text-2xl font-bold text-primary mb-2">
+                {formatCurrency(calculatedCommission)}
+              </div>
+              
+              <div className="space-y-1 text-sm">
+                {calculationBreakdown.map((line, index) => (
+                  <div key={index} className="flex items-center">
+                    {index === 0 ? (
+                      <ArrowRight className="h-3 w-3 mr-1 text-muted-foreground" />
+                    ) : (
+                      <span className="w-4"></span>
+                    )}
+                    <span>{line}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-4 text-muted-foreground">
+              <p>Enter deal amount and select a rule to calculate commission</p>
+            </div>
+          )}
+        </div>
+        
+        {calculatedCommission !== null && onSaveCalculation && (
+          <Button 
+            variant="outline" 
+            onClick={handleSave}
+            disabled={loading}
+            className="w-full"
+          >
+            {loading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                Save Calculation
+              </>
+            )}
+          </Button>
+        )}
+      </div>
+    </div>
+  )
+
   return (
     <Card className="shadow-sm">
       <CardHeader>
@@ -169,110 +281,9 @@ export function CommissionCalculator({ rules, onSaveCalculation }: CommissionCal
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Input Section */}
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="dealAmount">Deal Amount</Label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="dealAmount"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={dealAmount}
-                  onChange={(e) => setDealAmount(parseFloat(e.target.value) || 0)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <Label htmlFor="commissionRule">Commission Rule</Label>
-              <Select value={selectedRuleId} onValueChange={setSelectedRuleId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a commission rule" />
-                </SelectTrigger>
-                <SelectContent>
-                  {activeRules.length > 0 ? (
-                    activeRules.map(rule => (
-                      <SelectItem key={rule.id} value={rule.id}>
-                        {rule.name} ({rule.type})
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="none" disabled>
-                      No active rules available
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <Button 
-              onClick={handleCalculate} 
-              disabled={!selectedRuleId || dealAmount <= 0}
-              className="w-full"
-            >
-              <Calculator className="h-4 w-4 mr-2" />
-              Calculate Commission
-            </Button>
-          </div>
-
-          {/* Results Section */}
-          <div className="space-y-4">
-            <div className="p-4 bg-muted/30 rounded-lg">
-              <h3 className="font-semibold mb-2">Calculation Result</h3>
-              
-              {calculatedCommission !== null ? (
-                <>
-                  <div className="text-2xl font-bold text-primary mb-2">
-                    {formatCurrency(calculatedCommission)}
-                  </div>
-                  
-                  <div className="space-y-1 text-sm">
-                    {calculationBreakdown.map((line, index) => (
-                      <div key={index} className="flex items-center">
-                        {index === 0 ? (
-                          <ArrowRight className="h-3 w-3 mr-1 text-muted-foreground" />
-                        ) : (
-                          <span className="w-4"></span>
-                        )}
-                        <span>{line}</span>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-4 text-muted-foreground">
-                  <p>Enter deal amount and select a rule to calculate commission</p>
-                </div>
-              )}
-            </div>
-            
-            {calculatedCommission !== null && onSaveCalculation && (
-              <Button 
-                variant="outline" 
-                onClick={handleSave}
-                disabled={loading}
-                className="w-full"
-              >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Calculation
-                  </>
-                )}
-              </Button>
-            )}
-          </div>
-        </div>
+        <ErrorBoundary fallback={<div className="p-4 bg-red-50 text-red-700 rounded-lg">Error loading calculator. Please try refreshing the page.</div>}>
+          {renderCalculator()}
+        </ErrorBoundary>
       </CardContent>
     </Card>
   )

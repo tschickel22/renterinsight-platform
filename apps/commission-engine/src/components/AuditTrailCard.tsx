@@ -7,17 +7,20 @@ import { History, Edit, Save, X, Check, AlertTriangle, User, Clock } from 'lucid
 import { formatDate } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
 
+export type AuditAction = 'create' | 'update' | 'delete' | 'approve' | 'reject' | 'manual_note';
+
 export interface AuditEntry {
   id: string
   dealId: string
   userId: string
   userName: string
-  action: string
+  action: AuditAction
   description: string
   oldValue?: any
   newValue?: any
   timestamp: Date
   notes?: string
+  updatedAt?: Date
 }
 
 interface AuditTrailCardProps {
@@ -46,7 +49,7 @@ export function AuditTrailCard({
   const handleAddEntry = async () => {
     if (!newEntryDescription.trim()) {
       toast({
-        title: 'Validation Error',
+        title: 'Description Required',
         description: 'Please enter a description for the audit entry',
         variant: 'destructive'
       })
@@ -57,8 +60,8 @@ export function AuditTrailCard({
     try {
       await onAddEntry({
         dealId,
-        userId: currentUserId,
-        userName: currentUserName,
+        userId: currentUserId || 'unknown',
+        userName: currentUserName || 'Unknown User',
         action: 'manual_note',
         description: newEntryDescription,
         timestamp: new Date()
@@ -92,8 +95,8 @@ export function AuditTrailCard({
     try {
       await onUpdateEntry(editingEntryId, editedNotes)
       
-      setEditingEntryId(null)
-      setEditedNotes('')
+      setEditingEntryId(null);
+      setEditedNotes('');
       toast({
         title: 'Success',
         description: 'Notes updated successfully',
@@ -117,19 +120,19 @@ export function AuditTrailCard({
   const getActionIcon = (action: string) => {
     switch (action) {
       case 'create':
-        return <Plus className="h-4 w-4 text-green-500" />
+        return <Plus className="h-4 w-4 text-green-500" aria-hidden="true" />
       case 'update':
-        return <Edit className="h-4 w-4 text-blue-500" />
+        return <Edit className="h-4 w-4 text-blue-500" aria-hidden="true" />
       case 'delete':
-        return <X className="h-4 w-4 text-red-500" />
+        return <X className="h-4 w-4 text-red-500" aria-hidden="true" />
       case 'approve':
-        return <Check className="h-4 w-4 text-green-500" />
+        return <Check className="h-4 w-4 text-green-500" aria-hidden="true" />
       case 'reject':
-        return <AlertTriangle className="h-4 w-4 text-red-500" />
+        return <AlertTriangle className="h-4 w-4 text-red-500" aria-hidden="true" />
       case 'manual_note':
-        return <History className="h-4 w-4 text-purple-500" />
+        return <History className="h-4 w-4 text-purple-500" aria-hidden="true" />
       default:
-        return <History className="h-4 w-4 text-gray-500" />
+        return <History className="h-4 w-4 text-gray-500" aria-hidden="true" />
     }
   }
 
@@ -307,6 +310,9 @@ export function AuditTrailCard({
                             >
                               {loading ? 'Saving...' : 'Save Notes'}
                             </Button>
+                            {entry.updatedAt && entry.updatedAt > entry.timestamp && (
+                              <span className="italic">(edited)</span>
+                            )}
                           </div>
                         </div>
                       ) : entry.notes ? (

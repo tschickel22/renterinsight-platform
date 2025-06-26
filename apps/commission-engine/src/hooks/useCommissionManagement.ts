@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Commission, CommissionStatus, CommissionType } from '@/types'
 import { saveToLocalStorage, loadFromLocalStorage } from '@/lib/utils'
-import { CommissionRule } from '../components/CommissionRuleForm'
-import { AuditEntry } from '../components/AuditTrailCard'
+import { CommissionRule, TierLevel } from '../components/CommissionRuleForm'
+import { AuditEntry, AuditAction } from '../components/AuditTrailCard'
 
 export function useCommissionManagement() {
   const [commissions, setCommissions] = useState<Commission[]>([])
@@ -348,11 +348,11 @@ export function useCommissionManagement() {
   const addAuditEntry = async (entryData: Partial<AuditEntry>) => {
     const newEntry: AuditEntry = {
       id: Math.random().toString(36).substr(2, 9),
-      dealId: entryData.dealId || '',
-      userId: entryData.userId || '',
-      userName: entryData.userName || '',
-      action: entryData.action || '',
-      description: entryData.description || '',
+      dealId: entryData.dealId || 'unknown',
+      userId: entryData.userId || 'unknown',
+      userName: entryData.userName || 'Unknown User',
+      action: entryData.action || 'manual_note' as AuditAction,
+      description: entryData.description || 'No description provided',
       oldValue: entryData.oldValue,
       newValue: entryData.newValue,
       notes: entryData.notes,
@@ -369,66 +369,77 @@ export function useCommissionManagement() {
   const updateAuditEntryNotes = async (entryId: string, notes: string) => {
     const updatedAuditTrail = auditTrail.map(entry => 
       entry.id === entryId 
-        ? { ...entry, notes }
+        ? { ...entry, notes, updatedAt: new Date() }
         : entry
     )
     setAuditTrail(updatedAuditTrail)
     saveAuditTrailToStorage(updatedAuditTrail)
+    return updatedAuditTrail.find(entry => entry.id === entryId);
   }
 
   // Commission Calculation
   const calculateCommission = (dealAmount: number, ruleId: string) => {
     const rule = rules.find(r => r.id === ruleId)
     if (!rule) {
-      throw new Error('Commission rule not found')
+      throw new Error('Commission rule not found');
     }
 
     let commission = 0
     const breakdown: string[] = []
 
-    switch (rule.type) {
-      case 'flat':
-        commission = rule.flatAmount || 0
-        breakdown.push(`Flat commission: ${commission}`)
-        break
-        
-      case 'percentage':
-        const rate = rule.percentageRate || 0
-        commission = (dealAmount * rate) / 100
-        breakdown.push(`${rate}% of ${dealAmount} = ${commission}`)
-        break
-        
-      case 'tiered':
-        if (!rule.tiers || rule.tiers.length === 0) {
-          breakdown.push('No tiers defined for this rule')
-          break
-        }
-        
-        // Sort tiers by min amount
-        const sortedTiers = [...rule.tiers].sort((a, b) => a.minAmount - b.minAmount)
-        
-        // Find applicable tier
-        let applicableTier = sortedTiers[0]
-        for (const tier of sortedTiers) {
-          if (dealAmount >= tier.minAmount && (tier.maxAmount === null || dealAmount <= tier.maxAmount)) {
-            applicableTier = tier
-            break
+    try {
+      switch (rule.type) {
+        case 'flat':
+          commission = rule.flatAmount || 0;
+          breakdown.push(`Flat commission: ${commission}`);
+          break;
+          
+        case 'percentage':
+          const rate = rule.percentageRate || 0;
+          commission = (dealAmount * rate) / 100;
+          breakdown.push(`${rate}% of ${dealAmount} = ${commission}`);
+          break;
+          
+        case 'tiered':
+          if (!rule.tiers || rule.tiers.length === 0) {
+            breakdown.push('No tiers defined for this rule');
+            break;
           }
-        }
-        
-        if (applicableTier.isPercentage) {
-          commission = (dealAmount * applicableTier.rate) / 100
-          breakdown.push(`Tier: $${applicableTier.minAmount} to ${applicableTier.maxAmount === null ? 'Unlimited' : '$' + applicableTier.maxAmount}`)
-          breakdown.push(`${applicableTier.rate}% of ${dealAmount} = ${commission}`)
-        } else {
-          commission = applicableTier.rate
-          breakdown.push(`Tier: $${applicableTier.minAmount} to ${applicableTier.maxAmount === null ? 'Unlimited' : '$' + applicableTier.maxAmount}`)
-          breakdown.push(`Flat amount: ${commission}`)
-        }
-        break
-        
-      default:
-        breakdown.push('Unknown rule type')
+          
+          // Sort tiers by min amount
+          const sortedTiers = [...rule.tiers].sort((a, b) => a.minAmount - b.minAmount);
+          
+          // Find applicable tier
+          let applicableTier: TierLevel | null = null;
+          for (const tier of sortedTiers) {
+            if (dealAmount >= tier.minAmount && (tier.maxAmount === null || dealAmount <= tier.maxAmount)) {
+              applicableTier = tier;
+              break;
+            }
+          }
+          
+          if (!applicableTier) {
+            applicableTier = sortedTiers[0]; // Fallback to first tier
+          }
+          
+          if (applicableTier.isPercentage) {
+            commission = (dealAmount * applicableTier.rate) / 100;
+            breakdown.push(`Tier: $${applicableTier.minAmount.toLocaleString()} to ${applicableTier.maxAmount === null ? 'Unlimited' : '$' + applicableTier.maxAmount.toLocaleString()}`);
+            breakdown.push(`${applicableTier.rate}% of ${dealAmount.toLocaleString()} = ${commission.toLocaleString()}`);
+          } else {
+            commission = applicableTier.rate;
+            breakdown.push(`Tier: $${applicableTier.minAmount.toLocaleString()} to ${applicableTier.maxAmount === null ? 'Unlimited' : '$' + applicableTier.maxAmount.toLocaleString()}`);
+            breakdown.push(`Flat amount: ${commission.toLocaleString()}`);
+          }
+          break;
+          
+        default:
+          breakdown.push('Unknown rule type');
+      }
+    } catch (error) {
+      console.error('Error calculating commission:', error);
+      breakdown.push('Error calculating commission');
+      commission = 0;
     }
 
     return { commission, breakdown }
