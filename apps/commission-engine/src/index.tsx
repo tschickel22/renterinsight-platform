@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast'
 import { formatCurrency } from '@/lib/utils'
 import { Commission, CommissionStatus, CommissionType, AuditEntry } from './types'
 import { CommissionRuleForm, CommissionRule } from './components/CommissionRuleForm'
+import { Toaster } from 'sonner'
 import { CommissionRulesList } from './components/CommissionRulesList'
 import { CommissionReportView } from './components/CommissionReportView'
 import { CommissionCalculator } from './components/CommissionCalculator'
@@ -313,6 +314,7 @@ if (container) {
   const root = createRoot(container)
   root.render(
     <AuthProvider>
+      <Toaster position="top-right" />
       <CommissionEngineDashboard />
     </AuthProvider>
   )

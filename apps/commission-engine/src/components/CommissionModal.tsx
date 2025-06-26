@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
-import { Commission, CommissionStatus, CommissionType } from '@/types'
+import { Commission, CommissionStatus, CommissionType } from '../types'
 
 interface CommissionModalProps {
   open: boolean
@@ -40,16 +40,19 @@ export function CommissionModal({ open, onClose, onSave }: CommissionModalProps)
   const handleSubmit = () => {
     try {
       if (!form.salesPersonId || !form.dealId || !form.amount) {
-        toast({
-          variant: 'destructive',
-          title: 'Missing fields',
-          description: 'Salesperson, deal ID, and amount are required.'
-        })
+        toast({ 
+          title: 'Missing fields', 
+          description: 'Salesperson, deal ID, and amount are required.',
+          variant: 'destructive'
+        });
         return
       }
 
       onSave({
         ...(form as Commission),
+        id: Math.random().toString(36).substr(2, 9),
+        rate: 0,
+        notes: '',
         createdAt: new Date(),
         updatedAt: new Date(),
         customFields: {}
@@ -59,9 +62,9 @@ export function CommissionModal({ open, onClose, onSave }: CommissionModalProps)
       onClose()
     } catch (error) {
       toast({
-        variant: 'destructive',
         title: 'Error saving commission',
-        description: 'Something went wrong'
+        description: 'Something went wrong',
+        variant: 'destructive'
       })
     }
   }
