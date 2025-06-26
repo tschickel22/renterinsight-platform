@@ -139,12 +139,12 @@ export function CommissionCalculator({ rules, onSaveCalculation }: CommissionCal
         commission: calculatedCommission,
         breakdown: calculationBreakdown,
         calculatedAt: new Date()
-      })
+      });
       
       toast({
         title: 'Success',
         description: 'Commission calculation saved',
-      })
+      });
     } catch (error) {
       toast({
         title: 'Error',
