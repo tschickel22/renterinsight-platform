@@ -3,57 +3,42 @@ import { Routes, Route } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { Truck, Plus, Search, Filter, MapPin, Calendar, User, TrendingUp } from 'lucide-react'
+import { Badge } from '@/components/ui/badge' 
+import { Truck, Plus, Search, Filter, MapPin, Calendar, User, TrendingUp, MessageSquare, Camera, Clock } from 'lucide-react'
 import { Delivery, DeliveryStatus } from '@/types'
 import { formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
-
-const mockDeliveries: Delivery[] = [
-  {
-    id: '1',
-    customerId: 'cust-1',
-    vehicleId: 'veh-1',
-    status: DeliveryStatus.SCHEDULED,
-    scheduledDate: new Date('2024-01-25'),
-    address: {
-      street: '123 Main St',
-      city: 'Springfield',
-      state: 'IL',
-      zipCode: '62701',
-      country: 'USA'
-    },
-    driver: 'Driver-001',
-    notes: 'Customer prefers morning delivery',
-    customFields: {},
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-18')
-  },
-  {
-    id: '2',
-    customerId: 'cust-2',
-    vehicleId: 'veh-2',
-    status: DeliveryStatus.IN_TRANSIT,
-    scheduledDate: new Date('2024-01-20'),
-    deliveredDate: undefined,
-    address: {
-      street: '456 Oak Ave',
-      city: 'Chicago',
-      state: 'IL',
-      zipCode: '60601',
-      country: 'USA'
-    },
-    driver: 'Driver-002',
-    notes: 'Call customer 30 minutes before arrival',
-    customFields: {},
-    createdAt: new Date('2024-01-12'),
-    updatedAt: new Date('2024-01-20')
-  }
-]
+import { useDeliveryManagement } from './hooks/useDeliveryManagement'
+import { useInventoryManagement } from '@/modules/inventory-management/hooks/useInventoryManagement'
+import { useLeadManagement } from '@/modules/crm-prospecting/hooks/useLeadManagement'
+import { useToast } from '@/hooks/use-toast'
+import { DeliveryForm } from './components/DeliveryForm'
+import { DeliveryDetail } from './components/DeliveryDetail'
+import { ETANotificationForm } from './components/ETANotificationForm'
+import { DeliveryPhotoCapture } from './components/DeliveryPhotoCapture'
+import { DeliveryTimeline } from './components/DeliveryTimeline'
 
 function DeliveriesList() {
-  const [deliveries] = useState<Delivery[]>(mockDeliveries)
+  const { 
+    deliveries, 
+    createDelivery, 
+    updateDelivery, 
+    deleteDelivery, 
+    updateDeliveryStatus,
+    sendNotification,
+    updateETA,
+    addDeliveryPhotos
+  } = useDeliveryManagement()
+  const { vehicles } = useInventoryManagement()
+  const { leads } = useLeadManagement()
+  const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [showDeliveryForm, setShowDeliveryForm] = useState(false)
+  const [showDeliveryDetail, setShowDeliveryDetail] = useState(false)
+  const [showNotificationForm, setShowNotificationForm] = useState(false)
+  const [showPhotoCapture, setShowPhotoCapture] = useState(false)
+  const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null)
 
   const getStatusColor = (status: DeliveryStatus) => {
     switch (status) {
@@ -70,14 +55,192 @@ function DeliveriesList() {
     }
   }
 
-  const filteredDeliveries = deliveries.filter(delivery =>
-    delivery.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    delivery.customerId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    delivery.address.city.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredDeliveries = deliveries
+    .filter(delivery =>
+      delivery.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      delivery.customerId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      delivery.address.city.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .filter(delivery => statusFilter === 'all' || delivery.status === statusFilter)
+
+  const handleCreateDelivery = () => {
+    setSelectedDelivery(null)
+    setShowDeliveryForm(true)
+  }
+
+  const handleEditDelivery = (delivery: Delivery) => {
+    setSelectedDelivery(delivery)
+    setShowDeliveryForm(true)
+    setShowDeliveryDetail(false)
+  }
+
+  const handleViewDelivery = (delivery: Delivery) => {
+    setSelectedDelivery(delivery)
+    setShowDeliveryDetail(true)
+  }
+
+  const handleSaveDelivery = async (deliveryData: Partial<Delivery>) => {
+    try {
+      if (selectedDelivery) {
+        // Update existing delivery
+        await updateDelivery(selectedDelivery.id, deliveryData)
+        toast({
+          title: 'Success',
+          description: 'Delivery updated successfully',
+        })
+      } else {
+        // Create new delivery
+        await createDelivery(deliveryData)
+        toast({
+          title: 'Success',
+          description: 'Delivery scheduled successfully',
+        })
+      }
+      setShowDeliveryForm(false)
+      setSelectedDelivery(null)
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: `Failed to ${selectedDelivery ? 'update' : 'schedule'} delivery`,
+        variant: 'destructive'
+      })
+    }
+  }
+
+  const handleDeleteDelivery = async (deliveryId: string) => {
+    if (window.confirm('Are you sure you want to delete this delivery?')) {
+      try {
+        await deleteDelivery(deliveryId)
+        toast({
+          title: 'Success',
+          description: 'Delivery deleted successfully',
+        })
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to delete delivery',
+          variant: 'destructive'
+        })
+      }
+    }
+  }
+
+  const handleStatusChange = async (deliveryId: string, status: DeliveryStatus) => {
+    try {
+      await updateDeliveryStatus(deliveryId, status)
+      toast({
+        title: 'Status Updated',
+        description: `Delivery status changed to ${status.replace('_', ' ')}`,
+      })
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update delivery status',
+        variant: 'destructive'
+      })
+    }
+  }
+
+  const handleSendNotification = async (deliveryId: string, data: any) => {
+    try {
+      // Update ETA if provided
+      if (data.estimatedArrival) {
+        await updateETA(deliveryId, data.estimatedArrival)
+      }
+      
+      // Send notification
+      await sendNotification(deliveryId, data.type, data.message)
+      
+      return true
+    } catch (error) {
+      console.error('Error sending notification:', error)
+      throw error
+    }
+  }
+
+  const handleCapturePhotos = async (photos: string[], captions: string[]) => {
+    if (!selectedDelivery) return
+    
+    try {
+      await addDeliveryPhotos(selectedDelivery.id, photos, captions)
+      
+      // If delivery is in transit, update to delivered
+      if (selectedDelivery.status === DeliveryStatus.IN_TRANSIT) {
+        await updateDeliveryStatus(selectedDelivery.id, DeliveryStatus.DELIVERED)
+      }
+      
+      setShowPhotoCapture(false)
+      
+      toast({
+        title: 'Photos Added',
+        description: `${photos.length} photos added to delivery`,
+      })
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to add photos',
+        variant: 'destructive'
+      })
+    }
+  }
+
+  const getVehicleById = (vehicleId: string) => {
+    return vehicles.find(v => v.id === vehicleId)
+  }
 
   return (
     <div className="space-y-8">
+      {/* Delivery Form Modal */}
+      {showDeliveryForm && (
+        <DeliveryForm
+          delivery={selectedDelivery || undefined}
+          vehicles={vehicles}
+          customers={leads}
+          onSave={handleSaveDelivery}
+          onCancel={() => {
+            setShowDeliveryForm(false)
+            setSelectedDelivery(null)
+          }}
+        />
+      )}
+      
+      {/* Delivery Detail Modal */}
+      {showDeliveryDetail && selectedDelivery && (
+        <DeliveryDetail
+          delivery={selectedDelivery}
+          vehicle={getVehicleById(selectedDelivery.vehicleId)}
+          onClose={() => setShowDeliveryDetail(false)}
+          onEdit={handleEditDelivery}
+          onSendNotification={async (deliveryId, type) => {
+            setShowDeliveryDetail(false)
+            setShowNotificationForm(true)
+          }}
+        />
+      )}
+      
+      {/* Notification Form Modal */}
+      {showNotificationForm && selectedDelivery && (
+        <ETANotificationForm
+          delivery={selectedDelivery}
+          onSend={handleSendNotification}
+          onCancel={() => {
+            setShowNotificationForm(false)
+            setShowDeliveryDetail(true)
+          }}
+        />
+      )}
+      
+      {/* Photo Capture Modal */}
+      {showPhotoCapture && selectedDelivery && (
+        <DeliveryPhotoCapture
+          onCapture={handleCapturePhotos}
+          onCancel={() => {
+            setShowPhotoCapture(false)
+            setShowDeliveryDetail(true)
+          }}
+        />
+      )}
+
       {/* Page Header */}
       <div className="ri-page-header">
         <div className="flex items-center justify-between">
@@ -87,7 +250,7 @@ function DeliveriesList() {
               Track vehicle deliveries and logistics
             </p>
           </div>
-          <Button className="shadow-sm">
+          <Button className="shadow-sm" onClick={handleCreateDelivery}>
             <Plus className="h-4 w-4 mr-2" />
             Schedule Delivery
           </Button>
@@ -95,7 +258,7 @@ function DeliveriesList() {
       </div>
 
       {/* Stats Cards */}
-      <div className="ri-stats-grid">
+      <div className="ri-stats-grid"> 
         <Card className="shadow-sm border-0 bg-gradient-to-br from-blue-50 to-blue-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-blue-900">Total Deliveries</CardTitle>
@@ -154,6 +317,21 @@ function DeliveriesList() {
             </p>
           </CardContent>
         </Card>
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-orange-50 to-orange-100/50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-orange-900">Notifications</CardTitle>
+            <MessageSquare className="h-4 w-4 text-orange-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-900">
+              {deliveries.filter(d => d.customFields?.customerNotified).length}
+            </div>
+            <p className="text-xs text-orange-600 flex items-center mt-1">
+              <MessageSquare className="h-3 w-3 mr-1" />
+              Sent to customers
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Search and Filters */}
@@ -167,10 +345,17 @@ function DeliveriesList() {
             className="ri-search-input shadow-sm"
           />
         </div>
-        <Button variant="outline" className="shadow-sm">
-          <Filter className="h-4 w-4 mr-2" />
-          Filter
-        </Button>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-3 py-2 rounded-md border border-input bg-background"
+        >
+          <option value="all">All Status</option>
+          <option value={DeliveryStatus.SCHEDULED}>Scheduled</option>
+          <option value={DeliveryStatus.IN_TRANSIT}>In Transit</option>
+          <option value={DeliveryStatus.DELIVERED}>Delivered</option>
+          <option value={DeliveryStatus.CANCELLED}>Cancelled</option>
+        </select>
       </div>
 
       {/* Deliveries Table */}
@@ -227,22 +412,81 @@ function DeliveriesList() {
                       {delivery.notes && (
                         <p className="text-sm text-muted-foreground mt-2 bg-blue-50 p-2 rounded-md">
                           <span className="font-medium">Notes:</span> {delivery.notes}
-                        </p>
+                    <Badge 
+                      className={cn("ri-badge-status cursor-pointer", getStatusColor(delivery.status))}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const nextStatus = delivery.status === DeliveryStatus.SCHEDULED 
+                          ? DeliveryStatus.IN_TRANSIT 
+                          : delivery.status === DeliveryStatus.IN_TRANSIT 
+                            ? DeliveryStatus.DELIVERED 
+                            : delivery.status;
+                        if (nextStatus !== delivery.status) {
+                          handleStatusChange(delivery.id, nextStatus);
+                        }
+                      }}
+                    >
                       )}
                     </div>
                   </div>
                 </div>
-                <div className="ri-action-buttons">
-                  <Button variant="outline" size="sm" className="shadow-sm">
-                    <MapPin className="h-3 w-3 mr-1" />
-                    Track
+                <div className="ri-action-buttons"> 
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="shadow-sm"
+                    onClick={() => handleViewDelivery(delivery)}
+                  >
+                    <Eye className="h-3 w-3 mr-1" />
+                    View
                   </Button>
-                  <Button variant="outline" size="sm" className="shadow-sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="shadow-sm"
+                    onClick={() => handleEditDelivery(delivery)}
+                  >
                     Edit
                   </Button>
+                  {delivery.status === DeliveryStatus.IN_TRANSIT && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="shadow-sm"
+                      onClick={() => {
+                        setSelectedDelivery(delivery);
+                        setShowPhotoCapture(true);
+                      }}
+                    >
+                      <Camera className="h-3 w-3 mr-1" />
+                      Photos
+                    </Button>
+                  )}
+                  {(delivery.status === DeliveryStatus.SCHEDULED || delivery.status === DeliveryStatus.IN_TRANSIT) && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="shadow-sm"
+                      onClick={() => {
+                        setSelectedDelivery(delivery);
+                        setShowNotificationForm(true);
+                      }}
+                    >
+                      <MessageSquare className="h-3 w-3 mr-1" />
+                      Notify
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}
+            
+            {filteredDeliveries.length === 0 && (
+              <div className="text-center py-12 text-muted-foreground">
+                <Truck className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                <p>No deliveries found</p>
+                <p className="text-sm">Try adjusting your search or filters</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -253,7 +497,7 @@ function DeliveriesList() {
 export default function DeliveryTracker() {
   return (
     <Routes>
-      <Route path="/" element={<DeliveriesList />} />
+      <Route path="/" element={<DeliveriesList />} /> 
       <Route path="/*" element={<DeliveriesList />} />
     </Routes>
   )
