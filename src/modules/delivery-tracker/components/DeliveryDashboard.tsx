@@ -12,7 +12,6 @@ import {
   Clock,
   MapPin,
   TrendingUp,
-  BarChart3,
   CheckCircle,
   Plus
 } from 'lucide-react'
@@ -34,53 +33,63 @@ export function DeliveryDashboard({ deliveries, onScheduleDelivery }: DeliveryDa
 
   const now = new Date()
   const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
-  const upcomingDeliveries = deliveries.filter(
-    d => d.status === DeliveryStatus.SCHEDULED && d.scheduledDate >= now && d.scheduledDate <= nextWeek
-  ).sort((a, b) => a.scheduledDate.getTime() - b.scheduledDate.getTime())
+  const upcomingDeliveries = deliveries
+    .filter(d => d.status === DeliveryStatus.SCHEDULED && d.scheduledDate >= now && d.scheduledDate <= nextWeek)
+    .sort((a, b) => a.scheduledDate.getTime() - b.scheduledDate.getTime())
 
-  const inTransitDeliveriesList = deliveries.filter(d => d.status === DeliveryStatus.IN_TRANSIT)
+  const inTransitDeliveriesList = deliveries
+    .filter(d => d.status === DeliveryStatus.IN_TRANSIT)
     .sort((a, b) => a.scheduledDate.getTime() - b.scheduledDate.getTime())
 
   const lastMonth = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-  const recentDeliveries = deliveries.filter(
-    d => d.status === DeliveryStatus.DELIVERED && d.deliveredDate && d.deliveredDate >= lastMonth
-  ).sort((a, b) => (b.deliveredDate?.getTime() || 0) - (a.deliveredDate?.getTime() || 0)).slice(0, 5)
+  const recentDeliveries = deliveries
+    .filter(d => d.status === DeliveryStatus.DELIVERED && d.deliveredDate && d.deliveredDate >= lastMonth)
+    .sort((a, b) => (b.deliveredDate?.getTime() || 0) - (a.deliveredDate?.getTime() || 0))
+    .slice(0, 5)
 
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">
         {[{
-          title: 'Total Deliveries',
-          count: totalDeliveries,
-          icon: <Truck className="h-4 w-4 text-white" />,
-          description: 'All time'
-        }, {
-          title: 'Scheduled',
-          count: scheduledDeliveries,
-          icon: <Calendar className="h-4 w-4 text-white" />,
-          description: 'Upcoming deliveries'
-        }, {
-          title: 'In Transit',
-          count: inTransitDeliveries,
-          icon: <Truck className="h-4 w-4 text-white" />,
-          description: 'Currently in transit'
-        }, {
-          title: 'Completed',
-          count: completedDeliveries,
-          icon: <TrendingUp className="h-4 w-4 text-white" />,
-          description: 'Successful deliveries'
-        }].map((stat, index) => (
-          <Card key={index} className="shadow-sm bg-gradient-to-br from-blue-100 to-blue-50 border-0">
+            title: 'Total Deliveries',
+            count: totalDeliveries,
+            icon: <Truck className="h-4 w-4 text-blue-800" />,
+            description: 'All time',
+            bg: 'bg-blue-100'
+          },
+          {
+            title: 'Scheduled',
+            count: scheduledDeliveries,
+            icon: <Calendar className="h-4 w-4 text-yellow-700" />,
+            description: 'Upcoming deliveries',
+            bg: 'bg-yellow-100'
+          },
+          {
+            title: 'In Transit',
+            count: inTransitDeliveries,
+            icon: <Truck className="h-4 w-4 text-orange-700" />,
+            description: 'Currently in transit',
+            bg: 'bg-orange-100'
+          },
+          {
+            title: 'Completed',
+            count: completedDeliveries,
+            icon: <CheckCircle className="h-4 w-4 text-green-700" />,
+            description: 'Successful deliveries',
+            bg: 'bg-green-100'
+          }
+        ].map((stat, index) => (
+          <Card key={index} className={`${stat.bg} border-0 shadow-sm`}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-blue-800">
+              <CardTitle className="text-sm font-medium">
                 {stat.title}
               </CardTitle>
               {stat.icon}
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-900">{stat.count}</div>
-              <p className="text-xs text-blue-600 flex items-center mt-1">
+              <div className="text-2xl font-bold text-gray-900">{stat.count}</div>
+              <p className="text-xs text-gray-600 flex items-center mt-1">
                 <TrendingUp className="h-3 w-3 mr-1" />
                 {stat.description}
               </p>
@@ -88,7 +97,8 @@ export function DeliveryDashboard({ deliveries, onScheduleDelivery }: DeliveryDa
           </Card>
         ))}
       </div>
-      {/* Remaining sections preserved below this point... */}
+
+      {/* The rest of the dashboard layout remains unchanged */}
     </div>
   )
 }
