@@ -53,7 +53,7 @@ export function VehicleDetail({ vehicle, onClose, onEdit }: VehicleDetailProps) 
                 onEdit(vehicle);
               }} size="sm">
                 <Edit className="h-4 w-4 mr-2" />
-                Edit Vehicle
+                Edit Home/RV
               </Button>
               <Button variant="ghost" size="sm" onClick={onClose}>
                 <X className="h-4 w-4" />
@@ -364,7 +364,7 @@ export function VehicleDetail({ vehicle, onClose, onEdit }: VehicleDetailProps) 
             </Button>
             <Button onClick={() => onEdit(vehicle)}>
               <Edit className="h-4 w-4 mr-2" />
-              Edit Vehicle
+              Edit Home/RV
             </Button>
           </div>
         </CardContent>
