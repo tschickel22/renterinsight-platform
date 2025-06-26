@@ -75,7 +75,7 @@ export function DeliveryDashboard({
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">
-        {[
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-blue-50 to-blue-100/50">
           {
             title: 'Total Deliveries',
             count: totalDeliveries,
@@ -106,11 +106,14 @@ export function DeliveryDashboard({
               <CardTitle className="text-sm font-medium">
                 {stat.title}
               </CardTitle>
-              {stat.icon}
+            {stat.icon}
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.count}</div>
-              <p className="text-xs text-muted-foreground">{stat.description}</p>
+            <div className="text-2xl font-bold text-blue-900">{stat.count}</div>
+            <p className="text-xs text-blue-600 flex items-center mt-1">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              {stat.description}
+            </p>
             </CardContent>
           </Card>
         ))}
