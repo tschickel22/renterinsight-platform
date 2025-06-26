@@ -460,10 +460,10 @@ Terms: ${quoteData.terms}
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+      <Card className="w-full max-w-6xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-4">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <div>
+            <div className="space-y-6">
               <CardTitle className="text-xl flex items-center">
                 <FileText className="h-5 w-5 mr-2 text-blue-500" />
                 {quote ? 'Edit Quote' : 'Create Quote'}
@@ -480,18 +480,18 @@ Terms: ${quoteData.terms}
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="items">Line Items</TabsTrigger>
-              <TabsTrigger value="products">Products</TabsTrigger>
-              <TabsTrigger value="pricing">Pricing Rules</TabsTrigger>
-              <TabsTrigger value="details">Quote Details</TabsTrigger>
+              <TabsTrigger value="items" className="text-xs sm:text-sm">Line Items</TabsTrigger>
+              <TabsTrigger value="products" className="text-xs sm:text-sm">Products</TabsTrigger>
+              <TabsTrigger value="pricing" className="text-xs sm:text-sm">Pricing Rules</TabsTrigger>
+              <TabsTrigger value="details" className="text-xs sm:text-sm">Quote Details</TabsTrigger>
             </TabsList>
 
             <TabsContent value="items" className="space-y-6">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                 <h3 className="text-lg font-semibold">Quote Line Items</h3>
-                <div className="flex space-x-2">
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
                   <Select value={selectedVehicle} onValueChange={setSelectedVehicle}>
-                    <SelectTrigger className="w-64">
+                    <SelectTrigger className="w-full sm:w-64">
                       <SelectValue placeholder="Add vehicle from inventory" />
                     </SelectTrigger>
                     <SelectContent>
@@ -503,12 +503,12 @@ Terms: ${quoteData.terms}
                     </SelectContent>
                   </Select>
                   {selectedVehicle && (
-                    <Button onClick={() => addVehicleToQuote(selectedVehicle)} size="sm">
+                    <Button onClick={() => addVehicleToQuote(selectedVehicle)} size="sm" className="w-full sm:w-auto">
                       <Plus className="h-4 w-4 mr-2" />
                       Add Vehicle
                     </Button>
                   )}
-                  <Button onClick={() => setShowAddItem(true)} size="sm" variant="outline">
+                  <Button onClick={() => setShowAddItem(true)} size="sm" variant="outline" className="w-full sm:w-auto">
                     <Plus className="h-4 w-4 mr-2" />
                     Custom Item
                   </Button>
@@ -519,7 +519,7 @@ Terms: ${quoteData.terms}
               {showAddItem && (
                 <Card className="border-dashed">
                   <CardContent className="pt-6">
-                    <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                       <div>
                         <Label>Description</Label>
                         <Input
@@ -548,7 +548,7 @@ Terms: ${quoteData.terms}
                       </div>
                       <div>
                         <Label>Discount</Label>
-                        <div className="flex space-x-2">
+                        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                           <Input
                             type="number"
                             value={newItem.discount || 0}
@@ -570,7 +570,7 @@ Terms: ${quoteData.terms}
                         </div>
                       </div>
                     </div>
-                    <div className="flex justify-end space-x-2 mt-4">
+                    <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 mt-4">
                       <Button variant="outline" onClick={() => setShowAddItem(false)}>
                         Cancel
                       </Button>
@@ -587,8 +587,8 @@ Terms: ${quoteData.terms}
                 {quoteData.items.map((item, index) => (
                   <Card key={item.id} className="shadow-sm">
                     <CardContent className="pt-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 grid gap-4 md:grid-cols-4">
+                      <div className="flex flex-col md:flex-row items-start justify-between gap-4">
+                        <div className="flex-1 grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
                           <div>
                             <Label>Description</Label>
                             <Input
@@ -622,7 +622,7 @@ Terms: ${quoteData.terms}
                           </div>
                           <div>
                             <Label>Discount</Label>
-                            <div className="flex space-x-2">
+                            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                               <Input
                                 type="number"
                                 value={item.discount}
@@ -644,7 +644,7 @@ Terms: ${quoteData.terms}
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-3 ml-4">
+                        <div className="flex items-center space-x-3 w-full md:w-auto md:ml-4">
                           <div className="text-right">
                             <div className="text-sm text-muted-foreground">Total</div>
                             <div className="font-bold text-lg">{formatCurrency(item.total)}</div>
@@ -661,7 +661,7 @@ Terms: ${quoteData.terms}
 
                       {/* Bundle Items */}
                       {item.isBundle && item.bundleItems && (
-                        <div className="mt-4 pl-4 border-l-2 border-purple-200">
+                        <div className="mt-4 pl-2 sm:pl-4 border-l-2 border-purple-200">
                           <h4 className="text-sm font-semibold text-purple-700 mb-2">Bundle Contents:</h4>
                           <div className="space-y-2">
                             {item.bundleItems.map(bundleItem => (
@@ -769,13 +769,13 @@ Terms: ${quoteData.terms}
                 </div>
 
                 {/* Available Products Section */}
-                <div>
+              <div className="space-y-4">
                   <h4 className="text-md font-semibold mb-3 text-green-600">Available Products & Services</h4>
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                   {mockProducts.map(product => (
                     <Card key={product.id} className="shadow-sm hover:shadow-md transition-shadow cursor-pointer">
                       <CardContent className="pt-6">
-                        <div className="flex items-start justify-between">
+                        <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-2">
                               <h4 className="font-semibold">{product.name}</h4>
@@ -803,14 +803,18 @@ Terms: ${quoteData.terms}
                               </div>
                             )}
                           </div>
-                          <Button
-                            onClick={() => addProductToQuote(product.id)}
-                            size="sm"
-                            className="ml-4"
-                          >
-                            <Plus className="h-4 w-4 mr-1" />
-                            Add
-                          </Button>
+                          <div className="w-full sm:w-auto">
+                            <Button
+                              onClick={() => addProductToQuote(product.id)}
+                              size="sm"
+                              className="w-full sm:w-auto"
+                            >
+                              <Plus className="h-4 w-4 mr-1" />
+                              Add
+                            </Button>
+                          </div>
+                            </Button>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -908,22 +912,23 @@ Terms: ${quoteData.terms}
           </Tabs>
 
           {/* Actions */}
-          <div className="flex justify-between items-center pt-6 border-t">
-            <div className="flex space-x-2">
+          <div className="flex flex-col sm:flex-row justify-between items-center pt-6 border-t gap-4">
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
               <Button
                 variant="outline"
                 onClick={generatePDF}
                 disabled={loading || quoteData.items.length === 0}
+                className="w-full sm:w-auto"
               >
                 <Download className="h-4 w-4 mr-2" />
                 {loading ? 'Generating...' : 'Export PDF'}
               </Button>
             </div>
-            <div className="flex space-x-3">
-              <Button variant="outline" onClick={onCancel} disabled={loading}>
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
+              <Button variant="outline" onClick={onCancel} disabled={loading} className="w-full sm:w-auto">
                 Cancel
               </Button>
-              <Button onClick={handleSave} disabled={loading}>
+              <Button onClick={handleSave} disabled={loading} className="w-full sm:w-auto">
                 {loading ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>

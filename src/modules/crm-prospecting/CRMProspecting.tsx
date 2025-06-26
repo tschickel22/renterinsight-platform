@@ -245,7 +245,7 @@ function LeadsList() {
       </div>
 
       {/* Stats Cards */}
-      <div className="ri-stats-grid">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="shadow-sm border-0 bg-gradient-to-br from-blue-50 to-blue-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-blue-900">Total Leads</CardTitle>
@@ -305,20 +305,20 @@ function LeadsList() {
       </div>
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="leads" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="leads">Leads</TabsTrigger>
-          <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
-          <TabsTrigger value="quotes">Quotes</TabsTrigger>
-          <TabsTrigger value="nurturing">Nurturing</TabsTrigger>
-          <TabsTrigger value="forms">Intake Forms</TabsTrigger>
-          <TabsTrigger value="sources">Sources</TabsTrigger>
+      <Tabs defaultValue="leads" className="space-y-6 w-full">
+        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
+          <TabsTrigger value="leads" className="text-xs sm:text-sm">Leads</TabsTrigger>
+          <TabsTrigger value="pipeline" className="text-xs sm:text-sm">Pipeline</TabsTrigger>
+          <TabsTrigger value="quotes" className="text-xs sm:text-sm">Quotes</TabsTrigger>
+          <TabsTrigger value="nurturing" className="text-xs sm:text-sm">Nurturing</TabsTrigger>
+          <TabsTrigger value="forms" className="text-xs sm:text-sm">Forms</TabsTrigger>
+          <TabsTrigger value="sources" className="text-xs sm:text-sm">Sources</TabsTrigger>
         </TabsList>
 
         <TabsContent value="leads" className="space-y-6">
           {/* Filters */}
-          <div className="flex gap-4">
-            <div className="ri-search-bar">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="ri-search-bar w-full">
               <Search className="ri-search-icon" />
               <Input
                 placeholder="Search leads..."
@@ -327,8 +327,9 @@ function LeadsList() {
                 className="ri-search-input shadow-sm"
               />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-40">
+            <div className="flex flex-wrap gap-2">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-40">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -342,8 +343,8 @@ function LeadsList() {
                 <SelectItem value={LeadStatus.CLOSED_LOST}>Closed Lost</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={sourceFilter} onValueChange={setSourceFilter}>
-              <SelectTrigger className="w-40">
+            <Select value={repFilter} onValueChange={setRepFilter}>
+              <SelectTrigger className="w-full sm:w-40">
                 <SelectValue placeholder="Source" />
               </SelectTrigger>
               <SelectContent>
@@ -368,10 +369,11 @@ function LeadsList() {
                 ))}
               </SelectContent>
             </Select>
-            <Button onClick={() => setShowNewLeadForm(true)} className="shadow-sm">
+            <Button onClick={() => setShowNewLeadForm(true)} className="shadow-sm w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Add Lead
             </Button>
+            </div>
           </div>
 
           {/* Leads Table */}
@@ -438,15 +440,15 @@ function LeadsList() {
                         )}
                       </div>
                     </div>
-                    <div className="ri-action-buttons">
-                      <Button variant="outline" size="sm" className="shadow-sm" onClick={(e) => {
+                    <div className="ri-action-buttons flex-wrap gap-2">
+                      <Button variant="outline" size="sm" className="shadow-sm text-xs" onClick={(e) => {
                         e.stopPropagation()
                         // Handle quick actions
                       }}>
                         <MessageSquare className="h-3 w-3 mr-1" />
                         Contact
                       </Button>
-                      <Button variant="outline" size="sm" className="shadow-sm" onClick={(e) => {
+                      <Button variant="outline" size="sm" className="shadow-sm text-xs" onClick={(e) => {
                         e.stopPropagation()
                         setSelectedLead(lead)
                       }}>

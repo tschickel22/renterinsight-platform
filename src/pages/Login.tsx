@@ -29,7 +29,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md mx-2 sm:mx-0">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-primary">
             Renter Insight CRM/DMS
@@ -39,7 +39,7 @@ export default function Login() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <Input
                 type="email"
@@ -64,6 +64,7 @@ export default function Login() {
               type="submit"
               className="w-full"
               disabled={isLoading}
+              size="lg"
             >
               {isLoading ? 'Signing in...' : 'Sign In'}
             </Button>

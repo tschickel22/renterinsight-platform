@@ -2,6 +2,7 @@ import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import {
+  X,
   Users,
   Package,
   Target,
@@ -18,6 +19,12 @@ import {
   BarChart3,
   Home
 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+
+interface SidebarProps {
+  open: boolean
+  onClose: () => void
+}
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
@@ -38,11 +45,19 @@ const navigation = [
   { name: 'Reporting Suite', href: '/reports', icon: BarChart3 },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ open, onClose }: SidebarProps) {
   const location = useLocation()
 
   return (
-    <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col">
+    <div className={cn(
+      "fixed inset-y-0 z-50 flex w-72 flex-col transition-transform duration-300 ease-in-out lg:w-64",
+      open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+    )}>
+      <div className="absolute right-0 top-0 flex h-12 w-12 items-center justify-center lg:hidden">
+        <Button variant="ghost" size="sm" onClick={onClose} className="rounded-full">
+          <X className="h-5 w-5" />
+        </Button>
+      </div>
       <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-border bg-card px-6 pb-4">
         <div className="flex h-16 shrink-0 items-center">
           <h1 className="text-xl font-bold text-primary">Renter Insight</h1>
@@ -65,6 +80,7 @@ export default function Sidebar() {
                             ? 'bg-primary text-primary-foreground'
                             : 'text-muted-foreground hover:text-foreground hover:bg-accent'
                         )}
+                        onClick={() => onClose()}
                       >
                         <item.icon
                           className={cn(

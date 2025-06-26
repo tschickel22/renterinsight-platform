@@ -222,7 +222,7 @@ function InventoryList() {
       </div>
 
       {/* Stats Cards */}
-      <div className="ri-stats-grid">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="shadow-sm border-0 bg-gradient-to-br from-blue-50 to-blue-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-blue-900">Total Units</CardTitle>
@@ -284,7 +284,7 @@ function InventoryList() {
       </div>
       
       {/* Inventory Table */}
-      <InventoryTable 
+      <InventoryTable
         vehicles={vehicles}
         onEdit={handleEditVehicle}
         onDelete={handleDeleteVehicle}

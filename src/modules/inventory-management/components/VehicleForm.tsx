@@ -192,7 +192,7 @@ export function VehicleForm({ vehicle, onSave, onCancel, onScanBarcode }: Vehicl
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+      <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-4">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -212,21 +212,21 @@ export function VehicleForm({ vehicle, onSave, onCancel, onScanBarcode }: Vehicl
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Basic Information</h3>
               
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                 <div>
                   <Label htmlFor="vin">VIN *</Label>
-                  <div className="flex">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-0">
                     <Input
                       id="vin"
                       value={formData.vin}
                       onChange={(e) => setFormData(prev => ({ ...prev, vin: e.target.value }))}
                       placeholder="Vehicle Identification Number"
-                      className="flex-1"
+                      className="flex-1 w-full"
                     />
                     <Button 
                       type="button" 
                       variant="outline" 
-                      className="ml-2"
+                      className="sm:ml-2 w-full sm:w-auto"
                       onClick={() => setShowBarcodeScanner(true)}
                     >
                       <ScanBarcode className="h-4 w-4" />
@@ -247,7 +247,7 @@ export function VehicleForm({ vehicle, onSave, onCancel, onScanBarcode }: Vehicl
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                 <div>
                   <Label htmlFor="make">Make *</Label>
                   <Input
@@ -269,7 +269,7 @@ export function VehicleForm({ vehicle, onSave, onCancel, onScanBarcode }: Vehicl
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
                 <div>
                   <Label htmlFor="type">Type</Label>
                   <Select 
@@ -324,7 +324,7 @@ export function VehicleForm({ vehicle, onSave, onCancel, onScanBarcode }: Vehicl
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                 <div>
                   <Label htmlFor="price">Price *</Label>
                   <Input
@@ -396,7 +396,7 @@ export function VehicleForm({ vehicle, onSave, onCancel, onScanBarcode }: Vehicl
               formData.type === VehicleType.MODULAR_HOME) && (
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Manufactured Housing Details</h3>
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
                   <div>
                     <Label htmlFor="squareFootage">Square Footage</Label>
                     <Input
@@ -523,7 +523,7 @@ export function VehicleForm({ vehicle, onSave, onCancel, onScanBarcode }: Vehicl
               formData.type === VehicleType.TRIPLE_WIDE || 
               formData.type === VehicleType.PARK_MODEL || 
               formData.type === VehicleType.MODULAR_HOME) && (
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
                 <div>
                   <Label htmlFor="squareFootage">Square Footage</Label>
                   <Input
@@ -644,7 +644,7 @@ export function VehicleForm({ vehicle, onSave, onCancel, onScanBarcode }: Vehicl
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Specifications</h3>
               
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
                 <div>
                   <Label htmlFor="exteriorColor">Exterior Color</Label>
                   <Input
@@ -806,13 +806,13 @@ export function VehicleForm({ vehicle, onSave, onCancel, onScanBarcode }: Vehicl
               <div {...getRootProps()} className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-muted/10">
                 <input {...getInputProps()} />
                 <ImageIcon className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground px-2">
                   Drag & drop images here, or click to select files
                 </p>
               </div>
               
               {formData.images && formData.images.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
                   {formData.images.map((image, index) => (
                     <div key={index} className="relative group">
                       <img 
@@ -905,11 +905,11 @@ export function VehicleForm({ vehicle, onSave, onCancel, onScanBarcode }: Vehicl
             </div>
 
             {/* Form Actions */}
-            <div className="flex justify-end space-x-3 pt-6 border-t">
-              <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>
+            <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-6 border-t">
+              <Button type="button" variant="outline" onClick={onCancel} disabled={loading} className="w-full sm:w-auto">
                 Cancel
               </Button>
-              <Button type="submit" disabled={loading}>
+              <Button type="submit" disabled={loading} className="w-full sm:w-auto">
                 {loading ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -930,7 +930,7 @@ export function VehicleForm({ vehicle, onSave, onCancel, onScanBarcode }: Vehicl
       {/* Barcode Scanner Modal */}
       {showBarcodeScanner && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60]">
-          <Card className="w-full max-w-md">
+          <Card className="w-full max-w-md mx-4">
             <CardHeader>
               <CardTitle>Scan VIN Barcode</CardTitle>
               <CardDescription>
@@ -942,14 +942,14 @@ export function VehicleForm({ vehicle, onSave, onCancel, onScanBarcode }: Vehicl
                 <Camera className="h-12 w-12 text-white/50" />
                 {/* In a real implementation, this would be a video feed from the camera */}
               </div>
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setShowBarcodeScanner(false)}>
+              <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2">
+                <Button variant="outline" onClick={() => setShowBarcodeScanner(false)} className="w-full sm:w-auto">
                   Cancel
                 </Button>
                 <Button onClick={() => {
                   // Simulate a barcode scan
                   handleBarcodeScanned('1FDXE4FS8KDC' + Math.floor(Math.random() * 100000).toString().padStart(5, '0'))
-                }}>
+                }} className="w-full sm:w-auto">
                   Simulate Scan
                 </Button>
               </div>

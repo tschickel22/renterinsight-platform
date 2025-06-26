@@ -102,7 +102,7 @@ export function PDINewInspectionForm({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md mx-2 sm:mx-4">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -177,11 +177,11 @@ export function PDINewInspectionForm({
               />
             </div>
             
-            <div className="flex justify-end space-x-3 pt-4">
-              <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>
+            <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
+              <Button type="button" variant="outline" onClick={onCancel} disabled={loading} className="w-full sm:w-auto">
                 Cancel
               </Button>
-              <Button type="submit" disabled={loading || !selectedVehicleId || !selectedTemplateId}>
+              <Button type="submit" disabled={loading || !selectedVehicleId || !selectedTemplateId} className="w-full sm:w-auto">
                 {loading ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>

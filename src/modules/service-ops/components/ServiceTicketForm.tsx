@@ -261,7 +261,7 @@ export function ServiceTicketForm({ ticket, onSave, onCancel }: ServiceTicketFor
         />
       )}
       
-      <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+      <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-4">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -281,7 +281,7 @@ export function ServiceTicketForm({ ticket, onSave, onCancel }: ServiceTicketFor
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Ticket Information</h3>
               
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                 <div>
                   <Label htmlFor="customerId">Customer *</Label>
                   <Select
@@ -355,7 +355,7 @@ export function ServiceTicketForm({ ticket, onSave, onCancel }: ServiceTicketFor
                 />
               </div>
 
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
                 <div>
                   <Label htmlFor="priority">Priority</Label>
                   <Select 
@@ -414,7 +414,7 @@ export function ServiceTicketForm({ ticket, onSave, onCancel }: ServiceTicketFor
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                 <div>
                   <Label htmlFor="scheduledDate">Scheduled Date</Label>
                   <Input
@@ -450,7 +450,7 @@ export function ServiceTicketForm({ ticket, onSave, onCancel }: ServiceTicketFor
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Warranty Information</h3>
               
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                 <div>
                   <Label htmlFor="warrantyStatus">Warranty Status</Label>
                   <Select 
@@ -507,7 +507,7 @@ export function ServiceTicketForm({ ticket, onSave, onCancel }: ServiceTicketFor
               {showAddPart && (
                 <Card className="border-dashed">
                   <CardContent className="pt-6">
-                    <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                       <div>
                         <Label htmlFor="partNumber">Part Number *</Label>
                         <Input
@@ -548,16 +548,16 @@ export function ServiceTicketForm({ ticket, onSave, onCancel }: ServiceTicketFor
                         />
                       </div>
                     </div>
-                    <div className="flex justify-between items-center mt-4">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-4 gap-2">
                       <div>
                         <span className="text-sm font-medium">Total: </span>
                         <span className="font-bold">{formatCurrency(newPart.total || 0)}</span>
                       </div>
-                      <div className="flex space-x-2">
-                        <Button type="button" variant="outline" onClick={() => setShowAddPart(false)}>
+                      <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+                        <Button type="button" variant="outline" onClick={() => setShowAddPart(false)} className="w-full sm:w-auto">
                           Cancel
                         </Button>
-                        <Button type="button" onClick={addPart}>
+                        <Button type="button" onClick={addPart} className="w-full sm:w-auto">
                           Add Part
                         </Button>
                       </div>
@@ -619,8 +619,8 @@ export function ServiceTicketForm({ ticket, onSave, onCancel }: ServiceTicketFor
               {showAddLabor && (
                 <Card className="border-dashed">
                   <CardContent className="pt-6">
-                    <div className="grid gap-4 md:grid-cols-3">
-                      <div className="md:col-span-3">
+                    <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+                      <div className="col-span-1 md:col-span-3">
                         <Label htmlFor="laborDescription">Description *</Label>
                         <Input
                           id="laborDescription"
@@ -658,11 +658,11 @@ export function ServiceTicketForm({ ticket, onSave, onCancel }: ServiceTicketFor
                         </div>
                       </div>
                     </div>
-                    <div className="flex justify-end space-x-2 mt-4">
-                      <Button type="button" variant="outline" onClick={() => setShowAddLabor(false)}>
+                    <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 mt-4">
+                      <Button type="button" variant="outline" onClick={() => setShowAddLabor(false)} className="w-full sm:w-auto">
                         Cancel
                       </Button>
-                      <Button type="button" onClick={addLabor}>
+                      <Button type="button" onClick={addLabor} className="w-full sm:w-auto">
                         Add Labor
                       </Button>
                     </div>
@@ -775,11 +775,11 @@ export function ServiceTicketForm({ ticket, onSave, onCancel }: ServiceTicketFor
             </div>
 
             {/* Form Actions */}
-            <div className="flex justify-end space-x-3 pt-6 border-t">
-              <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>
+            <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-6 border-t">
+              <Button type="button" variant="outline" onClick={onCancel} disabled={loading} className="w-full sm:w-auto">
                 Cancel
               </Button>
-              <Button type="submit" disabled={loading}>
+              <Button type="submit" disabled={loading} className="w-full sm:w-auto">
                 {loading ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>

@@ -199,8 +199,8 @@ export function InventoryTable({
   return (
     <div className="space-y-4">
       {/* Search and Filters */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="ri-search-bar flex-1">
+      <div className="flex flex-col lg:flex-row gap-4">
+        <div className="ri-search-bar w-full lg:flex-1">
           <Search className="ri-search-icon" />
           <Input
             placeholder="Search by make, model, VIN..."
@@ -209,9 +209,9 @@ export function InventoryTable({
             className="ri-search-input shadow-sm"
           />
         </div>
-        <div className="flex gap-2">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[130px]">
+        <div className="flex flex-wrap gap-2">
+          <Select value={statusFilter} onValueChange={setStatusFilter} className="w-full sm:w-auto">
+            <SelectTrigger className="w-full sm:w-[130px]">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -224,8 +224,8 @@ export function InventoryTable({
             </SelectContent>
           </Select>
           
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-[130px]">
+          <Select value={typeFilter} onValueChange={setTypeFilter} className="w-full sm:w-auto">
+            <SelectTrigger className="w-full sm:w-[130px]">
               <SelectValue placeholder="Type" />
             </SelectTrigger>
             <SelectContent>
@@ -238,8 +238,8 @@ export function InventoryTable({
             </SelectContent>
           </Select>
           
-          <Select value={locationFilter} onValueChange={setLocationFilter}>
-            <SelectTrigger className="w-[130px]">
+          <Select value={locationFilter} onValueChange={setLocationFilter} className="w-full sm:w-auto">
+            <SelectTrigger className="w-full sm:w-[130px]">
               <SelectValue placeholder="Location" />
             </SelectTrigger>
             <SelectContent>
@@ -254,13 +254,13 @@ export function InventoryTable({
 
       {/* Bulk Actions */}
       {selectedVehicles.length > 0 && (
-        <div className="flex items-center justify-between bg-muted/30 p-2 rounded-lg">
-          <div className="text-sm font-medium">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-muted/30 p-2 rounded-lg gap-2">
+          <div className="text-sm font-medium mb-2 sm:mb-0">
             {selectedVehicles.length} vehicles selected
           </div>
-          <div className="flex gap-2">
-            <Select onValueChange={(value: VehicleStatus) => handleBulkStatusChange(value)}>
-              <SelectTrigger className="w-[150px]">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+            <Select onValueChange={(value: VehicleStatus) => handleBulkStatusChange(value)} className="w-full sm:w-auto">
+              <SelectTrigger className="w-full sm:w-[150px]">
                 <SelectValue placeholder="Change Status" />
               </SelectTrigger>
               <SelectContent>
@@ -276,14 +276,15 @@ export function InventoryTable({
                 <SelectItem value={VehicleType.MODULAR_HOME}>Modular Home</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline" size="sm" onClick={handleExportCSV}>
+            <Button variant="outline" size="sm" onClick={handleExportCSV} className="w-full sm:w-auto">
               <Download className="h-4 w-4 mr-2" />
               Export Selected
             </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setSelectedVehicles([])}
+              className="w-full sm:w-auto"
             >
               <X className="h-4 w-4 mr-2" />
               Clear Selection
@@ -298,12 +299,12 @@ export function InventoryTable({
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-xl">Inventory ({filteredVehicles.length})</CardTitle>
-              <CardDescription>
+              <CardDescription className="hidden sm:block">
                 Manage your RV and motorhome inventory
               </CardDescription>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleExportCSV}>
+            <div className="flex gap-2 mt-2 sm:mt-0">
+              <Button variant="outline" size="sm" onClick={handleExportCSV} className="text-xs">
                 <Download className="h-4 w-4 mr-2" />
                 Export CSV
               </Button>
@@ -311,7 +312,7 @@ export function InventoryTable({
           </div>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto -mx-4 sm:mx-0">
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b">
@@ -398,7 +399,7 @@ export function InventoryTable({
                       )}
                     </div>
                   </th>
-                  <th className="p-2 text-left">Media</th>
+                  <th className="p-2 text-left hidden sm:table-cell">Media</th>
                   <th className="p-2 text-left">Actions</th>
                 </tr>
               </thead>
@@ -430,7 +431,7 @@ export function InventoryTable({
                     <td className="p-2 font-medium text-primary">
                       {formatCurrency(vehicle.price)}
                     </td>
-                    <td className="p-2">
+                    <td className="p-2 hidden sm:table-cell">
                       <div className="flex items-center space-x-1">
                         <Badge variant="outline" className="text-xs">
                           <ImageIcon className="h-3 w-3 mr-1" />
@@ -445,14 +446,14 @@ export function InventoryTable({
                       </div>
                     </td>
                     <td className="p-2">
-                      <div className="flex items-center space-x-1">
-                        <Button variant="ghost" size="sm" onClick={() => onView(vehicle)}>
+                      <div className="flex items-center flex-wrap gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => onView(vehicle)} className="p-1">
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => onEdit(vehicle)}>
+                        <Button variant="ghost" size="sm" onClick={() => onEdit(vehicle)} className="p-1">
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => onDelete(vehicle.id)}>
+                        <Button variant="ghost" size="sm" onClick={() => onDelete(vehicle.id)} className="p-1">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>

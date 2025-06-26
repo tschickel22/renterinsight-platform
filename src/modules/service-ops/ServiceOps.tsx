@@ -219,7 +219,7 @@ function ServiceTicketsList() {
       </div>
 
       {/* Stats Cards */}
-      <div className="ri-stats-grid">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="shadow-sm border-0 bg-gradient-to-br from-blue-50 to-blue-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-blue-900">Total Tickets</CardTitle>
@@ -283,8 +283,8 @@ function ServiceTicketsList() {
       </div>
 
       {/* Search and Filters */}
-      <div className="flex gap-4">
-        <div className="ri-search-bar">
+      <div className="flex flex-col lg:flex-row gap-4">
+        <div className="ri-search-bar w-full lg:flex-1">
           <Search className="ri-search-icon" />
           <Input
             placeholder="Search service tickets..."
@@ -293,9 +293,9 @@ function ServiceTicketsList() {
             className="ri-search-input shadow-sm"
           />
         </div>
-        <div className="flex gap-2">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-40">
+        <div className="flex flex-wrap gap-2">
+          <Select value={statusFilter} onValueChange={setStatusFilter} className="w-full sm:w-auto">
+            <SelectTrigger className="w-full sm:w-40">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -308,8 +308,8 @@ function ServiceTicketsList() {
             </SelectContent>
           </Select>
           
-          <Select value={priorityFilter} onValueChange={setpriorityFilter}>
-            <SelectTrigger className="w-40">
+          <Select value={priorityFilter} onValueChange={setpriorityFilter} className="w-full sm:w-auto">
+            <SelectTrigger className="w-full sm:w-40">
               <SelectValue placeholder="Priority" />
             </SelectTrigger>
             <SelectContent>
@@ -321,7 +321,7 @@ function ServiceTicketsList() {
             </SelectContent>
           </Select>
           
-          <Button variant="outline" className="shadow-sm">
+          <Button variant="outline" className="shadow-sm w-full sm:w-auto">
             <Filter className="h-4 w-4 mr-2" />
             More Filters
           </Button>
@@ -399,11 +399,11 @@ function ServiceTicketsList() {
                     </div>
                   </div>
                 </div>
-                <div className="ri-action-buttons">
+                <div className="ri-action-buttons flex-wrap gap-2 mt-3 md:mt-0">
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="shadow-sm"
+                    className="shadow-sm text-xs"
                     onClick={() => handleViewTicket(ticket)}
                   >
                     View
@@ -411,7 +411,7 @@ function ServiceTicketsList() {
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="shadow-sm"
+                    className="shadow-sm text-xs"
                     onClick={() => handleEditTicket(ticket)}
                   >
                     Edit
@@ -420,7 +420,7 @@ function ServiceTicketsList() {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="shadow-sm"
+                      className="shadow-sm text-xs"
                       onClick={() => handleViewCustomerPortal(ticket)}
                     >
                       Customer View

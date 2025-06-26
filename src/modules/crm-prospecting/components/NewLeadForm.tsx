@@ -133,7 +133,7 @@ export function NewLeadForm({ onClose, onSuccess }: NewLeadFormProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-4">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -155,11 +155,11 @@ export function NewLeadForm({ onClose, onSuccess }: NewLeadFormProps) {
             {/* Basic Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold flex items-center">
-                <User className="h-4 w-4 mr-2" />
+                <User className="h-4 w-4 mr-2 flex-shrink-0" />
                 Contact Information
               </h3>
               
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                 <div>
                   <Label htmlFor="firstName">First Name *</Label>
                   <Input
@@ -189,7 +189,7 @@ export function NewLeadForm({ onClose, onSuccess }: NewLeadFormProps) {
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                 <div>
                   <Label htmlFor="email">Email Address *</Label>
                   <div className="relative">
@@ -231,11 +231,11 @@ export function NewLeadForm({ onClose, onSuccess }: NewLeadFormProps) {
             {/* Lead Source & Assignment */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold flex items-center">
-                <Tag className="h-4 w-4 mr-2" />
+                <Tag className="h-4 w-4 mr-2 flex-shrink-0" />
                 Lead Details
               </h3>
               
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                 <div>
                   <Label htmlFor="source">Lead Source *</Label>
                   <Select value={formData.sourceId} onValueChange={(value) => updateFormData('sourceId', value)}>
@@ -277,11 +277,11 @@ export function NewLeadForm({ onClose, onSuccess }: NewLeadFormProps) {
             {/* Custom Fields */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold flex items-center">
-                <DollarSign className="h-4 w-4 mr-2" />
+                <DollarSign className="h-4 w-4 mr-2 flex-shrink-0" />
                 Additional Information
               </h3>
               
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                 <div>
                   <Label htmlFor="budget">Budget Range</Label>
                   <Select 
@@ -321,7 +321,7 @@ export function NewLeadForm({ onClose, onSuccess }: NewLeadFormProps) {
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                 <div>
                   <Label htmlFor="experience">RV Experience</Label>
                   <Select 
@@ -385,7 +385,7 @@ export function NewLeadForm({ onClose, onSuccess }: NewLeadFormProps) {
             </div>
 
             {/* Form Actions */}
-            <div className="flex justify-end space-x-3 pt-6 border-t">
+            <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-6 border-t">
               <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
                 Cancel
               </Button>
