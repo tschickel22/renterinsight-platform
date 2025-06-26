@@ -6,10 +6,11 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { X, Save, Plus, Truck, Calendar, MapPin, Clock } from 'lucide-react'
+import { X, Save, Plus, Truck, Calendar, MapPin, Clock, User } from 'lucide-react'
 import { Delivery, DeliveryStatus, Vehicle } from '@/types'
 import { useToast } from '@/hooks/use-toast'
 import { useDropzone } from 'react-dropzone'
+import { NewLeadForm } from '@/modules/crm-prospecting/components/NewLeadForm'
 
 interface DeliveryFormProps {
   delivery?: Delivery
@@ -22,6 +23,7 @@ interface DeliveryFormProps {
 export function DeliveryForm({ delivery, vehicles, customers, onSave, onCancel }: DeliveryFormProps) {
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
+  const [showNewCustomerForm, setShowNewCustomerForm] = useState(false)
   const [formData, setFormData] = useState<Partial<Delivery>>({
     customerId: '',
     vehicleId: '',
@@ -96,6 +98,27 @@ export function DeliveryForm({ delivery, vehicles, customers, onSave, onCancel }
     }
   })
 
+  const handleCustomerSelect = (value: string) => {
+    if (value === '__add_new_customer__') {
+      setShowNewCustomerForm(true)
+    } else {
+      setFormData(prev => ({ ...prev, customerId: value }))
+    }
+  }
+
+  const handleNewCustomerSuccess = (newCustomer: any) => {
+    setFormData(prev => ({
+      ...prev,
+      customerId: newCustomer.id
+    }))
+    setShowNewCustomerForm(false)
+    
+    toast({
+      title: 'Customer Added',
+      description: `${newCustomer.firstName} ${newCustomer.lastName} has been added as a customer.`,
+    })
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -147,6 +170,14 @@ export function DeliveryForm({ delivery, vehicles, customers, onSave, onCancel }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      {/* New Customer Form Modal */}
+      {showNewCustomerForm && (
+        <NewLeadForm
+          onClose={() => setShowNewCustomerForm(false)}
+          onSuccess={handleNewCustomerSuccess}
+        />
+      )}
+      
       <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -170,19 +201,36 @@ export function DeliveryForm({ delivery, vehicles, customers, onSave, onCancel }
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <Label htmlFor="customerId">Customer *</Label>
-                  <Select 
-                    value={formData.customerId} 
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, customerId: value }))}
-                  >
+                  <Select value={formData.customerId} onValueChange={handleCustomerSelect}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select customer" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="z-50">
+                      <div className="px-2 py-1.5">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full justify-start" 
+                          onClick={() => handleCustomerSelect('__add_new_customer__')}
+                        >
+                          <Plus className="h-3.5 w-3.5 mr-2" />
+                          Add New Customer
+                        </Button>
+                      </div>
+                      <div className="px-2 py-1 border-t"></div>
                       {customers.map(customer => (
                         <SelectItem key={customer.id} value={customer.id}>
-                          {customer.firstName} {customer.lastName}
+                          <div className="flex flex-col">
+                            <span>{customer.firstName} {customer.lastName}</span>
+                            <span className="text-xs text-muted-foreground">{customer.phone}</span>
+                          </div>
                         </SelectItem>
                       ))}
+                      {customers.length === 0 && (
+                        <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                          No customers found
+                        </div>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -196,7 +244,7 @@ export function DeliveryForm({ delivery, vehicles, customers, onSave, onCancel }
                     <SelectTrigger>
                       <SelectValue placeholder="Select vehicle" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="z-50">
                       {vehicles.map(vehicle => (
                         <SelectItem key={vehicle.id} value={vehicle.id}>
                           {vehicle.year} {vehicle.make} {vehicle.model}
@@ -247,7 +295,7 @@ export function DeliveryForm({ delivery, vehicles, customers, onSave, onCancel }
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="z-50">
                     <SelectItem value={DeliveryStatus.SCHEDULED}>Scheduled</SelectItem>
                     <SelectItem value={DeliveryStatus.IN_TRANSIT}>In Transit</SelectItem>
                     <SelectItem value={DeliveryStatus.DELIVERED}>Delivered</SelectItem>

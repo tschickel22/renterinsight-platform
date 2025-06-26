@@ -105,7 +105,7 @@ export function ETANotificationForm({ delivery, onSend, onCancel }: ETANotificat
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-50">
                   <SelectItem value="sms">
                     <div className="flex items-center">
                       <MessageSquare className="h-4 w-4 mr-2" />

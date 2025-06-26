@@ -88,6 +88,30 @@ export function DeliveryTimeline({ delivery, onAddMilestone }: DeliveryTimelineP
       })
     }
 
+    // Add ETA update if available
+    if (delivery.customFields?.etaUpdated) {
+      milestones.push({
+        id: 'eta_update',
+        title: 'ETA Updated',
+        description: `New estimated arrival: ${delivery.customFields.estimatedArrival}`,
+        date: new Date(delivery.customFields.etaUpdated),
+        status: 'completed',
+        icon: Clock
+      })
+    }
+
+    // Add customer notification if available
+    if (delivery.customFields?.customerNotified) {
+      milestones.push({
+        id: 'customer_notified',
+        title: 'Customer Notified',
+        description: `${delivery.customFields.notificationMethod || 'SMS'} notification sent to customer`,
+        date: new Date(delivery.customFields.customerNotified),
+        status: 'completed',
+        icon: MessageSquare
+      })
+    }
+
     // Add arrival milestone if delivered
     if (delivery.status === DeliveryStatus.DELIVERED) {
       milestones.push({
@@ -109,6 +133,18 @@ export function DeliveryTimeline({ delivery, onAddMilestone }: DeliveryTimelineP
         date: delivery.deliveredDate || new Date(),
         status: 'completed',
         icon: CheckCircle
+      })
+    }
+
+    // Add photo verification if available
+    if (delivery.customFields?.deliveryPhotos && delivery.customFields.deliveryPhotos.length > 0) {
+      milestones.push({
+        id: 'photos',
+        title: 'Delivery Photos',
+        description: `${delivery.customFields.deliveryPhotos.length} photos captured`,
+        date: delivery.deliveredDate || new Date(),
+        status: 'completed',
+        icon: Camera
       })
     }
 
@@ -171,6 +207,19 @@ export function DeliveryTimeline({ delivery, onAddMilestone }: DeliveryTimelineP
                   {milestone.description}
                 </p>
                 
+                {/* Display photos if this is the photos milestone */}
+                {milestone.id === 'photos' && delivery.customFields?.deliveryPhotos && (
+                  <div className="grid grid-cols-3 gap-2 mt-2">
+                    {delivery.customFields.deliveryPhotos.map((photo: string, photoIndex: number) => (
+                      <img 
+                        key={photoIndex} 
+                        src={photo} 
+                        alt={`Delivery photo ${photoIndex + 1}`} 
+                        className="h-20 w-full object-cover rounded-md"
+                      />
+                    ))}
+                  </div>
+                )}
                 {/* Display photos if this is the photos milestone */}
                 {milestone.id === 'photos' && delivery.customFields?.deliveryPhotos && (
                   <div className="grid grid-cols-3 gap-2 mt-2">

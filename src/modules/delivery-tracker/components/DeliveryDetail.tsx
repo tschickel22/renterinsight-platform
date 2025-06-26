@@ -8,6 +8,10 @@ import { Delivery, DeliveryStatus, Vehicle } from '@/types'
 import { formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { DeliveryTimeline } from './DeliveryTimeline'
+import { DeliveryTimeline } from './DeliveryTimeline'
+import { useToast } from '@/hooks/use-toast'
+import { jsPDF } from 'jspdf'
+import 'jspdf-autotable'
 import { useToast } from '@/hooks/use-toast'
 import { jsPDF } from 'jspdf'
 import 'jspdf-autotable'
@@ -18,11 +22,14 @@ interface DeliveryDetailProps {
   onClose: () => void
   onEdit: (delivery: Delivery) => void
   onSendNotification?: (deliveryId: string, type: 'sms' | 'email') => Promise<void>
+  onSendNotification?: (deliveryId: string, type: 'sms' | 'email') => Promise<void>
 }
 
 export function DeliveryDetail({ delivery, vehicle, onClose, onEdit, onSendNotification }: DeliveryDetailProps) {
   const { toast } = useToast()
+  const { toast } = useToast()
   const [activeTab, setActiveTab] = useState('details')
+  const [sendingNotification, setSendingNotification] = useState(false)
   const [sendingNotification, setSendingNotification] = useState(false)
 
   const getStatusColor = (status: DeliveryStatus) => {
@@ -40,6 +47,108 @@ export function DeliveryDetail({ delivery, vehicle, onClose, onEdit, onSendNotif
     }
   }
 
+  const handleSendNotification = async (type: 'sms' | 'email') => {
+    if (!onSendNotification) return
+    
+    setSendingNotification(true)
+    try {
+      await onSendNotification(delivery.id, type)
+      toast({
+        title: 'Notification Sent',
+        description: `${type === 'sms' ? 'SMS' : 'Email'} notification sent successfully`,
+      })
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: `Failed to send ${type === 'sms' ? 'SMS' : 'email'} notification`,
+        variant: 'destructive'
+      })
+    } finally {
+      setSendingNotification(false)
+    }
+  }
+
+  const handlePrintDeliverySheet = () => {
+    try {
+      const doc = new jsPDF()
+      
+      // Add header
+      doc.setFontSize(20)
+      doc.text('Delivery Information Sheet', 105, 15, { align: 'center' })
+      
+      doc.setFontSize(12)
+      doc.text(`Delivery #: ${delivery.id}`, 20, 30)
+      doc.text(`Status: ${delivery.status.replace('_', ' ')}`, 20, 40)
+      doc.text(`Scheduled Date: ${formatDate(delivery.scheduledDate)}`, 20, 50)
+      
+      // Add vehicle details
+      doc.setFontSize(16)
+      doc.text('Vehicle Information', 20, 65)
+      
+      doc.setFontSize(12)
+      if (vehicle) {
+        doc.text(`Vehicle: ${vehicle.year} ${vehicle.make} ${vehicle.model}`, 20, 75)
+        doc.text(`VIN: ${vehicle.vin}`, 20, 85)
+      } else {
+        doc.text(`Vehicle ID: ${delivery.vehicleId}`, 20, 75)
+      }
+      
+      // Add delivery address
+      doc.setFontSize(16)
+      doc.text('Delivery Address', 20, 105)
+      
+      doc.setFontSize(12)
+      doc.text(`${delivery.address.street}`, 20, 115)
+      doc.text(`${delivery.address.city}, ${delivery.address.state} ${delivery.address.zipCode}`, 20, 125)
+      doc.text(`${delivery.address.country}`, 20, 135)
+      
+      // Add contact information
+      doc.setFontSize(16)
+      doc.text('Contact Information', 20, 155)
+      
+      doc.setFontSize(12)
+      doc.text(`Customer ID: ${delivery.customerId}`, 20, 165)
+      if (delivery.customFields?.contactPhone) {
+        doc.text(`Phone: ${delivery.customFields.contactPhone}`, 20, 175)
+      }
+      if (delivery.customFields?.contactEmail) {
+        doc.text(`Email: ${delivery.customFields.contactEmail}`, 20, 185)
+      }
+      
+      // Add notes
+      if (delivery.notes) {
+        doc.setFontSize(16)
+        doc.text('Delivery Notes', 20, 205)
+        
+        doc.setFontSize(12)
+        const splitNotes = doc.splitTextToSize(delivery.notes, 170)
+        doc.text(splitNotes, 20, 215)
+      }
+      
+      // Add driver signature section
+      doc.setFontSize(16)
+      doc.text('Signatures', 20, 245)
+      
+      doc.setFontSize(12)
+      doc.text('Driver: _______________________________', 20, 255)
+      doc.text('Customer: _____________________________', 20, 270)
+      
+      // Save the PDF
+      doc.save(`delivery-${delivery.id}.pdf`)
+      
+      toast({
+        title: 'PDF Generated',
+        description: 'Delivery information sheet has been downloaded',
+      })
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to generate PDF',
+        variant: 'destructive'
+      })
+    }
+  }
   const handleSendNotification = async (type: 'sms' | 'email') => {
     if (!onSendNotification) return
     
