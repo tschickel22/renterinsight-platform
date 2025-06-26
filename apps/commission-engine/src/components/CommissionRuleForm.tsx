@@ -72,41 +72,24 @@ export function CommissionRuleForm({ rule, onSave, onCancel }: CommissionRuleFor
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!formData.name?.trim()) {
-      toast({
-        title: 'Validation Error',
-        description: 'Rule name is required',
-        variant: 'destructive'
-      })
-      return
+    // Validate required fields
+    const validationErrors = []
+    
+    if (!formData.name || !formData.name.trim()) {
+      validationErrors.push('Rule name is required')
     }
 
     // Validate based on rule type
     if (formData.type === 'flat' && (formData.flatAmount === undefined || formData.flatAmount < 0)) {
-      toast({
-        title: 'Validation Error',
-        description: 'Flat amount must be a positive number',
-        variant: 'destructive'
-      })
-      return
+      validationErrors.push('Flat amount must be a positive number')
     }
 
     if (formData.type === 'percentage' && (formData.percentageRate === undefined || formData.percentageRate < 0 || formData.percentageRate > 100)) {
-      toast({
-        title: 'Validation Error',
-        description: 'Percentage rate must be between 0 and 100',
-        variant: 'destructive'
-      })
-      return
+      validationErrors.push('Percentage rate must be between 0 and 100')
     }
 
     if (formData.type === 'tiered' && (!formData.tiers || formData.tiers.length === 0)) {
-      toast({
-        title: 'Validation Error',
-        description: 'At least one tier is required for tiered commission',
-        variant: 'destructive'
-      })
-      return
+      validationErrors.push('At least one tier is required for tiered commission')
     }
 
     // Validate tiers if present
@@ -124,23 +107,24 @@ export function CommissionRuleForm({ rule, onSave, onCancel }: CommissionRuleFor
         if (!currentTier || !nextTier) continue;
         
         if (currentTier.maxAmount === null) {
-          toast({
-            title: 'Validation Error',
-            description: 'Only the last tier can have an unlimited maximum',
-            variant: 'destructive'
-          })
-          return
+          validationErrors.push('Only the last tier can have an unlimited maximum')
+          break;
         }
         
         if (currentTier.maxAmount >= nextTier.minAmount) {
-          toast({
-            title: 'Validation Error',
-            description: 'Tiers cannot overlap',
-            variant: 'destructive'
-          })
-          return
+          validationErrors.push('Tiers cannot overlap')
+          break;
         }
       }
+    }
+    
+    if (validationErrors.length > 0) {
+      toast({
+        title: 'Validation Error',
+        description: validationErrors.join('. '),
+        variant: 'destructive'
+      })
+      return
     }
 
     setLoading(true)

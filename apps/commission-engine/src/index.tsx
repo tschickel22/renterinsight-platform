@@ -11,6 +11,7 @@ import { formatCurrency } from '@/lib/utils'
 import { Commission, CommissionStatus, CommissionType } from '@/types'
 import { CommissionRuleForm, CommissionRule } from './components/CommissionRuleForm'
 import { ErrorBoundary } from 'react-error-boundary'
+import { ErrorBoundary } from 'react-error-boundary'
 import { CommissionRulesList } from './components/CommissionRulesList'
 import { CommissionReportView } from './components/CommissionReportView'
 import { CommissionCalculator } from './components/CommissionCalculator'
@@ -55,8 +56,16 @@ function CommissionEngineDashboard() {
   }
 
   const handleEditRule = (rule: CommissionRule) => {
-    setSelectedRule(rule)
-    setShowRuleForm(true)
+    try {
+      setSelectedRule(rule)
+      setShowRuleForm(true)
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to edit rule',
+        variant: 'destructive'
+      })
+    }
   }
 
   const handleSaveRule = async (ruleData: Partial<CommissionRule>) => {
@@ -176,21 +185,23 @@ function CommissionEngineDashboard() {
           rule={selectedRule || undefined}
           onSave={handleSaveRule}
           onCancel={() => {
-            setShowRuleForm(false)
-            setSelectedRule(null)
-          }}
-        />
-      )}
-
-      {/* Page Header */}
-      <div className="ri-page-header">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="ri-page-title">Commission Engine</h1>
-            <p className="ri-page-description">
-              Manage sales commissions and payment rules
-            </p>
-          </div>
+          <ErrorBoundary fallback={<div className="p-4 bg-red-50 text-red-700 rounded-lg">Error loading dashboard. Please try refreshing the page.</div>}>
+            <div className="grid gap-6 md:grid-cols-2">
+              <CommissionCalculator 
+                rules={rules || []}
+                onSaveCalculation={handleSaveCalculation}
+              />
+              
+              <AuditTrailCard
+                entries={dealAuditTrail || []}
+                dealId={selectedDealId}
+                currentUserId={user?.id || 'unknown'}
+                currentUserName={user?.name || 'Unknown User'}
+                onAddEntry={addAuditEntry}
+                onUpdateEntry={updateAuditEntryNotes}
+              />
+            </div>
+          </ErrorBoundary>
           <Button className="shadow-sm" onClick={handleCreateRule}>
             <Plus className="h-4 w-4 mr-2" />
             New Commission Rule
@@ -200,6 +211,7 @@ function CommissionEngineDashboard() {
 
       {/* Stats Cards */}
       <ErrorBoundary fallback={<div className="p-4 bg-red-50 text-red-700 rounded-lg">Error loading stats. Please try refreshing the page.</div>}>
+        <div className="ri-stats-grid">
         <div className="ri-stats-grid">
           <Card className="shadow-sm border-0 bg-gradient-to-br from-blue-50 to-blue-100/50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -249,11 +261,12 @@ function CommissionEngineDashboard() {
               <div className="text-2xl font-bold text-purple-900">{rules ? rules.length : 0}</div>
               <p className="text-xs text-purple-600 flex items-center mt-1">
                 <BarChart3 className="h-3 w-3 mr-1" />
-                Active rules
+                {Array.isArray(rules) ? rules.filter(r => r?.isActive).length : 0} active rules
               </p>
             </CardContent>
           </Card>
         </div>
+      </ErrorBoundary>
       </ErrorBoundary>
 
       {/* Main Content Tabs */}
@@ -295,6 +308,8 @@ function CommissionEngineDashboard() {
               onDuplicateRule={handleDuplicateRule}
             />
           </ErrorBoundary>
+            />
+          </ErrorBoundary>
         </TabsContent>
 
         <TabsContent value="reports">
@@ -306,6 +321,8 @@ function CommissionEngineDashboard() {
               onPrintReport={handlePrintReport}
             />
           </ErrorBoundary>
+            />
+          </ErrorBoundary>
         </TabsContent>
 
         <TabsContent value="calculator">
@@ -315,6 +332,8 @@ function CommissionEngineDashboard() {
                 rules={rules || []}
                 onSaveCalculation={handleSaveCalculation}
               />
+            </div>
+          </ErrorBoundary>
             </div>
           </ErrorBoundary>
         </TabsContent>
@@ -329,6 +348,17 @@ if (container) {
   const root = createRoot(container)
   root.render(
     <ErrorBoundary fallback={<div className="p-8 text-center">
+      <h2 className="text-xl font-bold text-red-600 mb-2">Something went wrong</h2>
+      <p className="mb-4">There was an error loading the Commission Engine</p>
+      <button 
+        onClick={() => window.location.reload()} 
+        className="px-4 py-2 bg-blue-600 text-white rounded-md"
+      >
+        Reload Page
+      </button>
+    </div>}>
+      <CommissionEngineDashboard />
+    </ErrorBoundary>
       <h2 className="text-xl font-bold text-red-600 mb-2">Something went wrong</h2>
       <p className="mb-4">There was an error loading the Commission Engine</p>
       <button 

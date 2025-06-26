@@ -9,6 +9,7 @@ import { formatCurrency } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
 import { CommissionRule, CommissionRuleType } from './CommissionRuleForm'
 import { ErrorBoundary } from 'react-error-boundary'
+import { ErrorBoundary } from 'react-error-boundary'
 
 interface CommissionCalculatorProps {
   rules: CommissionRule[]
@@ -39,7 +40,7 @@ export function CommissionCalculator({ rules, onSaveCalculation }: CommissionCal
       return
     }
 
-    const rule = rules.find(r => r.id === selectedRuleId)
+    const rule = rules?.find(r => r.id === selectedRuleId)
     if (!rule) {
       toast({
         title: 'Rule Not Found',
@@ -68,43 +69,49 @@ export function CommissionCalculator({ rules, onSaveCalculation }: CommissionCal
     const breakdown: string[] = []
     let commission = 0
 
+    if (!rule || !rule.type) {
+      breakdown.push('Invalid rule configuration')
+      return { commission: 0, breakdown }
+    }
+
     switch (rule.type) {
       case 'flat':
-        commission = rule.flatAmount || 0
+        commission = rule.flatAmount ?? 0
         breakdown.push(`Flat commission: ${formatCurrency(commission)}`)
         break
         
       case 'percentage':
-        const rate = rule.percentageRate || 0
+        const rate = rule.percentageRate ?? 0
         commission = (amount * rate) / 100
         breakdown.push(`${rate}% of ${formatCurrency(amount)} = ${formatCurrency(commission)}`)
         break
         
       case 'tiered':
-        if (!rule.tiers || rule.tiers.length === 0) {
+        if (!Array.isArray(rule.tiers) || rule.tiers.length === 0) {
           breakdown.push('No tiers defined for this rule')
           break
         }
         
         // Sort tiers by min amount
-        const sortedTiers = [...rule.tiers].sort((a, b) => a.minAmount - b.minAmount)
+        const sortedTiers = [...rule.tiers].sort((a, b) => (a?.minAmount ?? 0) - (b?.minAmount ?? 0))
         
         // Find applicable tier
-        let applicableTier = sortedTiers[0]
+        let applicableTier = sortedTiers[0] ?? { minAmount: 0, maxAmount: null, rate: 0, isPercentage: true }
         for (const tier of sortedTiers) {
-          if (amount >= tier.minAmount && (tier.maxAmount === null || amount <= tier.maxAmount)) {
+          if (tier && amount >= (tier.minAmount ?? 0) && (tier.maxAmount === null || amount <= tier.maxAmount)) {
             applicableTier = tier
             break
           }
         }
         
-        if (applicableTier.isPercentage) {
-          commission = (amount * applicableTier.rate) / 100
-          breakdown.push(`Tier: $${applicableTier.minAmount.toLocaleString()} to ${applicableTier.maxAmount === null ? 'Unlimited' : '$' + applicableTier.maxAmount.toLocaleString()}`)
-          breakdown.push(`${applicableTier.rate}% of ${formatCurrency(amount)} = ${formatCurrency(commission)}`)
+        if (applicableTier?.isPercentage) {
+          const tierRate = applicableTier.rate ?? 0
+          commission = (amount * tierRate) / 100
+          breakdown.push(`Tier: $${(applicableTier.minAmount ?? 0).toLocaleString()} to ${applicableTier.maxAmount === null ? 'Unlimited' : '$' + applicableTier.maxAmount.toLocaleString()}`)
+          breakdown.push(`${tierRate}% of ${formatCurrency(amount)} = ${formatCurrency(commission)}`)
         } else {
-          commission = applicableTier.rate
-          breakdown.push(`Tier: $${applicableTier.minAmount.toLocaleString()} to ${applicableTier.maxAmount === null ? 'Unlimited' : '$' + applicableTier.maxAmount.toLocaleString()}`)
+          commission = applicableTier?.rate ?? 0
+          breakdown.push(`Tier: $${(applicableTier?.minAmount ?? 0).toLocaleString()} to ${applicableTier?.maxAmount === null ? 'Unlimited' : '$' + (applicableTier?.maxAmount ?? 0).toLocaleString()}`)
           breakdown.push(`Flat amount: ${formatCurrency(commission)}`)
         }
         break
@@ -130,7 +137,7 @@ export function CommissionCalculator({ rules, onSaveCalculation }: CommissionCal
 
     setLoading(true)
     try {
-      const rule = rules.find(r => r.id === selectedRuleId)
+      const rule = rules?.find(r => r.id === selectedRuleId)
       
       if (rule) {
         await onSaveCalculation({
@@ -160,7 +167,7 @@ export function CommissionCalculator({ rules, onSaveCalculation }: CommissionCal
   }
 
   // Filter to only active rules
-  const activeRules = rules.filter(rule => rule.isActive)
+  const activeRules = Array.isArray(rules) ? rules.filter(rule => rule?.isActive) : []
 
   const renderCalculator = () => (
     <div className="grid gap-6 md:grid-cols-2">
@@ -267,6 +274,25 @@ export function CommissionCalculator({ rules, onSaveCalculation }: CommissionCal
         )}
       </div>
     </div>
+  )
+
+  return (
+    <Card className="shadow-sm">
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Calculator className="h-5 w-5 mr-2 text-primary" />
+          Commission Calculator
+        </CardTitle>
+        <CardDescription>
+          Calculate potential commission based on deal amount
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <ErrorBoundary fallback={<div className="p-4 bg-red-50 text-red-700 rounded-lg">Error loading calculator. Please try refreshing the page.</div>}>
+          {renderCalculator()}
+        </ErrorBoundary>
+      </CardContent>
+    </Card>
   )
 
   return (

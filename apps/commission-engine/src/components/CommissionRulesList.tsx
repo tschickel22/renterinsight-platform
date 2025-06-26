@@ -39,6 +39,8 @@ export function CommissionRulesList({
   }
 
   const getTypeColor = (type: CommissionRuleType) => {
+    if (!type) return 'bg-gray-50 text-gray-700 border-gray-200'
+    
     switch (type) {
       case 'flat':
         return 'bg-blue-50 text-blue-700 border-blue-200'
@@ -51,15 +53,17 @@ export function CommissionRulesList({
     }
   }
 
-  const filteredRules = rules.filter(rule => {
+  const filteredRules = Array.isArray(rules) ? rules.filter(rule => {
+    if (!rule) return false;
+    
     const matchesSearch = 
-      rule.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (rule.description || '').toLowerCase().includes(searchTerm.toLowerCase())
+      (rule.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ((rule.description || '').toLowerCase().includes(searchTerm.toLowerCase()))
     
     const matchesType = typeFilter === 'all' || rule.type === typeFilter
 
     return matchesSearch && matchesType
-  })
+  }) : []
 
   return (
     <div className="space-y-4">
@@ -106,14 +110,14 @@ export function CommissionRulesList({
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {filteredRules.map((rule) => (
+            {filteredRules.length > 0 ? filteredRules.map((rule) => (
               <div key={rule.id} className="ri-table-row">
                 <div className="flex items-center space-x-4 flex-1">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="font-semibold text-foreground">{rule.name}</h3>
+                      <h3 className="font-semibold text-foreground">{rule.name || 'Unnamed Rule'}</h3>
                       <Badge className={cn("ri-badge-status", getTypeColor(rule.type))}>
-                        {rule.type.toUpperCase()}
+                        {(rule.type || 'unknown').toUpperCase()}
                       </Badge>
                       {rule.isActive ? (
                         <Badge className="bg-green-50 text-green-700 border-green-200">
@@ -130,15 +134,15 @@ export function CommissionRulesList({
                     </p>
                     <div className="flex items-center space-x-4 text-sm">
                       <span className="flex items-center">
-                        {getTypeIcon(rule.type)}
+                        {getTypeIcon(rule.type || 'flat')}
                         <span className="ml-1">
-                          {rule.type === 'flat' && `$${rule.flatAmount?.toLocaleString() || 0}`}
-                          {rule.type === 'percentage' && `${rule.percentageRate || 0}%`}
-                          {rule.type === 'tiered' && `${rule.tiers?.length || 0} tier${rule.tiers?.length !== 1 ? 's' : ''}`}
+                          {rule.type === 'flat' && `$${(rule.flatAmount ?? 0).toLocaleString()}`}
+                          {rule.type === 'percentage' && `${rule.percentageRate ?? 0}%`}
+                          {rule.type === 'tiered' && `${(rule.tiers?.length ?? 0)} tier${(rule.tiers?.length ?? 0) !== 1 ? 's' : ''}`}
                         </span>
                       </span>
                       <span className="text-muted-foreground">
-                        Applies to: {rule.appliesTo?.map(type => type === 'all' ? 'All Deals' : type).join(', ')}
+                        Applies to: {Array.isArray(rule.appliesTo) ? rule.appliesTo.map(type => type === 'all' ? 'All Deals' : type).join(', ') : 'All Deals'}
                       </span>
                     </div>
                   </div>
@@ -172,15 +176,14 @@ export function CommissionRulesList({
                   </Button>
                 </div>
               </div>
-            ))}
-
-            {filteredRules.length === 0 && (
+            )) : (
               <div className="text-center py-12 text-muted-foreground">
                 <DollarSign className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
                 <p>No commission rules found</p>
                 <p className="text-sm">Create your first rule to get started</p>
               </div>
             )}
+
           </div>
         </CardContent>
       </Card>

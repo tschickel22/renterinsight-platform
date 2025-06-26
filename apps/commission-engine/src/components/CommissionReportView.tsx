@@ -9,6 +9,7 @@ import { Commission, CommissionStatus, CommissionType } from '@/types'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
+import { ErrorBoundary } from 'react-error-boundary'
 
 interface CommissionReportViewProps {
   commissions: Commission[]
@@ -60,13 +61,13 @@ export function CommissionReportView({
   // Filter commissions based on search, date range, sales rep, and status
   const filteredCommissions = commissions.filter(commission => {
     const matchesSearch = 
-      commission.dealId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      commission.salesPersonId.toLowerCase().includes(searchTerm.toLowerCase())
+      (commission.dealId?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (commission.salesPersonId?.toLowerCase() || '').includes(searchTerm.toLowerCase())
     
     // Date range filter
     let matchesDateRange = true
     const now = new Date()
-    const commissionDate = commission.createdAt
+    const commissionDate = commission.createdAt ? new Date(commission.createdAt) : new Date()
     
     if (dateRange === 'today') {
       matchesDateRange = commissionDate.toDateString() === now.toDateString()
@@ -97,17 +98,22 @@ export function CommissionReportView({
   })
 
   // Calculate totals
-  const totalCommission = filteredCommissions.reduce((sum, commission) => sum + commission.amount, 0)
-  const pendingCommission = filteredCommissions
-    .filter(c => c.status === CommissionStatus.PENDING || c.status === CommissionStatus.APPROVED)
-    .reduce((sum, c) => sum + c.amount, 0)
-  const paidCommission = filteredCommissions
-    .filter(c => c.status === CommissionStatus.PAID)
-    .reduce((sum, c) => sum + c.amount, 0)
+  const totalCommission = Array.isArray(filteredCommissions) ? 
+    filteredCommissions.reduce((sum, commission) => sum + (commission.amount || 0), 0) : 0
+  
+  const pendingCommission = Array.isArray(filteredCommissions) ? 
+    filteredCommissions
+      .filter(c => c.status === CommissionStatus.PENDING || c.status === CommissionStatus.APPROVED)
+      .reduce((sum, c) => sum + (c.amount || 0), 0) : 0
+  
+  const paidCommission = Array.isArray(filteredCommissions) ? 
+    filteredCommissions
+      .filter(c => c.status === CommissionStatus.PAID)
+      .reduce((sum, c) => sum + (c.amount || 0), 0) : 0
 
   // Get sales rep name by ID
   const getSalesRepName = (repId: string) => {
-    const rep = salesReps.find(r => r.id === repId)
+    const rep = Array.isArray(salesReps) ? salesReps.find(r => r.id === repId) : null
     return rep ? rep.name : repId
   }
 
@@ -292,7 +298,7 @@ export function CommissionReportView({
                 </tr>
               </thead>
               <tbody>
-                {filteredCommissions.map((commission) => (
+                {Array.isArray(filteredCommissions) && filteredCommissions.map((commission) => (
                   <tr key={commission.id} className="border-b hover:bg-muted/10">
                     <td className="p-2">{formatDate(commission.createdAt)}</td>
                     <td className="p-2">{commission.dealId}</td>
@@ -311,7 +317,7 @@ export function CommissionReportView({
                     <td className="p-2">{commission.paidDate ? formatDate(commission.paidDate) : '-'}</td>
                   </tr>
                 ))}
-                {filteredCommissions.length === 0 && (
+                {(!Array.isArray(filteredCommissions) || filteredCommissions.length === 0) && (
                   <tr>
                     <td colSpan={7} className="p-8 text-center text-muted-foreground">
                       No commission entries found matching your filters

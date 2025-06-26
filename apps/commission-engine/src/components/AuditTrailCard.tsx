@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import { History, Edit, Save, X, Check, AlertTriangle, User, Clock } from 'lucide-react'
+import { History, Edit, Save, X, Check, AlertTriangle, User, Clock, Plus } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
 
@@ -120,19 +120,19 @@ export function AuditTrailCard({
   const getActionIcon = (action: string) => {
     switch (action) {
       case 'create':
-        return <Plus className="h-4 w-4 text-green-500" aria-hidden="true" />
+        return <Plus className="h-4 w-4 text-green-500" />
       case 'update':
-        return <Edit className="h-4 w-4 text-blue-500" aria-hidden="true" />
+        return <Edit className="h-4 w-4 text-blue-500" />
       case 'delete':
-        return <X className="h-4 w-4 text-red-500" aria-hidden="true" />
+        return <X className="h-4 w-4 text-red-500" />
       case 'approve':
-        return <Check className="h-4 w-4 text-green-500" aria-hidden="true" />
+        return <Check className="h-4 w-4 text-green-500" />
       case 'reject':
-        return <AlertTriangle className="h-4 w-4 text-red-500" aria-hidden="true" />
+        return <AlertTriangle className="h-4 w-4 text-red-500" />
       case 'manual_note':
-        return <History className="h-4 w-4 text-purple-500" aria-hidden="true" />
+        return <History className="h-4 w-4 text-purple-500" />
       default:
-        return <History className="h-4 w-4 text-gray-500" aria-hidden="true" />
+        return <History className="h-4 w-4 text-gray-500" />
     }
   }
 

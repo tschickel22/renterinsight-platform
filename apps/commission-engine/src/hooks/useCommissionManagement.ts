@@ -161,8 +161,8 @@ export function useCommissionManagement() {
         salesPersonId: commissionData.salesPersonId || '',
         dealId: commissionData.dealId || '',
         type: commissionData.type || CommissionType.PERCENTAGE,
-        rate: commissionData.rate || 0,
-        amount: commissionData.amount || 0,
+        rate: commissionData.rate ?? 0,
+        amount: commissionData.amount ?? 0,
         status: CommissionStatus.PENDING,
         notes: commissionData.notes || '',
         customFields: commissionData.customFields || {},
@@ -236,7 +236,7 @@ export function useCommissionManagement() {
         description: ruleData.description,
         flatAmount: ruleData.flatAmount,
         percentageRate: ruleData.percentageRate,
-        tiers: ruleData.tiers,
+        tiers: ruleData.tiers || [],
         isActive: ruleData.isActive ?? true,
         appliesTo: ruleData.appliesTo || ['all'],
         createdAt: new Date(),
@@ -388,47 +388,48 @@ export function useCommissionManagement() {
     const breakdown: string[] = []
 
     try {
-      switch (rule.type) {
+      switch (rule?.type) {
         case 'flat':
-          commission = rule.flatAmount || 0;
+          commission = rule.flatAmount ?? 0;
           breakdown.push(`Flat commission: ${commission}`);
           break;
           
         case 'percentage':
-          const rate = rule.percentageRate || 0;
+          const rate = rule.percentageRate ?? 0;
           commission = (dealAmount * rate) / 100;
           breakdown.push(`${rate}% of ${dealAmount} = ${commission}`);
           break;
           
         case 'tiered':
-          if (!rule.tiers || rule.tiers.length === 0) {
+          if (!Array.isArray(rule.tiers) || rule.tiers.length === 0) {
             breakdown.push('No tiers defined for this rule');
             break;
           }
           
           // Sort tiers by min amount
-          const sortedTiers = [...rule.tiers].sort((a, b) => a.minAmount - b.minAmount);
+          const sortedTiers = [...(rule.tiers || [])].sort((a, b) => (a?.minAmount ?? 0) - (b?.minAmount ?? 0));
           
           // Find applicable tier
           let applicableTier: TierLevel | null = null;
           for (const tier of sortedTiers) {
-            if (dealAmount >= tier.minAmount && (tier.maxAmount === null || dealAmount <= tier.maxAmount)) {
+            if (tier && dealAmount >= (tier.minAmount ?? 0) && (tier.maxAmount === null || dealAmount <= (tier.maxAmount ?? Infinity))) {
               applicableTier = tier;
               break;
             }
           }
           
           if (!applicableTier) {
-            applicableTier = sortedTiers[0]; // Fallback to first tier
+            applicableTier = sortedTiers[0] ?? { id: 'default', minAmount: 0, maxAmount: null, rate: 0, isPercentage: true }; // Fallback to first tier or default
           }
           
-          if (applicableTier.isPercentage) {
-            commission = (dealAmount * applicableTier.rate) / 100;
-            breakdown.push(`Tier: $${applicableTier.minAmount.toLocaleString()} to ${applicableTier.maxAmount === null ? 'Unlimited' : '$' + applicableTier.maxAmount.toLocaleString()}`);
-            breakdown.push(`${applicableTier.rate}% of ${dealAmount.toLocaleString()} = ${commission.toLocaleString()}`);
+          if (applicableTier?.isPercentage) {
+            const tierRate = applicableTier.rate ?? 0;
+            commission = (dealAmount * tierRate) / 100;
+            breakdown.push(`Tier: $${(applicableTier.minAmount ?? 0).toLocaleString()} to ${applicableTier.maxAmount === null ? 'Unlimited' : '$' + (applicableTier.maxAmount ?? 0).toLocaleString()}`);
+            breakdown.push(`${tierRate}% of ${dealAmount.toLocaleString()} = ${commission.toLocaleString()}`);
           } else {
-            commission = applicableTier.rate;
-            breakdown.push(`Tier: $${applicableTier.minAmount.toLocaleString()} to ${applicableTier.maxAmount === null ? 'Unlimited' : '$' + applicableTier.maxAmount.toLocaleString()}`);
+            commission = applicableTier?.rate ?? 0;
+            breakdown.push(`Tier: $${(applicableTier?.minAmount ?? 0).toLocaleString()} to ${applicableTier?.maxAmount === null ? 'Unlimited' : '$' + (applicableTier?.maxAmount ?? 0).toLocaleString()}`);
             breakdown.push(`Flat amount: ${commission.toLocaleString()}`);
           }
           break;
