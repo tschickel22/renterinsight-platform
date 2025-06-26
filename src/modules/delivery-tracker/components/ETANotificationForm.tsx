@@ -1,16 +1,40 @@
-import React, { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import React, { useState, useEffect } from 'react'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-import { X, Send, MessageSquare, Mail, Clock } from 'lucide-react'
+import { X, Send, MessageSquare, Mail } from 'lucide-react'
 import { Delivery } from '@/types'
 import { useToast } from '@/hooks/use-toast'
 
 interface ETANotificationFormProps {
-  delivery: Delivery
+  delivery: Delivery & {
+    customer?: {
+      name?: string
+      email?: string
+      phone?: string
+    },
+    vehicle?: {
+      year?: number
+      make?: string
+      model?: string
+      vin?: string
+    }
+  }
   onSend: (deliveryId: string, data: any) => Promise<void>
   onCancel: () => void
 }
@@ -19,31 +43,43 @@ export function ETANotificationForm({ delivery, onSend, onCancel }: ETANotificat
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [notificationType, setNotificationType] = useState<'sms' | 'email'>('sms')
-  const [estimatedArrival, setEstimatedArrival] = useState(delivery.customFields?.estimatedArrival || '')
-  const [message, setMessage] = useState('')
+  const [estimatedArrivalTime, setEstimatedArrivalTime] = useState<string>('')
+  const [estimatedArrivalDate, setEstimatedArrivalDate] = useState<string>('')
+  const [message, setMessage] = useState<string>('')
 
-  // Generate default messages based on notification type and delivery status
+  const customerName = delivery.customer?.name || 'Customer'
+  const homeInfo = delivery.vehicle ? `${delivery.vehicle.year || ''} ${delivery.vehicle.make || ''} ${delivery.vehicle.model || ''}`.trim() : 'your Home/RV'
+  const phoneAvailable = !!delivery.customer?.phone
+  const emailAvailable = !!delivery.customer?.email
+
   const getDefaultMessage = () => {
-    const customerName = 'Customer' // In a real app, you would get this from the customer record
-    const vehicleInfo = 'your vehicle' // In a real app, you would get this from the vehicle record
-    const formattedDate = new Date(delivery.scheduledDate).toLocaleDateString()
-    const formattedTime = estimatedArrival || 'the scheduled time'
+    try {
+      const formattedDate = estimatedArrivalDate || new Date(delivery.scheduledDate).toLocaleDateString()
+      const formattedTime = estimatedArrivalTime || 'the scheduled time'
 
-    if (notificationType === 'sms') {
-      return `Hi ${customerName}, your delivery of ${vehicleInfo} is scheduled for ${formattedDate} at ${formattedTime}. Reply HELP for assistance or STOP to opt out.`
-    } else {
-      return `Dear ${customerName},\n\nWe're writing to confirm the delivery of ${vehicleInfo} scheduled for ${formattedDate} at ${formattedTime}.\n\nIf you have any questions or need to reschedule, please contact our delivery team.\n\nThank you,\nThe Delivery Team`
+      if (notificationType === 'sms') {
+        return `Hi ${customerName}, your delivery of ${homeInfo} is scheduled for ${formattedDate} at ${formattedTime}. Reply HELP for assistance or STOP to opt out.`
+      } else {
+        return `Dear ${customerName},\n\nWe're writing to confirm the delivery of ${homeInfo} scheduled for ${formattedDate} at ${formattedTime}.\n\nIf you have any questions or need to reschedule, please contact our delivery team.\n\nThank you,\nThe Delivery Team`
+      }
+    } catch (err) {
+      console.error('Failed to generate default message:', err)
+      return ''
     }
   }
 
-  // Update default message when notification type changes
-  React.useEffect(() => {
-    setMessage(getDefaultMessage())
-  }, [notificationType, estimatedArrival])
+  useEffect(() => {
+    try {
+      const defaultMsg = getDefaultMessage()
+      setMessage(defaultMsg)
+    } catch (err) {
+      console.error('Message generation error:', err)
+    }
+  }, [notificationType, estimatedArrivalTime, estimatedArrivalDate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!message.trim()) {
       toast({
         title: 'Validation Error',
@@ -53,24 +89,51 @@ export function ETANotificationForm({ delivery, onSend, onCancel }: ETANotificat
       return
     }
 
+    if (!estimatedArrivalDate || !estimatedArrivalTime) {
+      toast({
+        title: 'Missing ETA',
+        description: 'Please select both a date and time for estimated arrival.',
+        variant: 'destructive'
+      })
+      return
+    }
+
+    if (notificationType === 'sms' && !phoneAvailable) {
+      toast({
+        title: 'Missing Phone Number',
+        description: 'Customer does not have a valid phone number for SMS.',
+        variant: 'destructive'
+      })
+      return
+    }
+
+    if (notificationType === 'email' && !emailAvailable) {
+      toast({
+        title: 'Missing Email Address',
+        description: 'Customer does not have a valid email address.',
+        variant: 'destructive'
+      })
+      return
+    }
+
     setLoading(true)
     try {
       await onSend(delivery.id, {
         type: notificationType,
-        estimatedArrival,
-        message
+        estimatedArrival: `${estimatedArrivalDate}T${estimatedArrivalTime}`,
+        message,
+        updateDelivery: true
       })
-      
       toast({
         title: 'Notification Sent',
-        description: `${notificationType === 'sms' ? 'SMS' : 'Email'} notification sent successfully`,
+        description: `${notificationType.toUpperCase()} sent successfully.`
       })
-      
       onCancel()
-    } catch (error) {
+    } catch (err) {
+      console.error('Notification send failed:', err)
       toast({
         title: 'Error',
-        description: `Failed to send ${notificationType === 'sms' ? 'SMS' : 'email'} notification`,
+        description: `Failed to send ${notificationType === 'sms' ? 'SMS' : 'Email'} notification`,
         variant: 'destructive'
       })
     } finally {
@@ -95,11 +158,17 @@ export function ETANotificationForm({ delivery, onSend, onCancel }: ETANotificat
           </div>
         </CardHeader>
         <CardContent>
+          <div className="text-sm mb-4 text-muted-foreground">
+            Delivering to: <strong>{customerName}</strong><br />
+            Home/RV: <strong>{homeInfo}</strong><br />
+            {notificationType === 'sms' && !phoneAvailable && <span className="text-red-500 text-xs">⚠ No valid phone number on file</span>}
+            {notificationType === 'email' && !emailAvailable && <span className="text-red-500 text-xs">⚠ No valid email address on file</span>}
+          </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="notificationType">Notification Type</Label>
-              <Select 
-                value={notificationType} 
+              <Select
+                value={notificationType}
                 onValueChange={(value: 'sms' | 'email') => setNotificationType(value)}
               >
                 <SelectTrigger>
@@ -121,17 +190,28 @@ export function ETANotificationForm({ delivery, onSend, onCancel }: ETANotificat
                 </SelectContent>
               </Select>
             </div>
-            
-            <div>
-              <Label htmlFor="estimatedArrival">Estimated Arrival Time</Label>
-              <Input
-                id="estimatedArrival"
-                type="time"
-                value={estimatedArrival}
-                onChange={(e) => setEstimatedArrival(e.target.value)}
-              />
+
+            <div className="flex gap-4">
+              <div className="w-1/2">
+                <Label htmlFor="arrivalDate">Arrival Date</Label>
+                <Input
+                  id="arrivalDate"
+                  type="date"
+                  value={estimatedArrivalDate}
+                  onChange={(e) => setEstimatedArrivalDate(e.target.value)}
+                />
+              </div>
+              <div className="w-1/2">
+                <Label htmlFor="arrivalTime">Arrival Time</Label>
+                <Input
+                  id="arrivalTime"
+                  type="time"
+                  value={estimatedArrivalTime}
+                  onChange={(e) => setEstimatedArrivalTime(e.target.value)}
+                />
+              </div>
             </div>
-            
+
             <div>
               <Label htmlFor="message">Message</Label>
               <Textarea
@@ -148,7 +228,7 @@ export function ETANotificationForm({ delivery, onSend, onCancel }: ETANotificat
                 </div>
               )}
             </div>
-            
+
             <div className="flex justify-end space-x-2 pt-4">
               <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>
                 Cancel
@@ -156,7 +236,7 @@ export function ETANotificationForm({ delivery, onSend, onCancel }: ETANotificat
               <Button type="submit" disabled={loading}>
                 {loading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
                     Sending...
                   </>
                 ) : (
