@@ -10,14 +10,14 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import {
-  DollarSign,
-  Plus,
-  Search,
-  Filter,
-  TrendingUp,
-  User,
-  Calendar
+import { 
+  DollarSign, 
+  Plus, 
+  Search, 
+  Filter, 
+  TrendingUp, 
+  User, 
+  Calendar, 
 } from 'lucide-react'
 import { Commission, CommissionStatus, CommissionType } from '@/types'
 import { formatCurrency, formatDate, cn } from '@/lib/utils'
