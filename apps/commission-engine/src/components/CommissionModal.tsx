@@ -3,7 +3,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -17,7 +17,11 @@ interface CommissionModalProps {
   onSave: (commission: Commission) => void
 }
 
-export function CommissionModal({ open, onClose, onSave }: CommissionModalProps) {
+export function CommissionModal({
+  open,
+  onClose,
+  onSave,
+}: CommissionModalProps) {
   const { toast } = useToast()
 
   const [form, setForm] = useState<Partial<Commission>>({
@@ -26,14 +30,14 @@ export function CommissionModal({ open, onClose, onSave }: CommissionModalProps)
     dealId: '',
     amount: 0,
     type: CommissionType.FLAT,
-    status: CommissionStatus.PENDING
+    status: CommissionStatus.PENDING,
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setForm((prev) => ({
       ...prev,
-      [name]: name === 'amount' ? parseFloat(value) : value
+      [name]: name === 'amount' ? parseFloat(value) : value,
     }))
   }
 
@@ -41,30 +45,36 @@ export function CommissionModal({ open, onClose, onSave }: CommissionModalProps)
     try {
       if (!form.salesPersonId || !form.dealId || !form.amount) {
         toast({
-          title: 'Missing fields',
-          description: 'Salesperson, deal ID, and amount are required.',
-          variant: 'destructive'
-        });
+          title: 'Missing Fields',
+          description: 'Salesperson, Deal ID, and Amount are required.',
+          variant: 'destructive',
+        })
         return
       }
 
-      onSave({
-        ...(form as Commission),
+      const newCommission: Commission = {
         id: Math.random().toString(36).substr(2, 9),
+        salesPersonId: form.salesPersonId!,
+        dealId: form.dealId!,
+        amount: form.amount!,
+        type: form.type ?? CommissionType.FLAT,
+        status: form.status ?? CommissionStatus.PENDING,
         rate: 0,
         notes: '',
         createdAt: new Date(),
         updatedAt: new Date(),
-        customFields: {}
-      })
+        customFields: {},
+      }
+
+      onSave(newCommission)
 
       toast({ title: 'Commission saved successfully' })
       onClose()
     } catch (error) {
       toast({
-        title: 'Error saving commission',
-        description: 'Something went wrong',
-        variant: 'destructive'
+        title: 'Error Saving Commission',
+        description: 'Something went wrong while saving.',
+        variant: 'destructive',
       })
     }
   }
@@ -77,7 +87,7 @@ export function CommissionModal({ open, onClose, onSave }: CommissionModalProps)
         dealId: '',
         amount: 0,
         type: CommissionType.FLAT,
-        status: CommissionStatus.PENDING
+        status: CommissionStatus.PENDING,
       })
     }
   }, [open])
@@ -88,6 +98,7 @@ export function CommissionModal({ open, onClose, onSave }: CommissionModalProps)
         <DialogHeader>
           <DialogTitle>New Commission</DialogTitle>
         </DialogHeader>
+
         <div className="grid gap-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="salesPersonId">Salesperson ID</Label>
@@ -95,6 +106,7 @@ export function CommissionModal({ open, onClose, onSave }: CommissionModalProps)
               name="salesPersonId"
               value={form.salesPersonId || ''}
               onChange={handleChange}
+              placeholder="e.g. SP-001"
             />
           </div>
           <div className="space-y-2">
@@ -103,6 +115,7 @@ export function CommissionModal({ open, onClose, onSave }: CommissionModalProps)
               name="dealId"
               value={form.dealId || ''}
               onChange={handleChange}
+              placeholder="e.g. DL-001"
             />
           </div>
           <div className="space-y-2">
@@ -112,9 +125,11 @@ export function CommissionModal({ open, onClose, onSave }: CommissionModalProps)
               type="number"
               value={form.amount || ''}
               onChange={handleChange}
+              placeholder="0.00"
             />
           </div>
         </div>
+
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={onClose}>
             Cancel
