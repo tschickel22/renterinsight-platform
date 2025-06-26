@@ -1,23 +1,18 @@
-import { useCallback } from "react"
-import { toast as sonnerToast } from "sonner"
+import { toast as sonnerToast, ToastOptions } from 'sonner'
+
+interface ToastParams extends ToastOptions {
+  title: string
+  description?: string
+  variant?: 'default' | 'destructive'
+}
 
 export function useToast() {
-  const toast = useCallback(
-    ({
-      title,
+  const toast = ({ title, description, variant = 'default', ...props }: ToastParams) => {
+    sonnerToast[variant === 'destructive' ? 'error' : 'success'](title, {
       description,
-      variant = "default",
-    }: {
-      title: string
-      description?: string
-      variant?: "default" | "destructive"
-    }) => {
-      sonnerToast[variant === "destructive" ? "error" : "message"](title, {
-        description,
-      })
-    },
-    []
-  )
+      ...props,
+    })
+  }
 
   return { toast }
 }
