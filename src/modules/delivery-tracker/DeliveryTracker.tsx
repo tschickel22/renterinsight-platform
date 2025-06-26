@@ -481,10 +481,33 @@ function DeliveriesList() {
   )
 }
 
+function DeliveryDashboardView() {
+  const { deliveries } = useDeliveryManagement()
+  const [showDeliveryForm, setShowDeliveryForm] = useState(false)
+  
+  return (
+    <>
+      {showDeliveryForm && (
+        <DeliveryForm
+          vehicles={[]}
+          customers={[]}
+          onSave={async () => {}}
+          onCancel={() => setShowDeliveryForm(false)}
+        />
+      )}
+      <DeliveryDashboard 
+        deliveries={deliveries} 
+        onScheduleDelivery={() => setShowDeliveryForm(true)} 
+      />
+    </>
+  )
+}
+
 export default function DeliveryTracker() {
   return (
     <Routes>
-      <Route path="/" element={<DeliveriesList />} /> 
+      <Route path="/" element={<DeliveryDashboardView />} />
+      <Route path="/list" element={<DeliveriesList />} />
       <Route path="/*" element={<DeliveriesList />} />
     </Routes>
   )
