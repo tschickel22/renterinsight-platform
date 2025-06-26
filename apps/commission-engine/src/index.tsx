@@ -124,10 +124,22 @@ function CommissionEngineDashboard() {
     // In a real app, this would save the calculation to the database
     console.log('Saving calculation:', calculationData)
     
+    // Add the calculation to the audit trail
+    await addAuditEntry({
+      dealId: selectedDealId,
+      userId: user?.id || '',
+      userName: user?.name || '',
+      action: 'manual_note',
+      description: `Calculated commission of ${formatCurrency(calculationData.commission)} using ${calculationData.ruleName}`,
+      timestamp: new Date()
+    });
+    
     toast({
       title: 'Success',
       description: 'Calculation saved successfully',
     })
+    
+    return true;
   }
 
   // Get audit trail for the selected deal
