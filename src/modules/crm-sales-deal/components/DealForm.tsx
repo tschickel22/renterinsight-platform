@@ -268,29 +268,39 @@ export function DealForm({
                   <Label htmlFor="customerId">Customer *</Label>
                   <Select 
                     value={formData.customerId || ''} 
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, customerId: value }))}
+                    onValueChange={(value) => {
+                      if (value === '__add_new_customer__') {
+                        setFormData(prev => ({ ...prev, customerId: '' }));
+                        onAddNewCustomer?.();
+                      } else {
+                        setFormData(prev => ({ ...prev, customerId: value }));
+                      }
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select customer" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <div className="px-2 py-1.5">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="w-full justify-start" 
-                          onClick={() => setShowNewCustomerForm(true)}
-                        >
+                    <SelectContent className="z-50">
+                      <SelectItem value="__add_new_customer__">
+                        <div className="flex items-center">
                           <Plus className="h-3.5 w-3.5 mr-2" />
                           Add New Customer
-                        </Button>
-                      </div>
-                      <div className="px-2 py-1 border-t"></div>
-                      {customers.map(customer => (
-                        <SelectItem key={customer.id} value={customer.id}>
-                          {customer.firstName} {customer.lastName}
-                        </SelectItem>
-                      ))}
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="" disabled>
+                        <div className="h-px w-full bg-muted my-1"></div>
+                      </SelectItem>
+                      {customers.length === 0 ? (
+                        <div className="px-2 py-2 text-sm text-muted-foreground">
+                          No customers found
+                        </div>
+                      ) : (
+                        customers.map(customer => (
+                          <SelectItem key={customer.id} value={customer.id}>
+                            {customer.firstName} {customer.lastName}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
