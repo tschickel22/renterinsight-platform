@@ -185,6 +185,19 @@ function CommissionEngineDashboard() {
           rule={selectedRule || undefined}
           onSave={handleSaveRule}
           onCancel={() => {
+            setShowRuleForm(false)
+            setSelectedRule(null)
+          }}
+        />
+      )}
+
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Commission Engine</h1>
+          <p className="text-muted-foreground">Manage commission rules and calculations</p>
+        </div>
+        <div className="flex items-center gap-4">
           <ErrorBoundary fallback={<div className="p-4 bg-red-50 text-red-700 rounded-lg">Error loading dashboard. Please try refreshing the page.</div>}>
             <div className="grid gap-6 md:grid-cols-2">
               <CommissionCalculator 
@@ -211,7 +224,6 @@ function CommissionEngineDashboard() {
 
       {/* Stats Cards */}
       <ErrorBoundary fallback={<div className="p-4 bg-red-50 text-red-700 rounded-lg">Error loading stats. Please try refreshing the page.</div>}>
-        <div className="ri-stats-grid">
         <div className="ri-stats-grid">
           <Card className="shadow-sm border-0 bg-gradient-to-br from-blue-50 to-blue-100/50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -267,7 +279,6 @@ function CommissionEngineDashboard() {
           </Card>
         </div>
       </ErrorBoundary>
-      </ErrorBoundary>
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -308,8 +319,6 @@ function CommissionEngineDashboard() {
               onDuplicateRule={handleDuplicateRule}
             />
           </ErrorBoundary>
-            />
-          </ErrorBoundary>
         </TabsContent>
 
         <TabsContent value="reports">
@@ -321,8 +330,6 @@ function CommissionEngineDashboard() {
               onPrintReport={handlePrintReport}
             />
           </ErrorBoundary>
-            />
-          </ErrorBoundary>
         </TabsContent>
 
         <TabsContent value="calculator">
@@ -332,8 +339,6 @@ function CommissionEngineDashboard() {
                 rules={rules || []}
                 onSaveCalculation={handleSaveCalculation}
               />
-            </div>
-          </ErrorBoundary>
             </div>
           </ErrorBoundary>
         </TabsContent>
@@ -348,17 +353,6 @@ if (container) {
   const root = createRoot(container)
   root.render(
     <ErrorBoundary fallback={<div className="p-8 text-center">
-      <h2 className="text-xl font-bold text-red-600 mb-2">Something went wrong</h2>
-      <p className="mb-4">There was an error loading the Commission Engine</p>
-      <button 
-        onClick={() => window.location.reload()} 
-        className="px-4 py-2 bg-blue-600 text-white rounded-md"
-      >
-        Reload Page
-      </button>
-    </div>}>
-      <CommissionEngineDashboard />
-    </ErrorBoundary>
       <h2 className="text-xl font-bold text-red-600 mb-2">Something went wrong</h2>
       <p className="mb-4">There was an error loading the Commission Engine</p>
       <button 
