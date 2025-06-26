@@ -240,87 +240,6 @@ export function useDeliveryManagement() {
     saveDeliveriesToStorage(updatedDeliveries)
   }
 
-  const sendNotification = async (deliveryId: string, notificationType: 'sms' | 'email', message: string) => {
-    // In a real app, this would send an actual notification
-    // For this demo, we'll just update the delivery record
-    
-    const delivery = deliveries.find(d => d.id === deliveryId)
-    if (!delivery) return
-    
-    const updatedDeliveries = deliveries.map(d => 
-      d.id === deliveryId 
-        ? { 
-            ...d, 
-            customFields: {
-              ...d.customFields,
-              customerNotified: new Date().toISOString(),
-              notificationMethod: notificationType === 'sms' ? 'SMS' : 'Email',
-              lastNotificationMessage: message
-            },
-            updatedAt: new Date() 
-          }
-        : d
-    )
-    
-    setDeliveries(updatedDeliveries)
-    saveDeliveriesToStorage(updatedDeliveries)
-    
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    return true
-  }
-
-  const updateETA = async (deliveryId: string, estimatedArrival: string) => {
-    const delivery = deliveries.find(d => d.id === deliveryId)
-    if (!delivery) return
-    
-    const updatedDeliveries = deliveries.map(d => 
-      d.id === deliveryId 
-        ? { 
-            ...d, 
-            customFields: {
-              ...d.customFields,
-              estimatedArrival,
-              etaUpdated: new Date().toISOString()
-            },
-            updatedAt: new Date() 
-          }
-        : d
-    )
-    
-    setDeliveries(updatedDeliveries)
-    saveDeliveriesToStorage(updatedDeliveries)
-  }
-
-  const addDeliveryPhotos = async (deliveryId: string, photos: string[], captions: string[]) => {
-    const delivery = deliveries.find(d => d.id === deliveryId)
-    if (!delivery) return
-    
-    // Create photo objects with captions
-    const photoObjects = photos.map((url, index) => ({
-      url,
-      caption: captions[index] || ''
-    }))
-    
-    const updatedDeliveries = deliveries.map(d => 
-      d.id === deliveryId 
-        ? { 
-            ...d, 
-            customFields: {
-              ...d.customFields,
-              deliveryPhotos: [...(d.customFields?.deliveryPhotos || []), ...photos],
-              photoDetails: [...(d.customFields?.photoDetails || []), ...photoObjects]
-            },
-            updatedAt: new Date() 
-          }
-        : d
-    )
-    
-    setDeliveries(updatedDeliveries)
-    saveDeliveriesToStorage(updatedDeliveries)
-  }
-
   return {
     deliveries,
     loading,
@@ -331,9 +250,6 @@ export function useDeliveryManagement() {
     updateDelivery,
     deleteDelivery,
     updateDeliveryStatus,
-    sendNotification,
-    updateETA,
-    addDeliveryPhotos
     sendNotification,
     updateETA,
     addDeliveryPhotos
