@@ -16,15 +16,27 @@ import { useToast } from '@/hooks/use-toast'
 
 interface DealFormProps {
   deal?: Deal
+  preselectedCustomerId?: string | null
   customers: any[] // Using existing customer data
   salesReps: any[] // Using existing sales rep data
   territories: any[] // Using existing territory data
   products: any[] // Using existing product data
   onSave: (dealData: Partial<Deal>) => Promise<void>
   onCancel: () => void
+  onAddNewCustomer?: () => void
 }
 
-export function DealForm({ deal, customers, salesReps, territories, products, onSave, onCancel }: DealFormProps) {
+export function DealForm({ 
+  deal, 
+  preselectedCustomerId,
+  customers, 
+  salesReps, 
+  territories, 
+  products, 
+  onSave, 
+  onCancel,
+  onAddNewCustomer
+}: DealFormProps) {
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState<Partial<Deal>>({

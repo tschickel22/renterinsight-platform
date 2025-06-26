@@ -21,6 +21,7 @@ import { ApprovalWorkflows } from './components/ApprovalWorkflows'
 import { DealForm } from './components/DealForm'
 import { useLeadManagement } from '@/modules/crm-prospecting/hooks/useLeadManagement'
 import { useInventoryManagement } from '@/modules/inventory-management/hooks/useInventoryManagement'
+import { NewLeadForm } from '@/modules/crm-prospecting/components/NewLeadForm'
 
 function DealsList() {
   const {
@@ -44,6 +45,8 @@ function DealsList() {
   const [stageFilter, setStageFilter] = useState<string>('all')
   const [repFilter, setRepFilter] = useState<string>('all')
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null)
+  const [showLeadModal, setShowLeadModal] = useState(false)
+  const [preselectedCustomerId, setPreselectedCustomerId] = useState<string | null>(null)
   const [showDealForm, setShowDealForm] = useState(false)
   const [activeTab, setActiveTab] = useState('pipeline')
   const [showDealDetail, setShowDealDetail] = useState(false)
@@ -103,8 +106,19 @@ function DealsList() {
     setShowDealDetail(true)
   }
 
+  const handleNewCustomerSuccess = (newCustomer: any) => {
+    toast({
+      title: 'Customer Added',
+      description: `${newCustomer.firstName} ${newCustomer.lastName} has been added.`,
+    })
+    setPreselectedCustomerId(newCustomer.id)
+    setShowLeadModal(false)
+    setShowDealForm(true)
+  }
+
   const handleCreateDeal = () => {
     setSelectedDeal(null)
+    setPreselectedCustomerId(null)
     setShowDealForm(true)
   }
 
@@ -165,6 +179,14 @@ function DealsList() {
 
   return (
     <div className="space-y-8">
+      {/* New Customer Form Modal */}
+      {showLeadModal && (
+        <NewLeadForm
+          onClose={() => setShowLeadModal(false)}
+          onSuccess={handleNewCustomerSuccess}
+        />
+      )}
+
       {/* Deal Detail Modal */}
       {showDealDetail && selectedDeal && (
         <DealDetail
@@ -177,12 +199,17 @@ function DealsList() {
       {/* Deal Form Modal */}
       {showDealForm && (
         <DealForm
+          preselectedCustomerId={preselectedCustomerId}
           deal={selectedDeal || undefined}
           customers={leads}
           salesReps={salesReps}
           territories={territories}
           products={mockProducts}
           onSave={handleSaveDeal}
+          onAddNewCustomer={() => {
+            setShowDealForm(false)
+            setShowLeadModal(true)
+          }}
           onCancel={() => {
             setShowDealForm(false)
             setSelectedDeal(null)
