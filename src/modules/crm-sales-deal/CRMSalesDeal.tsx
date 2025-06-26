@@ -110,6 +110,7 @@ function DealsList() {
 
   const handleEditDeal = (deal: Deal) => {
     setSelectedDeal(deal)
+    setShowDealDetail(false)
     setShowDealForm(true)
   }
 

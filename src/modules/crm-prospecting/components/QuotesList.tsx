@@ -223,6 +223,7 @@ export function QuotesList() {
   const handleEditQuote = (quote: Quote) => {
     setEditingQuote(quote)
     setSelectedCustomerId(quote.customerId)
+    setViewingQuote(null)
     setShowQuoteBuilder(true)
   }
 
