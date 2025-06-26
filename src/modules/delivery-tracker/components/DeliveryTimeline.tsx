@@ -1,7 +1,22 @@
+// DeliveryTimeline.tsx with enhanced error handling and cleaned logic
 import React from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent
+} from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Truck, Calendar, CheckCircle, Clock, MapPin, Camera, MessageSquare } from 'lucide-react'
+import {
+  Truck,
+  Calendar,
+  CheckCircle,
+  Clock,
+  MapPin,
+  Camera,
+  MessageSquare
+} from 'lucide-react'
 import { Delivery, DeliveryStatus } from '@/types'
 import { formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
@@ -27,141 +42,92 @@ export function DeliveryTimeline({ delivery, onAddMilestone }: DeliveryTimelineP
     }
   }
 
-  // Generate milestones based on delivery status and data
   const getMilestones = () => {
-    const milestones = [
-      {
+    try {
+      const m: any[] = []
+      const cf = delivery.customFields || {}
+      const safeDate = (d?: Date | string | null) => (d ? new Date(d) : new Date())
+
+      m.push({
         id: 'scheduled',
         title: 'Delivery Scheduled',
         description: `Scheduled for ${formatDate(delivery.scheduledDate)}`,
-        date: delivery.createdAt,
-        status: 'completed',
+        date: safeDate(delivery.createdAt),
         icon: Calendar
+      })
+
+      if ([DeliveryStatus.IN_TRANSIT, DeliveryStatus.DELIVERED].includes(delivery.status)) {
+        m.push({
+          id: 'preparation',
+          title: 'Preparation Complete',
+          description: 'Vehicle prepared and ready for delivery',
+          date: new Date(new Date(delivery.scheduledDate).getTime() - 86400000),
+          icon: CheckCircle
+        })
+
+        m.push({
+          id: 'in_transit',
+          title: 'In Transit',
+          description: cf.departureNotes || 'Vehicle has left the dealership',
+          date: safeDate(cf.departureTime),
+          icon: Truck
+        })
       }
-    ]
 
-    // Add preparation milestone if in transit or delivered
-    if (delivery.status === DeliveryStatus.IN_TRANSIT || delivery.status === DeliveryStatus.DELIVERED) {
-      milestones.push({
-        id: 'preparation',
-        title: 'Preparation Complete',
-        description: 'Vehicle prepared and ready for delivery',
-        date: new Date(delivery.scheduledDate.getTime() - 24 * 60 * 60 * 1000), // 1 day before scheduled
-        status: 'completed',
-        icon: CheckCircle
-      })
+      if (cf.etaUpdated && cf.estimatedArrival) {
+        m.push({
+          id: 'eta_update',
+          title: 'ETA Updated',
+          description: `New estimated arrival: ${cf.estimatedArrival}`,
+          date: safeDate(cf.etaUpdated),
+          icon: Clock
+        })
+      }
+
+      if (cf.customerNotified) {
+        m.push({
+          id: 'customer_notified',
+          title: 'Customer Notified',
+          description: `${cf.notificationMethod || 'SMS'} notification sent to customer`,
+          date: safeDate(cf.customerNotified),
+          icon: MessageSquare
+        })
+      }
+
+      if (delivery.status === DeliveryStatus.DELIVERED) {
+        m.push({
+          id: 'arrived',
+          title: 'Arrived at Destination',
+          description: 'Vehicle arrived at delivery location',
+          date: safeDate(delivery.deliveredDate),
+          icon: MapPin
+        })
+
+        m.push({
+          id: 'delivered',
+          title: 'Delivery Confirmed',
+          description: cf.deliveryNotes || 'Delivery completed successfully',
+          date: safeDate(delivery.deliveredDate),
+          icon: CheckCircle
+        })
+
+        if (Array.isArray(cf.deliveryPhotos) && cf.deliveryPhotos.length > 0) {
+          m.push({
+            id: 'photos',
+            title: 'Delivery Photos',
+            description: `${cf.deliveryPhotos.length} photo(s) captured`,
+            date: safeDate(delivery.deliveredDate),
+            icon: Camera
+          })
+        }
+      }
+
+      const uniqueMilestones = Array.from(new Map(m.map(i => [i.id, i])).values())
+      return uniqueMilestones.sort((a, b) => a.date.getTime() - b.date.getTime())
+    } catch (err) {
+      console.error('Failed to generate milestones:', err)
+      return []
     }
-
-    // Add in transit milestone if applicable
-    if (delivery.status === DeliveryStatus.IN_TRANSIT || delivery.status === DeliveryStatus.DELIVERED) {
-      milestones.push({
-        id: 'in_transit',
-        title: 'In Transit',
-        description: delivery.customFields?.departureNotes || 'Vehicle has left the dealership',
-        date: delivery.customFields?.departureTime ? new Date(delivery.customFields.departureTime) : new Date(),
-        status: 'completed',
-        icon: Truck
-      })
-    }
-
-    // Add ETA update if available
-    if (delivery.customFields?.etaUpdated) {
-      milestones.push({
-        id: 'eta_update',
-        title: 'ETA Updated',
-        description: `New estimated arrival: ${delivery.customFields.estimatedArrival}`,
-        date: new Date(delivery.customFields.etaUpdated),
-        status: 'completed',
-        icon: Clock
-      })
-    }
-
-    // Add customer notification if available
-    if (delivery.customFields?.customerNotified) {
-      milestones.push({
-        id: 'customer_notified',
-        title: 'Customer Notified',
-        description: `${delivery.customFields.notificationMethod || 'SMS'} notification sent to customer`,
-        date: new Date(delivery.customFields.customerNotified),
-        status: 'completed',
-        icon: MessageSquare
-      })
-    }
-
-    // Add ETA update if available
-    if (delivery.customFields?.etaUpdated) {
-      milestones.push({
-        id: 'eta_update',
-        title: 'ETA Updated',
-        description: `New estimated arrival: ${delivery.customFields.estimatedArrival}`,
-        date: new Date(delivery.customFields.etaUpdated),
-        status: 'completed',
-        icon: Clock
-      })
-    }
-
-    // Add customer notification if available
-    if (delivery.customFields?.customerNotified) {
-      milestones.push({
-        id: 'customer_notified',
-        title: 'Customer Notified',
-        description: `${delivery.customFields.notificationMethod || 'SMS'} notification sent to customer`,
-        date: new Date(delivery.customFields.customerNotified),
-        status: 'completed',
-        icon: MessageSquare
-      })
-    }
-
-    // Add arrival milestone if delivered
-    if (delivery.status === DeliveryStatus.DELIVERED) {
-      milestones.push({
-        id: 'arrived',
-        title: 'Arrived at Destination',
-        description: 'Vehicle arrived at delivery location',
-        date: delivery.deliveredDate || new Date(),
-        status: 'completed',
-        icon: MapPin
-      })
-    }
-
-    // Add delivery confirmation if delivered
-    if (delivery.status === DeliveryStatus.DELIVERED) {
-      milestones.push({
-        id: 'delivered',
-        title: 'Delivery Confirmed',
-        description: delivery.customFields?.deliveryNotes || 'Delivery completed successfully',
-        date: delivery.deliveredDate || new Date(),
-        status: 'completed',
-        icon: CheckCircle
-      })
-    }
-
-    // Add photo verification if available
-    if (delivery.customFields?.deliveryPhotos && delivery.customFields.deliveryPhotos.length > 0) {
-      milestones.push({
-        id: 'photos',
-        title: 'Delivery Photos',
-        description: `${delivery.customFields.deliveryPhotos.length} photos captured`,
-        date: delivery.deliveredDate || new Date(),
-        status: 'completed',
-        icon: Camera
-      })
-    }
-
-    // Add photo verification if available
-    if (delivery.customFields?.deliveryPhotos && delivery.customFields.deliveryPhotos.length > 0) {
-      milestones.push({
-        id: 'photos',
-        title: 'Delivery Photos',
-        description: `${delivery.customFields.deliveryPhotos.length} photos captured`,
-        date: delivery.deliveredDate || new Date(),
-        status: 'completed',
-        icon: Camera
-      })
-    }
-
-    // Sort milestones by date
-    return milestones.sort((a, b) => a.date.getTime() - b.date.getTime())
   }
 
   const milestones = getMilestones()
@@ -173,61 +139,38 @@ export function DeliveryTimeline({ delivery, onAddMilestone }: DeliveryTimelineP
           <Truck className="h-5 w-5 mr-2 text-primary" />
           Delivery Timeline
         </CardTitle>
-        <CardDescription>
-          Track the progress of this delivery
-        </CardDescription>
+        <CardDescription>Track the progress of this delivery</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="relative pl-8 space-y-8">
-          {/* Vertical timeline line */}
           <div className="absolute left-3 top-0 bottom-0 w-px bg-border" />
 
           {milestones.map((milestone, index) => {
             const Icon = milestone.icon
-            const isLast = index === milestones.length - 1
-
             return (
               <div key={milestone.id} className="relative">
-                {/* Timeline dot */}
                 <div className={cn(
-                  "absolute left-[-21px] w-6 h-6 rounded-full flex items-center justify-center",
-                  milestone.status === 'completed' ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                  'absolute left-[-21px] w-6 h-6 rounded-full flex items-center justify-center',
+                  'bg-primary text-primary-foreground'
                 )}>
                   <Icon className="h-3 w-3" />
                 </div>
-                
+
                 <div className="mb-1 flex items-center">
                   <h3 className="text-base font-semibold">{milestone.title}</h3>
                   <Badge className="ml-2 text-xs" variant="outline">
                     {formatDate(milestone.date)}
                   </Badge>
                 </div>
-                
-                <p className="text-sm text-muted-foreground">
-                  {milestone.description}
-                </p>
-                
-                {/* Display photos if this is the photos milestone */}
+                <p className="text-sm text-muted-foreground">{milestone.description}</p>
+
                 {milestone.id === 'photos' && delivery.customFields?.deliveryPhotos && (
                   <div className="grid grid-cols-3 gap-2 mt-2">
-                    {delivery.customFields.deliveryPhotos.map((photo: string, photoIndex: number) => (
-                      <img 
-                        key={photoIndex} 
-                        src={photo} 
-                        alt={`Delivery photo ${photoIndex + 1}`} 
-                        className="h-20 w-full object-cover rounded-md"
-                      />
-                    ))}
-                  </div>
-                )}
-                {/* Display photos if this is the photos milestone */}
-                {milestone.id === 'photos' && delivery.customFields?.deliveryPhotos && (
-                  <div className="grid grid-cols-3 gap-2 mt-2">
-                    {delivery.customFields.deliveryPhotos.map((photo: string, photoIndex: number) => (
-                      <img 
-                        key={photoIndex} 
-                        src={photo} 
-                        alt={`Delivery photo ${photoIndex + 1}`} 
+                    {delivery.customFields.deliveryPhotos.map((photo: string, i: number) => (
+                      <img
+                        key={i}
+                        src={photo}
+                        alt={`Delivery photo ${i + 1}`}
                         className="h-20 w-full object-cover rounded-md"
                       />
                     ))}
