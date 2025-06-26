@@ -8,7 +8,7 @@ import { DollarSign, Plus, Search, Filter, TrendingUp, User, Calendar } from 'lu
 import { Commission, CommissionStatus, CommissionType } from '@/types'
 import { formatCurrency, formatDate, cn } from '@/lib/utils'
 
-import { CommissionModal } from './components/apps/commission-engine/src/components/CommissionModal'
+import { CommissionModal } from '@/components/CommissionModal'
 
 const mockCommissions: Commission[] = [
   {
