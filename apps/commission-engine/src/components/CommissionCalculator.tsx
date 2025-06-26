@@ -125,28 +125,26 @@ export function CommissionCalculator({ rules, onSaveCalculation }: CommissionCal
     }
 
     if (!onSaveCalculation) return
-      try {
-        await onSaveCalculation({
-          dealAmount,
-          ruleId: selectedRuleId,
-          ruleName: rule?.name,
-          ruleType: rule?.type,
-          commission: calculatedCommission,
-          breakdown: calculationBreakdown,
-          calculatedAt: new Date()
-        })
-        
-        toast({
-          title: 'Success',
-          description: 'Commission calculation saved',
-        })
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to save calculation',
-          variant: 'destructive'
-        })
-      }
+
+    setLoading(true)
+
+    const rule = rules.find(r => r.id === selectedRuleId)
+
+    try {
+      await onSaveCalculation({
+        dealAmount,
+        ruleId: selectedRuleId,
+        ruleName: rule?.name,
+        ruleType: rule?.type,
+        commission: calculatedCommission,
+        breakdown: calculationBreakdown,
+        calculatedAt: new Date()
+      })
+      
+      toast({
+        title: 'Success',
+        description: 'Commission calculation saved',
+      })
     } catch (error) {
       toast({
         title: 'Error',
