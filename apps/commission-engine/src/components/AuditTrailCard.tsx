@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { History, Edit, Save, X, Check, AlertTriangle, User, Clock, Plus, MessageSquare } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
-import { AuditEntry } from '../types'
+import { AuditEntry } from '@/types'
 
 interface AuditTrailCardProps {
   entries: AuditEntry[]

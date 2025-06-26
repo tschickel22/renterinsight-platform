@@ -64,3 +64,11 @@ export interface AuditEntry {
   timestamp: Date;
   notes?: string;
 }
+
+export interface TierLevel {
+  id: string;
+  minAmount: number;
+  maxAmount: number | null;
+  rate: number;
+  isPercentage: boolean;
+}

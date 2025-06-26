@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Commission, CommissionStatus, CommissionType } from '../types'
 import { saveToLocalStorage, loadFromLocalStorage } from '@/lib/utils'
-import { CommissionRule } from '../components/CommissionRuleForm'
+import { CommissionRule, TierLevel } from '../components/CommissionRuleForm'
 import { AuditEntry } from '../components/AuditTrailCard'
 
 export function useCommissionManagement() {
@@ -10,6 +10,7 @@ export function useCommissionManagement() {
   const [auditTrail, setAuditTrail] = useState<AuditEntry[]>([])
   const [loading, setLoading] = useState(false)
 
+  // Initialize mock data
   useEffect(() => {
     initializeMockData()
   }, [])
@@ -207,6 +208,7 @@ export function useCommissionManagement() {
   }
 
   // Commission Management
+  // Commission Management
   const getCommissionsByDealId = (dealId: string) => {
     return commissions.filter(commission => commission.dealId === dealId)
   }
@@ -219,7 +221,7 @@ export function useCommissionManagement() {
     return commissions.filter(commission => commission.status === status)
   }
 
-  const createCommission = async (commissionData: Partial<Commission>, userId: string, userName: string) => {
+  const createCommission = async (commissionData: Partial<Commission>, userId?: string, userName?: string) => {
     setLoading(true)
     try {
       const newCommission: Commission = {
@@ -240,15 +242,17 @@ export function useCommissionManagement() {
       setCommissions(updatedCommissions)
       saveCommissionsToStorage(updatedCommissions)
 
-      // Add audit trail entry
-      await addAuditEntry({
-        dealId: newCommission.dealId,
-        userId,
-        userName,
-        action: 'create',
-        description: `Created commission for deal #${newCommission.dealId}`,
-        timestamp: new Date()
-      })
+      // Add audit trail entry if userId and userName are provided
+      if (userId && userName) {
+        await addAuditEntry({
+          dealId: newCommission.dealId,
+          userId,
+          userName,
+          action: 'create',
+          description: `Created commission for deal #${newCommission.dealId}`,
+          timestamp: new Date()
+        })
+      }
 
       return newCommission
     } finally {
@@ -257,7 +261,7 @@ export function useCommissionManagement() {
   }
 
   // Update commission status with audit trail
-  const updateCommissionStatus = async (commissionId: string, status: CommissionStatus, userId: string, userName: string) => {
+  const updateCommissionStatus = async (commissionId: string, status: CommissionStatus, userId?: string, userName?: string) => {
     const commission = commissions.find(c => c.id === commissionId)
     if (!commission) return null
 
@@ -277,17 +281,19 @@ export function useCommissionManagement() {
     setCommissions(updatedCommissions)
     saveCommissionsToStorage(updatedCommissions)
 
-    // Add audit trail entry
-    await addAuditEntry({
-      dealId: commission.dealId,
-      userId,
-      userName,
-      action: 'update',
-      description: `Updated commission status to ${status}`,
-      oldValue: oldStatus,
-      newValue: status,
-      timestamp: new Date()
-    })
+    // Add audit trail entry if userId and userName are provided
+    if (userId && userName) {
+      await addAuditEntry({
+        dealId: commission.dealId,
+        userId,
+        userName,
+        action: 'update',
+        description: `Updated commission status to ${status}`,
+        oldValue: oldStatus,
+        newValue: status,
+        timestamp: new Date()
+      })
+    }
 
     return updatedCommissions.find(c => c.id === commissionId)
   }
@@ -326,7 +332,7 @@ export function useCommissionManagement() {
   }
 
   // Commission Rule Management
-  const createCommissionRule = async (ruleData: Partial<CommissionRule>, userId: string, userName: string) => {
+  const createCommissionRule = async (ruleData: Partial<CommissionRule>, userId?: string, userName?: string) => {
     setLoading(true)
     try {
       const newRule: CommissionRule = {
@@ -347,15 +353,17 @@ export function useCommissionManagement() {
       setRules(updatedRules)
       saveRulesToStorage(updatedRules)
 
-      // Add audit trail entry
-      await addAuditEntry({
-        dealId: 'system',
-        userId,
-        userName,
-        action: 'create',
-        description: `Created commission rule: ${newRule.name}`,
-        timestamp: new Date()
-      })
+      // Add audit trail entry if userId and userName are provided
+      if (userId && userName) {
+        await addAuditEntry({
+          dealId: 'system',
+          userId,
+          userName,
+          action: 'create',
+          description: `Created commission rule: ${newRule.name}`,
+          timestamp: new Date()
+        })
+      }
 
       return newRule
     } finally {
@@ -363,7 +371,7 @@ export function useCommissionManagement() {
     }
   }
 
-  const updateCommissionRule = async (ruleId: string, ruleData: Partial<CommissionRule>, userId: string, userName: string) => {
+  const updateCommissionRule = async (ruleId: string, ruleData: Partial<CommissionRule>, userId?: string, userName?: string) => {
     const rule = rules.find(r => r.id === ruleId)
     if (!rule) return null
 
@@ -379,20 +387,22 @@ export function useCommissionManagement() {
     setRules(updatedRules)
     saveRulesToStorage(updatedRules)
 
-    // Add audit trail entry
-    await addAuditEntry({
-      dealId: 'system',
-      userId,
-      userName,
-      action: 'update',
-      description: `Updated commission rule: ${rule.name}`,
-      timestamp: new Date()
-    })
+    // Add audit trail entry if userId and userName are provided
+    if (userId && userName) {
+      await addAuditEntry({
+        dealId: 'system',
+        userId,
+        userName,
+        action: 'update',
+        description: `Updated commission rule: ${rule.name}`,
+        timestamp: new Date()
+      })
+    }
 
     return updatedRules.find(r => r.id === ruleId)
   }
 
-  const deleteCommissionRule = async (ruleId: string, userId: string, userName: string) => {
+  const deleteCommissionRule = async (ruleId: string, userId?: string, userName?: string) => {
     const rule = rules.find(r => r.id === ruleId)
     if (!rule) return
 
@@ -400,18 +410,20 @@ export function useCommissionManagement() {
     setRules(updatedRules)
     saveRulesToStorage(updatedRules)
 
-    // Add audit trail entry
-    await addAuditEntry({
-      dealId: 'system',
-      userId,
-      userName,
-      action: 'delete',
-      description: `Deleted commission rule: ${rule.name}`,
-      timestamp: new Date()
-    })
+    // Add audit trail entry if userId and userName are provided
+    if (userId && userName) {
+      await addAuditEntry({
+        dealId: 'system',
+        userId,
+        userName,
+        action: 'delete',
+        description: `Deleted commission rule: ${rule.name}`,
+        timestamp: new Date()
+      })
+    }
   }
 
-  const duplicateCommissionRule = async (ruleId: string, userId: string, userName: string) => {
+  const duplicateCommissionRule = async (ruleId: string, userId?: string, userName?: string) => {
     const rule = rules.find(r => r.id === ruleId)
     if (!rule) return null
 
@@ -427,15 +439,17 @@ export function useCommissionManagement() {
     setRules(updatedRules)
     saveRulesToStorage(updatedRules)
 
-    // Add audit trail entry
-    await addAuditEntry({
-      dealId: 'system',
-      userId,
-      userName,
-      action: 'create',
-      description: `Duplicated commission rule: ${rule.name}`,
-      timestamp: new Date()
-    })
+    // Add audit trail entry if userId and userName are provided
+    if (userId && userName) {
+      await addAuditEntry({
+        dealId: 'system',
+        userId,
+        userName,
+        action: 'create',
+        description: `Duplicated commission rule: ${rule.name}`,
+        timestamp: new Date()
+      })
+    }
 
     return newRule
   }
@@ -477,7 +491,7 @@ export function useCommissionManagement() {
   }
 
   // Commission Calculation with fallback logic
-  const calculateCommission = (dealAmount: number, ruleId: string) => {
+  const calculateCommission = (dealAmount: number, ruleId: string): { commission: number, breakdown: string[] } => {
     const rule = rules.find(r => r.id === ruleId)
     if (!rule) {
       throw new Error('Commission rule not found')

@@ -8,12 +8,12 @@ import { DollarSign, Plus, Calculator, BarChart3, History, Settings, Users } fro
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
 import { formatCurrency } from '@/lib/utils'
-import { Commission, CommissionStatus, CommissionType } from './types'
+import { Commission, CommissionStatus, CommissionType, AuditEntry } from './types'
 import { CommissionRuleForm, CommissionRule } from './components/CommissionRuleForm'
 import { CommissionRulesList } from './components/CommissionRulesList'
 import { CommissionReportView } from './components/CommissionReportView'
 import { CommissionCalculator } from './components/CommissionCalculator'
-import { AuditTrailCard, AuditEntry } from './components/AuditTrailCard'
+import { AuditTrailCard } from './components/AuditTrailCard'
 import { useCommissionManagement } from './hooks/useCommissionManagement'
 import { UserCommissionReport } from './components/UserCommissionReport'
 
@@ -53,13 +53,13 @@ function CommissionEngineDashboard() {
   const handleSaveRule = async (ruleData: Partial<CommissionRule>) => {
     try {
       if (selectedRule) {
-        await updateCommissionRule(selectedRule.id, ruleData, user?.id || '', user?.name || '')
+        await updateCommissionRule(selectedRule.id, ruleData)
         toast({
           title: 'Success',
           description: 'Commission rule updated successfully',
         })
       } else {
-        await createCommissionRule(ruleData, user?.id || '', user?.name || '')
+        await createCommissionRule(ruleData)
         toast({
           title: 'Success',
           description: 'Commission rule created successfully',
@@ -79,7 +79,7 @@ function CommissionEngineDashboard() {
   const handleDeleteRule = async (ruleId: string) => {
     if (window.confirm('Are you sure you want to delete this commission rule?')) {
       try {
-        await deleteCommissionRule(ruleId, user?.id || '', user?.name || '')
+        await deleteCommissionRule(ruleId)
         toast({
           title: 'Success',
           description: 'Commission rule deleted successfully',
@@ -96,7 +96,7 @@ function CommissionEngineDashboard() {
 
   const handleDuplicateRule = async (rule: CommissionRule) => {
     try {
-      await duplicateCommissionRule(rule.id, user?.id || '', user?.name || '')
+      await duplicateCommissionRule(rule.id)
       toast({
         title: 'Success',
         description: 'Commission rule duplicated successfully',

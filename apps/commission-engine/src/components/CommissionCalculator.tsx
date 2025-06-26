@@ -8,7 +8,7 @@ import { Calculator, DollarSign, Percent, Save, ArrowRight } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
 import { CommissionRule } from './CommissionRuleForm'
-import { CommissionType } from '../types'
+import { CommissionType } from '@/types'
 
 interface CommissionCalculatorProps {
   rules: CommissionRule[]

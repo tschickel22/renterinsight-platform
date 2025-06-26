@@ -7,15 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { X, Save, Plus, Trash2, DollarSign, Percent, AlertTriangle } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import { CommissionType } from '../types'
-
-export interface TierLevel {
-  id: string
-  minAmount: number
-  maxAmount: number | null
-  rate: number
-  isPercentage: boolean
-}
+import { CommissionType, TierLevel } from '@/types'
 
 export interface CommissionRule {
   id: string
