@@ -11,8 +11,8 @@ import { formatCurrency, formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
 
-// Import the QuoteBuilder component from CRM module
-import { QuoteBuilder as QuoteBuilderComponent } from '@/modules/crm-prospecting/components/QuoteBuilder'
+// Import the QuoteFormBuilder component from CRM module
+import { QuoteFormBuilder as QuoteBuilderComponent } from '@/modules/crm-prospecting/components/QuoteFormBuilder'
 
 const mockQuotes: Quote[] = [
   {

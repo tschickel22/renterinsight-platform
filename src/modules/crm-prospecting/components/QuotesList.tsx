@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { FileText, Plus, Search, Filter, Eye, Edit, Send, Copy, Trash2, Download, TrendingUp, DollarSign, Calendar, X } from 'lucide-react'
-import { QuoteBuilder } from './QuoteBuilder'
+import { QuoteFormBuilder } from './QuoteFormBuilder'
 import { useQuoteManagement, Quote } from '../hooks/useQuoteManagement'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
@@ -321,7 +321,7 @@ export function QuotesList() {
     <div className="space-y-8">
       {/* Quote Builder Modal */}
       {showQuoteBuilder && (
-        <QuoteBuilder
+        <QuoteFormBuilder
           quote={editingQuote}
           customerId={selectedCustomerId}
           onSave={handleSaveQuote}

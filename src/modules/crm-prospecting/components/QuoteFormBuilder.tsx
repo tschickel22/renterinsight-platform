@@ -123,6 +123,7 @@ const mockPricingRules: PricingRule[] = [
 ]
 
 export function QuoteBuilder({ quote, customerId, onSave, onCancel }: QuoteBuilderProps) {
+export function QuoteFormBuilder({ quote, customerId, onSave, onCancel }: QuoteBuilderProps) {
   const { toast } = useToast()
   const { getAvailableVehicles, getVehicleById } = useInventoryManagement()
   const [loading, setLoading] = useState(false)
