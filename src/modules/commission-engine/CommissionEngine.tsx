@@ -10,9 +10,9 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Commission, CommissionStatus, CommissionType } from '@/types'
-import { formatCurrency, formatDate, cn } from '@/lib/utils'
-import { CommissionModal } from '@/components/CommissionModal'
+import {
+  DollarSign,
+  Plus,
   Search,
   Filter,
   TrendingUp,
