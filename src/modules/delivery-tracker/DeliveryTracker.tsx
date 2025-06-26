@@ -17,6 +17,7 @@ import { DeliveryDetail } from './components/DeliveryDetail'
 import { ETANotificationForm } from './components/ETANotificationForm'
 import { DeliveryPhotoCapture } from './components/DeliveryPhotoCapture'
 import { DeliveryTimeline } from './components/DeliveryTimeline'
+import { DeliveryDashboard } from './components/DeliveryDashboard'
 
 function DeliveriesList() {
   const { 
