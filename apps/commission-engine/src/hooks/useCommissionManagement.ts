@@ -1,81 +1,50 @@
 import { useState } from 'react'
-import { Commission, CommissionStatus, CommissionType, AuditEntry, SalesRep, CommissionRule } from '@/types'
+import { Commission, CommissionStatus, CommissionType } from '@/types'
 
 export function useCommissionManagement() {
-  const [commissions, setCommissions] = useState<Commission[]>([
-    {
-      id: '1',
-      salesPersonId: 'rep-001',
-      dealId: 'deal-001',
-      amount: 5000,
-      rate: 0.05,
-      status: CommissionStatus.PENDING,
-      type: CommissionType.PERCENTAGE,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      notes: 'Initial deal',
-      paidDate: undefined,
-      customFields: {}
-    }
+  const [commissions, setCommissions] = useState<Commission[]>([])
+  const [rules, setRules] = useState<any[]>([]) // Replace with actual type if you have one
+  const [auditTrail, setAuditTrail] = useState<any[]>([]) // Replace with actual type if available
+  const [salesReps, setSalesReps] = useState<any[]>([
+    { id: 'user-001', name: 'Alice' },
+    { id: 'user-002', name: 'Bob' }
   ])
 
-  const [rules, setRules] = useState<CommissionRule[]>([])
-  const [auditTrail, setAuditTrail] = useState<AuditEntry[]>([])
-  const [salesReps] = useState<SalesRep[]>([
-    { id: 'rep-001', name: 'John Smith' },
-    { id: 'rep-002', name: 'Jane Doe' }
-  ])
-
-  const createCommissionRule = async (data: Partial<CommissionRule>) => {
-    const newRule: CommissionRule = {
-      id: Math.random().toString(36).substring(2),
-      name: data.name || 'New Rule',
-      type: data.type || CommissionType.FLAT,
-      rate: data.rate || 0,
-      flatAmount: data.flatAmount || 0,
-      tieredRates: data.tieredRates || [],
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
+  const createCommissionRule = async (rule: any) => {
+    const newRule = { ...rule, id: Math.random().toString(36).substr(2, 9) }
     setRules(prev => [...prev, newRule])
   }
 
-  const updateCommissionRule = async (id: string, data: Partial<CommissionRule>) => {
-    setRules(prev =>
-      prev.map(rule => rule.id === id ? { ...rule, ...data, updatedAt: new Date() } : rule)
-    )
+  const updateCommissionRule = async (id: string, ruleData: Partial<any>) => {
+    setRules(prev => prev.map(r => (r.id === id ? { ...r, ...ruleData } : r)))
   }
 
   const deleteCommissionRule = async (id: string) => {
-    setRules(prev => prev.filter(rule => rule.id !== id))
+    setRules(prev => prev.filter(r => r.id !== id))
   }
 
   const duplicateCommissionRule = async (id: string) => {
     const rule = rules.find(r => r.id === id)
     if (rule) {
-      const duplicated = { ...rule, id: Math.random().toString(36).substring(2), name: `${rule.name} Copy` }
-      setRules(prev => [...prev, duplicated])
+      const newRule = { ...rule, id: Math.random().toString(36).substr(2, 9), name: `${rule.name} Copy` }
+      setRules(prev => [...prev, newRule])
     }
   }
 
-  const addAuditEntry = async (entry: AuditEntry) => {
-    setAuditTrail(prev => [...prev, entry])
+  const addAuditEntry = async (entry: any) => {
+    setAuditTrail(prev => [...prev, { ...entry, id: Math.random().toString(36).substr(2, 9) }])
   }
 
-  const updateAuditEntryNotes = async (timestamp: Date, notes: string) => {
-    setAuditTrail(prev =>
-      prev.map(e =>
-        e.timestamp === timestamp ? { ...e, description: notes } : e
-      )
-    )
+  const updateAuditEntryNotes = async (id: string, notes: string) => {
+    setAuditTrail(prev => prev.map(entry => (entry.id === id ? { ...entry, notes } : entry)))
   }
 
   const getAuditTrailByDealId = (dealId: string) => {
-    return auditTrail.filter(e => e.dealId === dealId)
+    return auditTrail.filter(entry => entry.dealId === dealId)
   }
 
-  const generateCommissionReport = (salesPersonId: string) => {
-    return commissions.filter(c => c.salesPersonId === salesPersonId)
+  const generateCommissionReport = async (salesRepId: string) => {
+    return commissions.filter(c => c.salesPersonId === salesRepId)
   }
 
   return {
