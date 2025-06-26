@@ -813,7 +813,6 @@ Terms: ${quoteData.terms}
                               Add
                             </Button>
                           </div>
-                            </Button>
                           </div>
                         </div>
                       </CardContent>
