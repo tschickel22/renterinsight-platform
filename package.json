@@ -17,7 +17,7 @@
     "react-dropzone": "^14.2.3",
     "react-barcode-reader": "^0.0.2",
     "jspdf": "^2.10.0",
-    "jspdf-autotable": "^3.9.0",
+    "jspdf-autotable": "^3.8.2",
     "papaparse": "^5.4.1",
     "@hookform/resolvers": "^2.9.11",
     "zod": "^3.20.6",
