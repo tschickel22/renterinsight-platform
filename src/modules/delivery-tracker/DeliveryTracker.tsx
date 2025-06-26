@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge' 
-import { Truck, Plus, Search, Filter, MapPin, Calendar, User, TrendingUp, MessageSquare, Camera, Clock } from 'lucide-react'
+import { Truck, Plus, Search, Filter, MapPin, Calendar, User, TrendingUp, MessageSquare, Camera, Clock, Eye } from 'lucide-react'
 import { Delivery, DeliveryStatus } from '@/types'
 import { formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
@@ -412,20 +412,7 @@ function DeliveriesList() {
                       {delivery.notes && (
                         <p className="text-sm text-muted-foreground mt-2 bg-blue-50 p-2 rounded-md">
                           <span className="font-medium">Notes:</span> {delivery.notes}
-                    <Badge 
-                      className={cn("ri-badge-status cursor-pointer", getStatusColor(delivery.status))}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const nextStatus = delivery.status === DeliveryStatus.SCHEDULED 
-                          ? DeliveryStatus.IN_TRANSIT 
-                          : delivery.status === DeliveryStatus.IN_TRANSIT 
-                            ? DeliveryStatus.DELIVERED 
-                            : delivery.status;
-                        if (nextStatus !== delivery.status) {
-                          handleStatusChange(delivery.id, nextStatus);
-                        }
-                      }}
-                    >
+                        </p>
                       )}
                     </div>
                   </div>
@@ -494,33 +481,10 @@ function DeliveriesList() {
   )
 }
 
-function DeliveryDashboardView() {
-  const { deliveries } = useDeliveryManagement()
-  const [showDeliveryForm, setShowDeliveryForm] = useState(false)
-  
-  return (
-    <>
-      {showDeliveryForm && (
-        <DeliveryForm
-          vehicles={[]}
-          customers={[]}
-          onSave={async () => {}}
-          onCancel={() => setShowDeliveryForm(false)}
-        />
-      )}
-      <DeliveryDashboard 
-        deliveries={deliveries} 
-        onScheduleDelivery={() => setShowDeliveryForm(true)} 
-      />
-    </>
-  )
-}
-
 export default function DeliveryTracker() {
   return (
     <Routes>
-      <Route path="/" element={<DeliveryDashboardView />} />
-      <Route path="/list" element={<DeliveriesList />} />
+      <Route path="/" element={<DeliveriesList />} /> 
       <Route path="/*" element={<DeliveriesList />} />
     </Routes>
   )
