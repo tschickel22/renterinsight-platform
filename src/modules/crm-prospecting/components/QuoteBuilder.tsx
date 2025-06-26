@@ -769,41 +769,40 @@ Terms: ${quoteData.terms}
                 </div>
 
                 {/* Available Products Section */}
-              <div className="space-y-4">
+                <div className="space-y-4">
                   <h4 className="text-md font-semibold mb-3 text-green-600">Available Products & Services</h4>
-                <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-                  {mockProducts.map(product => (
-                    <Card key={product.id} className="shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                      <CardContent className="pt-6">
-                        <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-2">
-                              <h4 className="font-semibold">{product.name}</h4>
-                              {product.isBundle && (
-                                <Badge className="bg-purple-50 text-purple-700 border-purple-200">
-                                  <Package className="h-3 w-3 mr-1" />
-                                  Bundle
-                                </Badge>
+                  <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                    {mockProducts.map(product => (
+                      <Card key={product.id} className="shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                        <CardContent className="pt-6">
+                          <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <h4 className="font-semibold">{product.name}</h4>
+                                {product.isBundle && (
+                                  <Badge className="bg-purple-50 text-purple-700 border-purple-200">
+                                    <Package className="h-3 w-3 mr-1" />
+                                    Bundle
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-muted-foreground mb-2">{product.description}</p>
+                              <div className="text-lg font-bold text-primary">{formatCurrency(product.price)}</div>
+                              
+                              {product.isBundle && product.bundleItems && (
+                                <div className="mt-3 p-2 bg-purple-50 rounded">
+                                  <div className="text-xs font-semibold text-purple-700 mb-1">Includes:</div>
+                                  {product.bundleItems.map(bundleItem => {
+                                    const bundleProduct = mockProducts.find(p => p.id === bundleItem.productId)
+                                    return (
+                                      <div key={bundleItem.productId} className="text-xs text-purple-600">
+                                        • {bundleProduct?.name} ({bundleItem.quantity}x)
+                                      </div>
+                                    )
+                                  })}
+                                </div>
                               )}
                             </div>
-                            <p className="text-sm text-muted-foreground mb-2">{product.description}</p>
-                            <div className="text-lg font-bold text-primary">{formatCurrency(product.price)}</div>
-                            
-                            {product.isBundle && product.bundleItems && (
-                              <div className="mt-3 p-2 bg-purple-50 rounded">
-                                <div className="text-xs font-semibold text-purple-700 mb-1">Includes:</div>
-                                {product.bundleItems.map(bundleItem => {
-                                  const bundleProduct = mockProducts.find(p => p.id === bundleItem.productId)
-                                  return (
-                                    <div key={bundleItem.productId} className="text-xs text-purple-600">
-                                      • {bundleProduct?.name} ({bundleItem.quantity}x)
-                                    </div>
-                                  )
-                                })}
-                              </div>
-                            )}
-                          </div>
-                          <div className="w-full sm:w-auto">
                             <Button
                               onClick={() => addProductToQuote(product.id)}
                               size="sm"
@@ -813,12 +812,10 @@ Terms: ${quoteData.terms}
                               Add
                             </Button>
                           </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
                 </div>
               </div>
             </TabsContent>
