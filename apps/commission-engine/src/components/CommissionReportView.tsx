@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { BarChart3, Download, Printer, Calendar, User, DollarSign, Filter, Search } from 'lucide-react'
-import { Commission, CommissionStatus, CommissionType } from '@/types'
+import { BarChart3, Download, Printer, Calendar, User, DollarSign, Filter, Search, AlertCircle } from 'lucide-react'
+import { Commission, CommissionStatus, CommissionType } from '../types'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
@@ -27,7 +27,7 @@ export function CommissionReportView({
   const [searchTerm, setSearchTerm] = useState('')
   const [dateRange, setDateRange] = useState<string>('this_month')
   const [salesRepFilter, setSalesRepFilter] = useState<string>('all')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [statusFilter, setStatusFilter] = useState<CommissionStatus | 'all'>('all')
 
   const getStatusColor = (status: CommissionStatus) => {
     switch (status) {
@@ -57,11 +57,18 @@ export function CommissionReportView({
     }
   }
 
+  // Get sales rep name by ID
+  const getSalesRepName = (repId: string) => {
+    const rep = salesReps.find(r => r.id === repId)
+    return rep ? rep.name : repId
+  }
+
   // Filter commissions based on search, date range, sales rep, and status
   const filteredCommissions = commissions.filter(commission => {
     const matchesSearch = 
       commission.dealId.toLowerCase().includes(searchTerm.toLowerCase()) ||
       commission.salesPersonId.toLowerCase().includes(searchTerm.toLowerCase())
+      || getSalesRepName(commission.salesPersonId).toLowerCase().includes(searchTerm.toLowerCase())
     
     // Date range filter
     let matchesDateRange = true
@@ -91,7 +98,7 @@ export function CommissionReportView({
     }
     
     const matchesSalesRep = salesRepFilter === 'all' || commission.salesPersonId === salesRepFilter
-    const matchesStatus = statusFilter === 'all' || commission.status === statusFilter
+    const matchesStatus = statusFilter === 'all' || commission.status === statusFilter as CommissionStatus
 
     return matchesSearch && matchesDateRange && matchesSalesRep && matchesStatus
   })
@@ -104,12 +111,6 @@ export function CommissionReportView({
   const paidCommission = filteredCommissions
     .filter(c => c.status === CommissionStatus.PAID)
     .reduce((sum, c) => sum + c.amount, 0)
-
-  // Get sales rep name by ID
-  const getSalesRepName = (repId: string) => {
-    const rep = salesReps.find(r => r.id === repId)
-    return rep ? rep.name : repId
-  }
 
   const handleExport = () => {
     try {
@@ -314,7 +315,11 @@ export function CommissionReportView({
                 {filteredCommissions.length === 0 && (
                   <tr>
                     <td colSpan={7} className="p-8 text-center text-muted-foreground">
-                      No commission entries found matching your filters
+                      <div className="flex flex-col items-center">
+                        <AlertCircle className="h-8 w-8 text-muted-foreground/50 mb-2" />
+                        <p>No commission entries found matching your filters</p>
+                        <p className="text-sm">Try adjusting your search criteria</p>
+                      </div>
                     </td>
                   </tr>
                 )}

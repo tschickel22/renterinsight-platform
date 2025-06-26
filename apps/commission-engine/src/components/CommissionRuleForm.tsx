@@ -5,10 +5,9 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { X, Save, Plus, Trash2, DollarSign, Percent } from 'lucide-react'
+import { X, Save, Plus, Trash2, DollarSign, Percent, AlertTriangle } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-
-export type CommissionRuleType = 'flat' | 'percentage' | 'tiered'
+import { CommissionType } from '../types'
 
 export interface TierLevel {
   id: string
@@ -21,7 +20,7 @@ export interface TierLevel {
 export interface CommissionRule {
   id: string
   name: string
-  type: CommissionRuleType
+  type: CommissionType
   description?: string
   flatAmount?: number
   percentageRate?: number
@@ -43,7 +42,7 @@ export function CommissionRuleForm({ rule, onSave, onCancel }: CommissionRuleFor
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState<Partial<CommissionRule>>({
     name: '',
-    type: 'percentage',
+    type: CommissionType.PERCENTAGE,
     description: '',
     flatAmount: 0,
     percentageRate: 10,
@@ -239,15 +238,15 @@ export function CommissionRuleForm({ rule, onSave, onCancel }: CommissionRuleFor
                   <Label htmlFor="type">Commission Type</Label>
                   <Select 
                     value={formData.type} 
-                    onValueChange={(value: CommissionRuleType) => setFormData(prev => ({ ...prev, type: value }))}
+                    onValueChange={(value: CommissionType) => setFormData(prev => ({ ...prev, type: value }))}
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="flat">Flat Amount</SelectItem>
-                      <SelectItem value="percentage">Percentage</SelectItem>
-                      <SelectItem value="tiered">Tiered</SelectItem>
+                      <SelectItem value={CommissionType.FLAT}>Flat Amount</SelectItem>
+                      <SelectItem value={CommissionType.PERCENTAGE}>Percentage</SelectItem>
+                      <SelectItem value={CommissionType.TIERED}>Tiered</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -295,8 +294,30 @@ export function CommissionRuleForm({ rule, onSave, onCancel }: CommissionRuleFor
             {/* Commission Details based on type */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Commission Details</h3>
+
+              {formData.type === CommissionType.FLAT && formData.flatAmount === 0 && (
+                <div className="bg-yellow-50 p-3 rounded-md flex items-start space-x-2 mb-4">
+                  <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                  <div>
+                    <p className="text-sm text-yellow-700">
+                      Please set a flat amount greater than zero for this commission rule.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {formData.type === CommissionType.PERCENTAGE && formData.percentageRate === 0 && (
+                <div className="bg-yellow-50 p-3 rounded-md flex items-start space-x-2 mb-4">
+                  <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                  <div>
+                    <p className="text-sm text-yellow-700">
+                      Please set a percentage rate greater than zero for this commission rule.
+                    </p>
+                  </div>
+                </div>
+              )}
               
-              {formData.type === 'flat' && (
+              {formData.type === CommissionType.FLAT && (
                 <div>
                   <Label htmlFor="flatAmount">Flat Amount</Label>
                   <div className="relative">
@@ -314,7 +335,7 @@ export function CommissionRuleForm({ rule, onSave, onCancel }: CommissionRuleFor
                 </div>
               )}
               
-              {formData.type === 'percentage' && (
+              {formData.type === CommissionType.PERCENTAGE && (
                 <div>
                   <Label htmlFor="percentageRate">Percentage Rate</Label>
                   <div className="relative">
@@ -333,7 +354,7 @@ export function CommissionRuleForm({ rule, onSave, onCancel }: CommissionRuleFor
                 </div>
               )}
               
-              {formData.type === 'tiered' && (
+              {formData.type === CommissionType.TIERED && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <Label>Tier Levels</Label>
@@ -426,6 +447,17 @@ export function CommissionRuleForm({ rule, onSave, onCancel }: CommissionRuleFor
                   )}
 
                   {/* Tiers List */}
+
+              {formData.type === CommissionType.TIERED && (!formData.tiers || formData.tiers.length === 0) && (
+                <div className="bg-yellow-50 p-3 rounded-md flex items-start space-x-2">
+                  <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                  <div>
+                    <p className="text-sm text-yellow-700">
+                      Please add at least one tier for this tiered commission rule.
+                    </p>
+                  </div>
+                </div>
+              )}
                   <div className="space-y-3">
                     {formData.tiers && formData.tiers.length > 0 ? (
                       formData.tiers.map((tier) => (

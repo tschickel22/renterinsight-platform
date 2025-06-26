@@ -4,17 +4,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { DollarSign, Plus, Calculator, BarChart3, History, Settings } from 'lucide-react'
-import { useAuth } from '@/contexts/AuthContext'
+import { DollarSign, Plus, Calculator, BarChart3, History, Settings, Users } from 'lucide-react'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
 import { formatCurrency } from '@/lib/utils'
-import { Commission, CommissionStatus, CommissionType } from '@/types'
+import { Commission, CommissionStatus, CommissionType } from './types'
 import { CommissionRuleForm, CommissionRule } from './components/CommissionRuleForm'
 import { CommissionRulesList } from './components/CommissionRulesList'
 import { CommissionReportView } from './components/CommissionReportView'
 import { CommissionCalculator } from './components/CommissionCalculator'
 import { AuditTrailCard, AuditEntry } from './components/AuditTrailCard'
 import { useCommissionManagement } from './hooks/useCommissionManagement'
+import { UserCommissionReport } from './components/UserCommissionReport'
 
 function CommissionEngineDashboard() {
   const { user } = useAuth()
@@ -23,26 +24,21 @@ function CommissionEngineDashboard() {
     commissions,
     rules,
     auditTrail,
+    salesReps,
     createCommissionRule,
     updateCommissionRule,
     deleteCommissionRule,
     duplicateCommissionRule,
     getAuditTrailByDealId,
     addAuditEntry,
-    updateAuditEntryNotes
+    updateAuditEntryNotes,
+    generateCommissionReport
   } = useCommissionManagement()
   
   const [activeTab, setActiveTab] = useState('dashboard')
   const [showRuleForm, setShowRuleForm] = useState(false)
   const [selectedRule, setSelectedRule] = useState<CommissionRule | null>(null)
   const [selectedDealId, setSelectedDealId] = useState<string>('deal-001') // For demo purposes
-
-  // Mock sales reps data
-  const salesReps = [
-    { id: 'sales-001', name: 'John Smith' },
-    { id: 'sales-002', name: 'Sarah Johnson' },
-    { id: 'sales-003', name: 'Mike Davis' }
-  ]
 
   const handleCreateRule = () => {
     setSelectedRule(null)
@@ -234,9 +230,10 @@ function CommissionEngineDashboard() {
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="rules">Commission Rules</TabsTrigger>
+          <TabsTrigger value="user-reports">User Reports</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
           <TabsTrigger value="calculator">Calculator</TabsTrigger>
         </TabsList>
@@ -269,6 +266,13 @@ function CommissionEngineDashboard() {
           />
         </TabsContent>
 
+        <TabsContent value="user-reports">
+          <UserCommissionReport 
+            salesReps={salesReps}
+            generateCommissionReport={generateCommissionReport}
+          />
+        </TabsContent>
+
         <TabsContent value="reports">
           <CommissionReportView
             commissions={commissions}
@@ -293,5 +297,11 @@ function CommissionEngineDashboard() {
 
 // Render the app
 const container = document.getElementById('root')
-const root = createRoot(container!)
-root.render(<CommissionEngineDashboard />)
+if (container) {
+  const root = createRoot(container)
+  root.render(
+    <AuthProvider>
+      <CommissionEngineDashboard />
+    </AuthProvider>
+  )
+}

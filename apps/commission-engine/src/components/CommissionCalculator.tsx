@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label'
 import { Calculator, DollarSign, Percent, Save, ArrowRight } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
-import { CommissionRule, CommissionRuleType } from './CommissionRuleForm'
+import { CommissionRule } from './CommissionRuleForm'
+import { CommissionType } from '../types'
 
 interface CommissionCalculatorProps {
   rules: CommissionRule[]
@@ -66,18 +67,18 @@ export function CommissionCalculator({ rules, onSaveCalculation }: CommissionCal
     let commission = 0
 
     switch (rule.type) {
-      case 'flat':
+      case CommissionType.FLAT:
         commission = rule.flatAmount || 0
         breakdown.push(`Flat commission: ${formatCurrency(commission)}`)
         break
         
-      case 'percentage':
+      case CommissionType.PERCENTAGE:
         const rate = rule.percentageRate || 0
         commission = (amount * rate) / 100
         breakdown.push(`${rate}% of ${formatCurrency(amount)} = ${formatCurrency(commission)}`)
         break
         
-      case 'tiered':
+      case CommissionType.TIERED:
         if (!rule.tiers || rule.tiers.length === 0) {
           breakdown.push('No tiers defined for this rule')
           break
@@ -124,25 +125,28 @@ export function CommissionCalculator({ rules, onSaveCalculation }: CommissionCal
     }
 
     if (!onSaveCalculation) return
-
-    setLoading(true)
-    try {
-      const rule = rules.find(r => r.id === selectedRuleId)
-      
-      await onSaveCalculation({
-        dealAmount,
-        ruleId: selectedRuleId,
-        ruleName: rule?.name,
-        ruleType: rule?.type,
-        commission: calculatedCommission,
-        breakdown: calculationBreakdown,
-        calculatedAt: new Date()
-      })
-      
-      toast({
-        title: 'Success',
-        description: 'Commission calculation saved',
-      })
+      try {
+        await onSaveCalculation({
+          dealAmount,
+          ruleId: selectedRuleId,
+          ruleName: rule?.name,
+          ruleType: rule?.type,
+          commission: calculatedCommission,
+          breakdown: calculationBreakdown,
+          calculatedAt: new Date()
+        })
+        
+        toast({
+          title: 'Success',
+          description: 'Commission calculation saved',
+        })
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to save calculation',
+          variant: 'destructive'
+        })
+      }
     } catch (error) {
       toast({
         title: 'Error',

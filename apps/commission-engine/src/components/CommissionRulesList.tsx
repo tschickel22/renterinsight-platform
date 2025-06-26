@@ -3,8 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { DollarSign, Plus, Search, Filter, Edit, Trash2, Copy, Percent, Layers } from 'lucide-react'
-import { CommissionRule, CommissionRuleType } from './CommissionRuleForm'
+import { DollarSign, Plus, Search, Filter, Edit, Trash2, Copy, Percent, Layers, AlertCircle } from 'lucide-react'
+import { CommissionRule } from './CommissionRuleForm'
+import { CommissionType } from '../types'
 import { cn } from '@/lib/utils'
 
 interface CommissionRulesListProps {
@@ -25,26 +26,26 @@ export function CommissionRulesList({
   const [searchTerm, setSearchTerm] = useState('')
   const [typeFilter, setTypeFilter] = useState<string>('all')
 
-  const getTypeIcon = (type: CommissionRuleType) => {
+  const getTypeIcon = (type: CommissionType) => {
     switch (type) {
-      case 'flat':
+      case CommissionType.FLAT:
         return <DollarSign className="h-4 w-4 text-blue-500" />
-      case 'percentage':
+      case CommissionType.PERCENTAGE:
         return <Percent className="h-4 w-4 text-green-500" />
-      case 'tiered':
+      case CommissionType.TIERED:
         return <Layers className="h-4 w-4 text-purple-500" />
       default:
         return <DollarSign className="h-4 w-4 text-gray-500" />
     }
   }
 
-  const getTypeColor = (type: CommissionRuleType) => {
+  const getTypeColor = (type: CommissionType) => {
     switch (type) {
-      case 'flat':
+      case CommissionType.FLAT:
         return 'bg-blue-50 text-blue-700 border-blue-200'
-      case 'percentage':
+      case CommissionType.PERCENTAGE:
         return 'bg-green-50 text-green-700 border-green-200'
-      case 'tiered':
+      case CommissionType.TIERED:
         return 'bg-purple-50 text-purple-700 border-purple-200'
       default:
         return 'bg-gray-50 text-gray-700 border-gray-200'
@@ -132,9 +133,9 @@ export function CommissionRulesList({
                       <span className="flex items-center">
                         {getTypeIcon(rule.type)}
                         <span className="ml-1">
-                          {rule.type === 'flat' && `$${rule.flatAmount?.toLocaleString() || 0}`}
-                          {rule.type === 'percentage' && `${rule.percentageRate || 0}%`}
-                          {rule.type === 'tiered' && `${rule.tiers?.length || 0} tier${rule.tiers?.length !== 1 ? 's' : ''}`}
+                          {rule.type === CommissionType.FLAT && `$${rule.flatAmount?.toLocaleString() || 0}`}
+                          {rule.type === CommissionType.PERCENTAGE && `${rule.percentageRate || 0}%`}
+                          {rule.type === CommissionType.TIERED && `${rule.tiers?.length || 0} tier${rule.tiers?.length !== 1 ? 's' : ''}`}
                         </span>
                       </span>
                       <span className="text-muted-foreground">
@@ -173,6 +174,14 @@ export function CommissionRulesList({
                 </div>
               </div>
             ))}
+            
+            {filteredRules.length === 0 && searchTerm && (
+              <div className="text-center py-8 text-muted-foreground">
+                <AlertCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                <p>No commission rules found matching "{searchTerm}"</p>
+                <p className="text-sm">Try adjusting your search or filters</p>
+              </div>
+            )}
 
             {filteredRules.length === 0 && (
               <div className="text-center py-12 text-muted-foreground">

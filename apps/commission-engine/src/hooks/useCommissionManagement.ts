@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Commission, CommissionStatus, CommissionType } from '@/types'
+import { Commission, CommissionStatus, CommissionType } from '../types'
 import { saveToLocalStorage, loadFromLocalStorage } from '@/lib/utils'
 import { CommissionRule } from '../components/CommissionRuleForm'
 import { AuditEntry } from '../components/AuditTrailCard'
@@ -18,7 +18,7 @@ export function useCommissionManagement() {
     // Load existing data from localStorage or use mock data
     const savedCommissions = loadFromLocalStorage('renter-insight-commissions', [
       {
-        id: '1',
+        id: 'comm-001',
         salesPersonId: 'sales-001',
         dealId: 'deal-001',
         type: CommissionType.PERCENTAGE,
@@ -32,7 +32,7 @@ export function useCommissionManagement() {
         updatedAt: new Date('2024-01-20')
       },
       {
-        id: '2',
+        id: 'comm-002',
         salesPersonId: 'sales-002',
         dealId: 'deal-002',
         type: CommissionType.FLAT,
@@ -43,14 +43,27 @@ export function useCommissionManagement() {
         customFields: {},
         createdAt: new Date('2024-01-15'),
         updatedAt: new Date('2024-01-15')
+      },
+      {
+        id: 'comm-003',
+        salesPersonId: 'sales-001',
+        dealId: 'deal-003',
+        type: CommissionType.TIERED,
+        rate: 0,
+        amount: 8750,
+        status: CommissionStatus.PENDING,
+        notes: 'Tiered commission based on deal value',
+        customFields: {},
+        createdAt: new Date('2024-01-22'),
+        updatedAt: new Date('2024-01-15')
       }
     ])
 
     const savedRules = loadFromLocalStorage('renter-insight-commission-rules', [
       {
         id: '1',
-        name: 'Standard Sales Commission',
-        type: 'percentage',
+        name: 'Standard Percentage Commission',
+        type: CommissionType.PERCENTAGE,
         description: 'Standard percentage-based commission for all sales',
         percentageRate: 5,
         isActive: true,
@@ -60,8 +73,8 @@ export function useCommissionManagement() {
       },
       {
         id: '2',
-        name: 'Service Contract Commission',
-        type: 'flat',
+        name: 'Flat Rate Commission',
+        type: CommissionType.FLAT,
         description: 'Flat commission for service contracts',
         flatAmount: 2500,
         isActive: true,
@@ -71,8 +84,8 @@ export function useCommissionManagement() {
       },
       {
         id: '3',
-        name: 'Tiered Sales Commission',
-        type: 'tiered',
+        name: 'Tiered Commission Structure',
+        type: CommissionType.TIERED,
         description: 'Tiered commission structure based on deal value',
         tiers: [
           {
@@ -124,12 +137,57 @@ export function useCommissionManagement() {
         oldValue: 'PENDING',
         newValue: 'APPROVED',
         timestamp: new Date('2024-01-20'),
+      },
+      {
+        id: '3',
+        dealId: 'deal-002',
+        userId: 'user-001',
+        userName: 'Admin User',
+        action: 'create',
+        description: 'Created commission for deal #deal-002',
+        timestamp: new Date('2024-01-15'),
+      },
+      {
+        id: '4',
+        dealId: 'deal-003',
+        userId: 'user-001',
+        userName: 'Admin User',
+        action: 'manual_note',
+        description: 'Added note about tiered commission calculation',
+        timestamp: new Date('2024-01-22'),
+        notes: 'This commission was calculated using the tiered structure with a deal value of $125,000, falling into the highest tier at 7%'
+      }
+    ])
+
+    // Mock sales reps
+    const mockSalesReps = loadFromLocalStorage('renter-insight-sales-reps', [
+      {
+        id: 'sales-001',
+        name: 'John Smith',
+        email: 'john.smith@example.com',
+        territory: 'North Region',
+        isActive: true
+      },
+      {
+        id: 'sales-002',
+        name: 'Sarah Johnson',
+        email: 'sarah.johnson@example.com',
+        territory: 'South Region',
+        isActive: true
+      },
+      {
+        id: 'sales-003',
+        name: 'Mike Davis',
+        email: 'mike.davis@example.com',
+        territory: 'East Region',
+        isActive: true
       }
     ])
 
     setCommissions(savedCommissions)
     setRules(savedRules)
     setAuditTrail(savedAuditTrail)
+    setSalesReps(mockSalesReps)
   }
 
   const saveCommissionsToStorage = (updatedCommissions: Commission[]) => {
@@ -144,6 +202,10 @@ export function useCommissionManagement() {
     saveToLocalStorage('renter-insight-commission-audit', updatedAuditTrail)
   }
 
+  const saveSalesRepsToStorage = (updatedSalesReps: any[]) => {
+    saveToLocalStorage('renter-insight-sales-reps', updatedSalesReps)
+  }
+
   // Commission Management
   const getCommissionsByDealId = (dealId: string) => {
     return commissions.filter(commission => commission.dealId === dealId)
@@ -151,6 +213,10 @@ export function useCommissionManagement() {
 
   const getCommissionsBySalesRep = (salesRepId: string) => {
     return commissions.filter(commission => commission.salesPersonId === salesRepId)
+  }
+
+  const getCommissionsByStatus = (status: CommissionStatus) => {
+    return commissions.filter(commission => commission.status === status)
   }
 
   const createCommission = async (commissionData: Partial<Commission>, userId: string, userName: string) => {
@@ -161,7 +227,7 @@ export function useCommissionManagement() {
         salesPersonId: commissionData.salesPersonId || '',
         dealId: commissionData.dealId || '',
         type: commissionData.type || CommissionType.PERCENTAGE,
-        rate: commissionData.rate || 0,
+        rate: commissionData.rate ?? 0,
         amount: commissionData.amount || 0,
         status: CommissionStatus.PENDING,
         notes: commissionData.notes || '',
@@ -170,7 +236,7 @@ export function useCommissionManagement() {
         updatedAt: new Date()
       }
 
-      const updatedCommissions = [...commissions, newCommission]
+      const updatedCommissions = [newCommission, ...commissions]
       setCommissions(updatedCommissions)
       saveCommissionsToStorage(updatedCommissions)
 
@@ -190,6 +256,7 @@ export function useCommissionManagement() {
     }
   }
 
+  // Update commission status with audit trail
   const updateCommissionStatus = async (commissionId: string, status: CommissionStatus, userId: string, userName: string) => {
     const commission = commissions.find(c => c.id === commissionId)
     if (!commission) return null
@@ -197,7 +264,7 @@ export function useCommissionManagement() {
     const oldStatus = commission.status
     const paidDate = status === CommissionStatus.PAID ? new Date() : commission.paidDate
 
-    const updatedCommissions = commissions.map(c => 
+    const updatedCommissions = commissions.map(c =>
       c.id === commissionId 
         ? { 
             ...c, 
@@ -225,6 +292,39 @@ export function useCommissionManagement() {
     return updatedCommissions.find(c => c.id === commissionId)
   }
 
+  // Generate commission report for a specific sales rep
+  const generateCommissionReport = (salesRepId: string, startDate: Date, endDate: Date) => {
+    const repCommissions = commissions.filter(c => 
+      c.salesPersonId === salesRepId && 
+      new Date(c.createdAt) >= startDate && 
+      new Date(c.createdAt) <= endDate
+    );
+    
+    const salesRep = salesReps.find(r => r.id === salesRepId);
+    
+    if (!salesRep) {
+      throw new Error('Sales rep not found');
+    }
+    
+    const totalCommissions = repCommissions.reduce((sum, c) => sum + c.amount, 0);
+    const paidCommissions = repCommissions
+      .filter(c => c.status === CommissionStatus.PAID)
+      .reduce((sum, c) => sum + c.amount, 0);
+    const pendingCommissions = repCommissions
+      .filter(c => c.status === CommissionStatus.PENDING || c.status === CommissionStatus.APPROVED)
+      .reduce((sum, c) => sum + c.amount, 0);
+    
+    return {
+      period: `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`,
+      salesPerson: salesRep.name,
+      totalCommissions,
+      paidCommissions,
+      pendingCommissions,
+      dealCount: repCommissions.length,
+      commissions: repCommissions
+    };
+  }
+
   // Commission Rule Management
   const createCommissionRule = async (ruleData: Partial<CommissionRule>, userId: string, userName: string) => {
     setLoading(true)
@@ -232,7 +332,7 @@ export function useCommissionManagement() {
       const newRule: CommissionRule = {
         id: Math.random().toString(36).substr(2, 9),
         name: ruleData.name || '',
-        type: ruleData.type || 'percentage',
+        type: ruleData.type || CommissionType.PERCENTAGE,
         description: ruleData.description,
         flatAmount: ruleData.flatAmount,
         percentageRate: ruleData.percentageRate,
@@ -243,7 +343,7 @@ export function useCommissionManagement() {
         updatedAt: new Date()
       }
 
-      const updatedRules = [...rules, newRule]
+      const updatedRules = [newRule, ...rules]
       setRules(updatedRules)
       saveRulesToStorage(updatedRules)
 
@@ -340,7 +440,7 @@ export function useCommissionManagement() {
     return newRule
   }
 
-  // Audit Trail Management
+  // Audit Trail Management with validation
   const getAuditTrailByDealId = (dealId: string) => {
     return auditTrail.filter(entry => entry.dealId === dealId)
   }
@@ -348,7 +448,7 @@ export function useCommissionManagement() {
   const addAuditEntry = async (entryData: Partial<AuditEntry>) => {
     const newEntry: AuditEntry = {
       id: Math.random().toString(36).substr(2, 9),
-      dealId: entryData.dealId || '',
+      dealId: entryData.dealId || 'unknown',
       userId: entryData.userId || '',
       userName: entryData.userName || '',
       action: entryData.action || '',
@@ -359,7 +459,7 @@ export function useCommissionManagement() {
       timestamp: entryData.timestamp || new Date()
     }
 
-    const updatedAuditTrail = [...auditTrail, newEntry]
+    const updatedAuditTrail = [newEntry, ...auditTrail]
     setAuditTrail(updatedAuditTrail)
     saveAuditTrailToStorage(updatedAuditTrail)
 
@@ -367,7 +467,7 @@ export function useCommissionManagement() {
   }
 
   const updateAuditEntryNotes = async (entryId: string, notes: string) => {
-    const updatedAuditTrail = auditTrail.map(entry => 
+    const updatedAuditTrail = auditTrail.map(entry =>
       entry.id === entryId 
         ? { ...entry, notes }
         : entry
@@ -376,7 +476,7 @@ export function useCommissionManagement() {
     saveAuditTrailToStorage(updatedAuditTrail)
   }
 
-  // Commission Calculation
+  // Commission Calculation with fallback logic
   const calculateCommission = (dealAmount: number, ruleId: string) => {
     const rule = rules.find(r => r.id === ruleId)
     if (!rule) {
@@ -386,21 +486,27 @@ export function useCommissionManagement() {
     let commission = 0
     const breakdown: string[] = []
 
+    // Fallback to percentage calculation if rule is missing or invalid
+    const defaultRate = 5; // 5% default rate
+
     switch (rule.type) {
-      case 'flat':
-        commission = rule.flatAmount || 0
+      case CommissionType.FLAT:
+        commission = rule.flatAmount || 1000 // Fallback to $1000 if not specified
         breakdown.push(`Flat commission: ${commission}`)
         break
         
-      case 'percentage':
-        const rate = rule.percentageRate || 0
+      case CommissionType.PERCENTAGE:
+        const rate = rule.percentageRate || defaultRate
         commission = (dealAmount * rate) / 100
         breakdown.push(`${rate}% of ${dealAmount} = ${commission}`)
         break
         
-      case 'tiered':
+      case CommissionType.TIERED:
         if (!rule.tiers || rule.tiers.length === 0) {
           breakdown.push('No tiers defined for this rule')
+          // Fallback to default percentage if no tiers
+          commission = (dealAmount * defaultRate) / 100
+          breakdown.push(`Fallback to default ${defaultRate}% = ${commission}`)
           break
         }
         
@@ -438,9 +544,11 @@ export function useCommissionManagement() {
     commissions,
     rules,
     auditTrail,
+    salesReps,
     loading,
     getCommissionsByDealId,
     getCommissionsBySalesRep,
+    getCommissionsByStatus,
     createCommission,
     updateCommissionStatus,
     createCommissionRule,
@@ -450,6 +558,7 @@ export function useCommissionManagement() {
     getAuditTrailByDealId,
     addAuditEntry,
     updateAuditEntryNotes,
-    calculateCommission
+    calculateCommission,
+    generateCommissionReport
   }
 }

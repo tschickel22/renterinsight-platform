@@ -3,22 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import { History, Edit, Save, X, Check, AlertTriangle, User, Clock } from 'lucide-react'
+import { History, Edit, Save, X, Check, AlertTriangle, User, Clock, Plus, MessageSquare } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
-
-export interface AuditEntry {
-  id: string
-  dealId: string
-  userId: string
-  userName: string
-  action: string
-  description: string
-  oldValue?: any
-  newValue?: any
-  timestamp: Date
-  notes?: string
-}
+import { AuditEntry } from '../types'
 
 interface AuditTrailCardProps {
   entries: AuditEntry[]
@@ -176,7 +164,7 @@ export function AuditTrailCard({
         {/* Add New Entry */}
         <div className="space-y-3">
           <h3 className="text-sm font-medium">Add Note to Audit Trail</h3>
-          <Textarea
+          <Textarea 
             value={newEntryDescription}
             onChange={(e) => setNewEntryDescription(e.target.value)}
             placeholder="Add a note or comment about this deal..."
@@ -195,7 +183,7 @@ export function AuditTrailCard({
                 </>
               ) : (
                 <>
-                  <Plus className="h-4 w-4 mr-2" />
+                  <MessageSquare className="h-4 w-4 mr-2" />
                   Add Note
                 </>
               )}
@@ -221,13 +209,14 @@ export function AuditTrailCard({
                     <div className="flex-shrink-0">
                       <Badge className={getActionColor(entry.action)}>
                         {getActionIcon(entry.action)}
+                        <span className="ml-1 sr-only">{entry.action}</span>
                       </Badge>
                     </div>
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center space-x-2">
-                          <span className="font-medium text-sm capitalize">
+                          <span className="font-medium text-sm capitalize" title={entry.action}>
                             {entry.action.replace('_', ' ')}
                           </span>
                           <span className="text-xs text-muted-foreground">
@@ -252,18 +241,18 @@ export function AuditTrailCard({
                       </p>
                       
                       {/* Display old and new values if they exist */}
-                      {(entry.oldValue || entry.newValue) && (
+                      {(entry.oldValue !== undefined || entry.newValue !== undefined) && (
                         <div className="mt-2 text-xs">
-                          {entry.oldValue && (
-                            <div className="bg-red-50 p-1 rounded mb-1">
+                          {entry.oldValue !== undefined && (
+                            <div className="bg-red-50 p-1.5 rounded-md mb-1">
                               <span className="font-medium">Old: </span>
                               {typeof entry.oldValue === 'object' 
                                 ? JSON.stringify(entry.oldValue) 
                                 : entry.oldValue.toString()}
                             </div>
                           )}
-                          {entry.newValue && (
-                            <div className="bg-green-50 p-1 rounded">
+                          {entry.newValue !== undefined && (
+                            <div className="bg-green-50 p-1.5 rounded-md">
                               <span className="font-medium">New: </span>
                               {typeof entry.newValue === 'object' 
                                 ? JSON.stringify(entry.newValue) 
@@ -282,7 +271,7 @@ export function AuditTrailCard({
                       {/* Notes section */}
                       {editingEntryId === entry.id ? (
                         <div className="mt-2 space-y-2">
-                          <Textarea
+                          <Textarea 
                             value={editedNotes}
                             onChange={(e) => setEditedNotes(e.target.value)}
                             placeholder="Add notes about this entry..."
@@ -310,8 +299,9 @@ export function AuditTrailCard({
                           </div>
                         </div>
                       ) : entry.notes ? (
-                        <div className="mt-2 p-2 bg-muted/30 rounded-md">
-                          <p className="text-sm italic">{entry.notes}</p>
+                        <div className="mt-2 p-2 bg-muted/30 rounded-md flex items-start space-x-2">
+                          <MessageSquare className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
+                          <p className="text-sm">{entry.notes}</p>
                         </div>
                       ) : null}
                     </div>
