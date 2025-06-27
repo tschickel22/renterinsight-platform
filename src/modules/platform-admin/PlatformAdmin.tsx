@@ -11,8 +11,6 @@ import { ClientAccount, ClientAccountStatus, UserRole } from '@/types'
 import { cn } from '@/lib/utils'
 import { useClientPortalAccounts } from '@/hooks/useClientPortalAccounts'
 import { useToast } from '@/hooks/use-toast'
-import { useClientPortalAccounts } from '@/hooks/useClientPortalAccounts'
-import { useToast } from '@/hooks/use-toast'
 
 const mockTenants = [
   {

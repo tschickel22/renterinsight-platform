@@ -21,7 +21,6 @@ import { NurtureSequences } from './components/NurtureSequences'
 import { AIInsights } from './components/AIInsights'
 import { CommunicationCenter } from './components/CommunicationCenter'
 import { NewLeadForm } from './components/NewLeadForm'
-import { NewClientAccountForm } from '@/components/NewClientAccountForm'
 import { QuotesList } from './components/QuotesList'
 
 function LeadsList() {
