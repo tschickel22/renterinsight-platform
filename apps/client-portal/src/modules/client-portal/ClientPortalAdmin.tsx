@@ -49,22 +49,25 @@ function PortalDashboard() {
 
     if (isPreview && previewClientId) {
       const clientAccount = getClientAccount(previewClientId);
-
       if (clientAccount) {
-        setActiveClient({
+        const impersonated = {
           id: clientAccount.id,
           name: clientAccount.name,
           email: clientAccount.email,
           phone: clientAccount.phone,
           isPreview: true
-        });
+        };
+        setActiveClient(impersonated);
+        saveToLocalStorage('renter-insight-client-session', impersonated);
       } else {
-        setActiveClient({
+        const previewFallback = {
           id: previewClientId,
           name: 'Preview User',
           email: 'preview@example.com',
           isPreview: true
-        });
+        };
+        setActiveClient(previewFallback);
+        saveToLocalStorage('renter-insight-client-session', previewFallback);
       }
     } else {
       const storedClient = loadFromLocalStorage('renter-insight-client-session', null);
@@ -79,7 +82,7 @@ function PortalDashboard() {
     window.open(previewUrl, '_blank');
     toast({
       title: 'Client Preview',
-      description: 'Opening client portal in impersonation mode',
+      description: `Opening portal as client ID: ${clientId}`,
     });
   };
 
@@ -96,7 +99,15 @@ function PortalDashboard() {
     }
   };
 
-  return <div>...</div>; // The full component remains unchanged below
+  return (
+    <div className="p-6">
+      <div className="mb-4 text-sm text-blue-700">You are impersonating a client. <Button variant="link" size="sm" onClick={() => {
+        localStorage.removeItem('renter-insight-client-session');
+        window.location.href = '/portal';
+      }}>Exit Preview</Button></div>
+      {/* ...rest of your admin UI */}
+    </div>
+  );
 }
 
 export function ClientPortalAdmin() {
