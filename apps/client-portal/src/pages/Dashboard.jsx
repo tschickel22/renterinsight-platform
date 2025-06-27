@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { FileText, FileSignature, Wrench, Truck, BarChart2, Bell } from 'lucide-react';
 
-const Dashboard = () => {
+const Dashboard = ({ customerName = 'John' }) => {
   // Mock data
   const recentActivity = [
     { id: 1, type: 'quote', title: 'Quote #Q-2024-001 sent', date: '2 days ago' },
@@ -19,7 +19,7 @@ const Dashboard = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Welcome, John</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Welcome, {customerName.split(' ')[0]}</h1>
         <p className="text-gray-500">
           Here's what's happening with your Home/RV
         </p>

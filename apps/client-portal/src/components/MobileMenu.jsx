@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { X, Home, FileText, FileSignature, Wrench, Truck, BarChart2, ExternalLink } from 'lucide-react';
 
-const MobileMenu = ({ isOpen, onClose }) => {
+const MobileMenu = ({ isOpen, onClose, customerName = 'John Smith' }) => {
   if (!isOpen) return null;
 
   const handleViewDealerDashboard = () => {
@@ -94,7 +94,7 @@ const MobileMenu = ({ isOpen, onClose }) => {
             <div className="flex items-center">
               <div className="ml-3">
                 <p className="text-base font-medium text-gray-700 group-hover:text-gray-900">
-                  John Smith
+                  {customerName}
                 </p>
                 <p className="text-sm font-medium text-gray-500 group-hover:text-gray-700">
                   View profile

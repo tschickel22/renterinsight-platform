@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, User, Bell, ExternalLink } from 'lucide-react';
 
-const Navbar = ({ onMenuToggle }) => {
+const Navbar = ({ onMenuToggle, customerName = 'John Smith' }) => {
   const handleViewDealerDashboard = () => {
     // Redirect to the main dealer dashboard URL
     const dealerDashboardUrl = window.location.origin.replace('client-portal', '');
@@ -62,7 +62,7 @@ const Navbar = ({ onMenuToggle }) => {
               <div className="flex items-center">
                 <button className="flex items-center space-x-2 text-sm font-medium text-gray-700 hover:text-gray-900">
                   <User className="h-6 w-6" />
-                  <span className="hidden md:inline-block">John Smith</span>
+                  <span className="hidden md:inline-block">{customerName}</span>
                 </button>
               </div>
             </div>
