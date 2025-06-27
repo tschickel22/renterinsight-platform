@@ -4,12 +4,8 @@ import { Menu, User, Bell, ExternalLink } from 'lucide-react';
 
 const Navbar = ({ onMenuToggle, customerName = 'John Smith' }) => {
   const handleViewDealerDashboard = () => {
-    // Get the base URL without the client-portal part
-    const currentUrl = window.location.href;
-    const baseUrl = currentUrl.split('/apps/client-portal')[0];
-    const dealerDashboardUrl = baseUrl;
-    
-    window.open(dealerDashboardUrl, '_blank');
+    // Navigate to the root application
+    window.location.href = '/';
   }
 
   return (

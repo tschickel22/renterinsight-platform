@@ -2,10 +2,8 @@ import React, { useEffect } from 'react';
 
 const DealerRedirect = () => {
   useEffect(() => {
-    // Get the base URL without the client-portal part
-    const currentUrl = window.location.href;
-    const baseUrl = currentUrl.split('/apps/client-portal')[0];
-    const dealerDashboardUrl = baseUrl;
+    // In the WebContainer environment, we need to navigate to the root
+    const dealerDashboardUrl = '/';
     
     window.location.href = dealerDashboardUrl;
   }, []);
