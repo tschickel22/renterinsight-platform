@@ -8,6 +8,7 @@ import Layout from '@/components/layout/Layout'
 import Dashboard from '@/pages/Dashboard'
 import Login from '@/pages/Login'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
+import { TogglePortalButton } from '@/modules/client-portal/components/TogglePortalButton'
 
 // Module imports
 import CRMProspecting from '@/modules/crm-prospecting/CRMProspecting'
@@ -38,7 +39,7 @@ function App() {
                 <Route
                   path="/*"
                   element={
-                    <ProtectedRoute>
+                    <ProtectedRoute>  
                       <Layout>
                         <Routes>
                           <Route path="/" element={<Dashboard />} />
@@ -58,6 +59,7 @@ function App() {
                           <Route path="/admin/*" element={<PlatformAdmin />} />
                           <Route path="/reports/*" element={<ReportingSuite />} />
                         </Routes>
+                        <TogglePortalButton currentView={location.pathname.startsWith('/portal') ? 'client' : 'dealer'} />
                       </Layout>
                     </ProtectedRoute>
                   }

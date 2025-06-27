@@ -4,11 +4,11 @@ import { useTenant } from '@/contexts/TenantContext'
 import { Button } from '@/components/ui/button'
 import { LogOut, User, Menu } from 'lucide-react'
 
-interface HeaderProps {
+interface ClientHeaderProps {
   onMobileMenuClick: () => void
 }
 
-export default function Header({ onMobileMenuClick }: HeaderProps) {
+export function ClientHeader({ onMobileMenuClick }: ClientHeaderProps) {
   const { user, logout } = useAuth()
   const { tenant } = useTenant()
 
@@ -25,7 +25,7 @@ export default function Header({ onMobileMenuClick }: HeaderProps) {
       <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
         <div className="flex flex-1 items-center">
           <h2 className="text-lg font-semibold text-foreground">
-            {tenant?.name || 'Renter Insight CRM/DMS'}
+            {tenant?.name || 'Renter Insight'} Client Portal
           </h2>
         </div>
         <div className="flex items-center gap-x-4 lg:gap-x-6">
