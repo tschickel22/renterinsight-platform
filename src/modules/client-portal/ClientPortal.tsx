@@ -10,38 +10,31 @@ import { useClientPortalAccounts } from '@/hooks/useClientPortalAccounts'
 import { useToast } from '@/hooks/use-toast'
 import { NewClientAccountForm } from '@/components/NewClientAccountForm'
 import { ClientAccountStatus } from '@/types'
-
-const mockPortalUsers = [
-  {
-    id: '1',
-    name: 'John Smith',
-    email: 'john.smith@email.com',
-    status: 'active',
-    lastLogin: new Date('2024-01-18'),
-    vehicleCount: 1,
-    serviceTickets: 2,
-    invoices: 3
-  },
-  {
-    id: '2',
-    name: 'Sarah Johnson',
-    email: 'sarah.j@email.com',
-    status: 'active',
-    lastLogin: new Date('2024-01-16'),
-    vehicleCount: 1,
-    serviceTickets: 0,
-    invoices: 1
-  }
-]
+import { Key } from 'lucide-react'
 
 function PortalDashboard() {
   const { getAllClientAccounts, resetClientPassword, updateClientStatus, sendInvitation } = useClientPortalAccounts()
   const { toast } = useToast()
-  const [portalUsers, setPortalUsers] = useState(mockPortalUsers)
+  const [portalUsers, setPortalUsers] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [showNewClientAccountForm, setShowNewClientAccountForm] = useState(false)
   const [selectedUser, setSelectedUser] = useState<any | null>(null)
   const [loading, setLoading] = useState(false)
+
+  // Load client accounts on component mount
+  useEffect(() => {
+    const accounts = getAllClientAccounts();
+    setPortalUsers(accounts.map(account => ({
+      id: account.id,
+      name: account.name,
+      email: account.email,
+      status: account.status,
+      lastLogin: account.lastLogin || new Date(),
+      vehicleCount: 1, // Mock data
+      serviceTickets: Math.floor(Math.random() * 3), // Mock data
+      invoices: Math.floor(Math.random() * 4) // Mock data
+    })));
+  }, [getAllClientAccounts]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -173,7 +166,10 @@ function PortalDashboard() {
               Manage customer portal access and self-service features
             </p>
           </div>
-          <Button className="shadow-sm" onClick={handleAddPortalUser}>
+          <Button 
+            className="shadow-sm" 
+            onClick={handleAddPortalUser}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add Portal User
           </Button>
@@ -407,6 +403,7 @@ function PortalDashboard() {
                   <Button 
                     variant="outline" 
                     size="sm"
+                    className="shadow-sm"
                     onClick={() => handleManageUser(user)}
                   >
                     <Users className="h-3 w-3 mr-1" />
@@ -415,6 +412,7 @@ function PortalDashboard() {
                   <Button 
                     variant="outline" 
                     size="sm"
+                    className="shadow-sm"
                     onClick={() => handleUserSettings(user)}
                   >
                     <Settings className="h-3 w-3 mr-1" />
@@ -423,10 +421,12 @@ function PortalDashboard() {
                   <Button 
                     variant="outline" 
                     size="sm"
+                    className="shadow-sm"
                     onClick={() => handleResetPassword(user.id)}
                     disabled={loading}
                   >
-                    Reset Password
+                    <Key className="h-3 w-3 mr-1" />
+                    Reset
                   </Button>
                   <select
                     value={user.status}
@@ -438,6 +438,16 @@ function PortalDashboard() {
                     <option value="inactive">Inactive</option>
                     <option value="suspended">Suspended</option>
                   </select>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="shadow-sm"
+                    onClick={() => handleSendNotification(user.id, 'email')}
+                    disabled={loading}
+                  >
+                    <MessageSquare className="h-3 w-3 mr-1" />
+                    Notify
+                  </Button>
                 </div>
               </div>
             ))}
