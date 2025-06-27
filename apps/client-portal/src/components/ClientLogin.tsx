@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useClientPortalAccounts } from '@/hooks/useClientPortalAccounts';
 
 interface ClientLoginProps {
@@ -6,28 +6,49 @@ interface ClientLoginProps {
 }
 
 export function ClientLogin({ onLogin }: ClientLoginProps) {
-  const { authenticateClient } = useClientPortalAccounts();
+  const { authenticateClient, getClientAccount } = useClientPortalAccounts();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  React.useEffect(() => {
+  // Handle impersonation mode if impersonateClientId is in URL
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const isPreview = params.get('preview') === 'true';
-    const clientId = params.get('clientId');
-    
-    if (isPreview && clientId) {
-      // In a real app, this would validate a special token
-      // For this demo, we'll just simulate a successful login
-      onLogin({
-        id: clientId,
-        name: 'Preview User',
-        email: 'preview@example.com',
-        isPreview: true
-      });
+    const impersonateClientId = params.get('impersonateClientId');
+    if (impersonateClientId) {
+      const client = getClientAccount(impersonateClientId);
+      if (client) {
+        onLogin({ ...client, isImpersonated: true });
+      } else {
+        onLogin({
+          id: impersonateClientId,
+          name: 'Preview Client',
+          email: 'preview@example.com',
+          isImpersonated: true,
+        });
+      }
     }
-  }, [onLogin]);
+  }, [onLogin, getClientAccount]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const client = await authenticateClient(email, password);
+      if (client) {
+        onLogin(client);
+      } else {
+        setError('Invalid email or password.');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('An unexpected error occurred.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -38,16 +59,12 @@ export function ClientLogin({ onLogin }: ClientLoginProps) {
         </div>
 
         {error && (
-          <div className="p-3 text-sm text-red-700 bg-red-100 rounded-md">
-            {error}
-          </div>
+          <div className="p-3 text-sm text-red-700 bg-red-100 rounded-md">{error}</div>
         )}
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email address
-            </label>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email address</label>
             <input
               id="email"
               name="email"
@@ -61,9 +78,7 @@ export function ClientLogin({ onLogin }: ClientLoginProps) {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Password
-            </label>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
             <input
               id="password"
               name="password"
@@ -77,34 +92,25 @@ export function ClientLogin({ onLogin }: ClientLoginProps) {
           </div>
 
           <div className="flex items-center justify-between">
-            <div className="flex items-center">
+            <label className="flex items-center text-sm text-gray-700">
               <input
-                id="remember-me"
-                name="remember-me"
                 type="checkbox"
-                className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                className="w-4 h-4 mr-2 text-primary border-gray-300 rounded focus:ring-primary"
               />
-              <label htmlFor="remember-me" className="block ml-2 text-sm text-gray-700">
-                Remember me
-              </label>
-            </div>
-
-            <div className="text-sm">
-              <a href="#" className="font-medium text-primary hover:text-primary-dark">
-                Forgot your password?
-              </a>
-            </div>
+              Remember me
+            </label>
+            <a href="#" className="text-sm font-medium text-primary hover:text-primary-dark">
+              Forgot your password?
+            </a>
           </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex justify-center w-full px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-            >
-              {loading ? 'Signing in...' : 'Sign in'}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          >
+            {loading ? 'Signing in…' : 'Sign in'}
+          </button>
         </form>
 
         <div className="mt-6">
