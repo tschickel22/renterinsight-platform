@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Users, Plus, Search, Filter, Phone, Mail, Calendar, TrendingUp, Target, BarChart3, Settings, Brain, MessageSquare } from 'lucide-react'
+import { Users, Plus, Search, Filter, Phone, Mail, Calendar, TrendingUp, Target, BarChart3, Settings, Brain, MessageSquare, Globe } from 'lucide-react'
 import { Lead, LeadStatus } from '@/types'
 import { formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
@@ -22,6 +22,7 @@ import { CommunicationCenter } from './components/CommunicationCenter'
 import { NewLeadForm } from './components/NewLeadForm'
 import { QuotesList } from './components/QuotesList'
 import { NewClientAccountForm } from './components/NewClientAccountForm'
+import { toast } from '@/components/ui/use-toast'
 
 function LeadsList() {
   const {
@@ -118,8 +119,15 @@ function LeadsList() {
       
       setShowNewClientAccountForm(false)
       setSelectedLeadForPortal(null)
+      
+      return true
     } catch (error) {
       console.error('Error creating client account:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to create client account',
+        variant: 'destructive'
+      })
       throw error
     }
   }
@@ -189,21 +197,21 @@ function LeadsList() {
                         <p className="font-medium">{selectedLead.source}</p>
                       </div>
                       <div>
-                      <div className="flex items-center justify-between mt-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="text-xs"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedLeadForPortal(lead);
-                            setShowNewClientAccountForm(true);
-                          }}
-                        >
-                          <Globe className="h-3 w-3 mr-1" />
-                          Invite to Portal
-                        </Button>
-                      </div>
+                        <div className="flex items-center justify-between mt-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedLeadForPortal(selectedLead);
+                              setShowNewClientAccountForm(true);
+                            }}
+                          >
+                            <Globe className="h-3 w-3 mr-1" />
+                            Invite to Portal
+                          </Button>
+                        </div>
                         <label className="text-sm font-medium text-muted-foreground">Assigned To</label>
                         <p className="font-medium">
                           {salesReps.find(rep => rep.id === selectedLead.assignedTo)?.name || 'Unassigned'}
@@ -298,7 +306,7 @@ function LeadsList() {
               <Globe className="h-4 w-4 mr-2" />
               Invite to Portal
             </Button>
-            <Button className="shadow-sm" onClick={handleCreateLead}>
+            <Button className="shadow-sm" onClick={() => setShowNewLeadForm(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Add Lead
             </Button>
@@ -498,6 +506,21 @@ function LeadsList() {
                             {lead.notes}
                           </p>
                         )}
+                        <div className="flex items-center justify-between mt-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedLeadForPortal(lead);
+                              setShowNewClientAccountForm(true);
+                            }}
+                          >
+                            <Globe className="h-3 w-3 mr-1" />
+                            Invite to Portal
+                          </Button>
+                        </div>
                       </div>
                     </div>
                     <div className="ri-action-buttons">
