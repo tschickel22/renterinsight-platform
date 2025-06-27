@@ -20,7 +20,8 @@ import ServiceOps from '@/modules/service-ops/ServiceOps'
 import DeliveryTracker from '@/modules/delivery-tracker/DeliveryTracker'
 import PDIChecklist from '@/modules/pdi-checklist/PDIChecklist'
 import CommissionEngine from '@/modules/commission-engine/CommissionEngine'
-import ClientPortal from '@/modules/client-portal/ClientPortal'
+import ClientPortalAdmin from '@/modules/client-portal/ClientPortalAdmin'
+import ClientPortal from '@/modules/client-portal/components/ClientPortal'
 import InvoicePayments from '@/modules/invoice-payments/InvoicePayments'
 import CompanySettings from '@/modules/company-settings/CompanySettings'
 import PlatformAdmin from '@/modules/platform-admin/PlatformAdmin'
@@ -52,7 +53,7 @@ function App() {
                           <Route path="/pdi/*" element={<PDIChecklist />} />
                           <Route path="/delivery/*" element={<DeliveryTracker />} />
                           <Route path="/commissions/*" element={<CommissionEngine />} />
-                          <Route path="/portal/*" element={<ClientPortal />} />
+                          <Route path="/portal/*" element={<ClientPortalAdmin />} />
                           <Route path="/client-portal/*" element={<ClientPortal />} />
                           <Route path="/invoices/*" element={<InvoicePayments />} />
                           <Route path="/settings/*" element={<CompanySettings />} />
