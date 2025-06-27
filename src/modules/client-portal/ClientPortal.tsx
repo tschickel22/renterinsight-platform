@@ -31,7 +31,7 @@ function PortalDashboard() {
   const [loading, setLoading] = useState(false)
   const [showUserDetail, setShowUserDetail] = useState(false)
   const [showUserSettings, setShowUserSettings] = useState(false)
-  const [activeClient, setActiveClient] = useState<any>(null)
+function ClientDashboardContent() {
   const [clientSignatures, setClientSignatures] = useState<ClientSignature[]>([])
   const [customerSurveys, setCustomerSurveys] = useState<CustomerSurvey[]>([])
   const [isPreviewMode, setIsPreviewMode] = useState(false)
@@ -514,10 +514,6 @@ function PortalDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
-                <div className="flex-shrink-0">
-                  <div className="h-2 w-2 bg-blue-500 rounded-full mt-2"></div>
-                </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-blue-900">
                     John Smith logged in
@@ -675,9 +671,44 @@ function PortalDashboard() {
 }
 
 export default function ClientPortal() {
+  const [activeClient, setActiveClient] = React.useState<any>(null);
+  
+  React.useEffect(() => {
+    // Check for preview mode from URL parameters
+    const params = new URLSearchParams(window.location.search);
+    const isPreview = params.get('preview') === 'true';
+    const clientId = params.get('clientId');
+    
+    if (isPreview && clientId) {
+      // In a real app, this would validate a special token
+      // For this demo, we'll just simulate a successful login
+      setActiveClient({
+        id: clientId,
+        name: 'Preview User',
+        email: 'preview@example.com',
+        isPreview: true
+      });
+    } else {
+      // Check for stored client session
+      const storedClient = loadFromLocalStorage('renter-insight-client-session', null);
+      if (storedClient) {
+        setActiveClient(storedClient);
+      }
+    }
+  }, []);
+  
+  const handleLogin = (client: any) => {
+    setActiveClient(client);
+    saveToLocalStorage('renter-insight-client-session', client);
+  };
+  
   return (
     <Routes>
-      <Route path="/*" element={<PortalDashboard />} />
+      <Route path="/*" element={
+        activeClient ? 
+          <ClientDashboardContent /> : 
+          <ClientLogin onLogin={handleLogin} />
+      } />
     </Routes>
   )
 }

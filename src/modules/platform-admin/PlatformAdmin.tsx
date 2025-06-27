@@ -94,7 +94,7 @@ function PlatformAdminDashboard() {
   const handleClientPreview = (clientId: string) => {
     // In a real app, this would generate a special token and open a new window
     // For this demo, we'll just open a new window with a simulated token
-    const previewUrl = `/portal?preview=true&clientId=${clientId}`
+    const previewUrl = `/client-portal?preview=true&clientId=${clientId}`
     window.open(previewUrl, '_blank')
     
     toast({
