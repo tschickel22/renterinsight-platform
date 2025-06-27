@@ -82,6 +82,7 @@ function PortalDashboard() {
 
   const handleLogin = (client: any) => {
     setActiveClient(client);
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
