@@ -1,36 +1,40 @@
 import * as React from 'react';
+import { Routes, Route, useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { Routes, Route, Navigate, useLocation, useSearchParams } from 'react-router-dom';
+
 import { ClientPortalLayout } from './components/ClientPortalLayout';
 import { ClientLogin } from './components/ClientLogin';
 import { QuoteAcceptance } from './components/QuoteAcceptance';
 import { ServiceRequestForm } from './components/ServiceRequestForm';
 import { OrderTracking } from './components/OrderTracking';
 import { CustomerSurveyForm } from './components/CustomerSurvey';
+
 import { useClientPortalAccounts } from '@/hooks/useClientPortalAccounts';
 import { useQuoteManagement } from '@/modules/crm-prospecting/hooks/useQuoteManagement';
 import { useServiceManagement } from '@/modules/service-ops/hooks/useServiceManagement';
 import { useDeliveryManagement } from '@/modules/delivery-tracker/hooks/useDeliveryManagement';
 import { useInventoryManagement } from '@/modules/inventory-management/hooks/useInventoryManagement';
+
 import { ClientSignature, CustomerSurvey, QuoteStatus, ServiceTicket } from '@/types';
 import { saveToLocalStorage, loadFromLocalStorage } from '@/lib/utils';
 
 function ClientDashboard() {
-  const [activeClient, setActiveClient] = useState<any>(null);
   const [searchParams] = useSearchParams();
   const impersonateClientId = searchParams.get('impersonateClientId');
+
+  const [activeClient, setActiveClient] = useState<any>(null);
   const [clientSignatures, setClientSignatures] = useState<ClientSignature[]>([]);
   const [customerSurveys, setCustomerSurveys] = useState<CustomerSurvey[]>([]);
 
-  const { getClientAccountByEmail } = useClientPortalAccounts();
+  const { getClientAccount, getAllClientAccounts } = useClientPortalAccounts();
   const { quotes, updateQuote } = useQuoteManagement();
   const { createTicket } = useServiceManagement();
   const { deliveries } = useDeliveryManagement();
   const { vehicles } = useInventoryManagement();
 
   useEffect(() => {
-    console.log("Impersonate Client ID:", impersonateClientId);
-    console.log("Active Client (before set):", activeClient);
+    console.log("🔍 Preview Path:", window.location.pathname);
+    console.log("📩 impersonateClientId:", impersonateClientId);
 
     const savedSignatures = loadFromLocalStorage('renter-insight-client-signatures', []);
     const savedSurveys = loadFromLocalStorage('renter-insight-customer-surveys', []);
@@ -38,28 +42,13 @@ function ClientDashboard() {
     setCustomerSurveys(savedSurveys);
 
     if (impersonateClientId) {
-      const { getAllClientAccounts, getClientAccount } = useClientPortalAccounts();
       const clientAccount = getClientAccount(impersonateClientId);
-
       if (clientAccount) {
-        setActiveClient({
-          id: clientAccount.id,
-          name: clientAccount.name,
-          email: clientAccount.email,
-          phone: clientAccount.phone,
-          isImpersonated: true
-        });
+        setActiveClient({ ...clientAccount, isImpersonated: true });
       } else {
-        const allAccounts = getAllClientAccounts();
-        if (allAccounts.length > 0) {
-          const firstAccount = allAccounts[0];
-          setActiveClient({
-            id: firstAccount.id,
-            name: firstAccount.name,
-            email: firstAccount.email,
-            phone: firstAccount.phone,
-            isImpersonated: true
-          });
+        const fallback = getAllClientAccounts()[0];
+        if (fallback) {
+          setActiveClient({ ...fallback, isImpersonated: true });
         } else {
           setActiveClient({
             id: impersonateClientId,
@@ -70,9 +59,9 @@ function ClientDashboard() {
         }
       }
     } else {
-      const storedClient = loadFromLocalStorage('renter-insight-client-session', null);
-      if (storedClient) {
-        setActiveClient(storedClient);
+      const stored = loadFromLocalStorage('renter-insight-client-session', null);
+      if (stored) {
+        setActiveClient(stored);
       }
     }
   }, [impersonateClientId]);
@@ -88,9 +77,9 @@ function ClientDashboard() {
   };
 
   const handleAcceptQuote = async (quoteId: string, signature: ClientSignature) => {
-    const updatedSignatures = [...clientSignatures, signature];
-    setClientSignatures(updatedSignatures);
-    saveToLocalStorage('renter-insight-client-signatures', updatedSignatures);
+    const updated = [...clientSignatures, signature];
+    setClientSignatures(updated);
+    saveToLocalStorage('renter-insight-client-signatures', updated);
     await updateQuote(quoteId, { status: QuoteStatus.ACCEPTED });
   };
 
@@ -119,19 +108,9 @@ function ClientDashboard() {
 
   return (
     <ClientPortalLayout>
-      <div className="mb-4 text-green-700 font-semibold">CLIENT PORTAL COMPONENT LOADED</div>
+      <div className="text-sm text-green-700 font-medium mb-4">CLIENT PORTAL COMPONENT LOADED</div>
       <Routes>
-        <Route path="/" element={
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold">Welcome, {activeClient.name}</h1>
-              <p className="text-gray-600 mt-2">
-                Access your quotes, service requests, and delivery information
-              </p>
-            </div>
-            {/* -- Cards & Activity Timeline (unchanged) -- */}
-          </div>
-        } />
+        <Route path="/" element={<HomeDashboard activeClient={activeClient} clientSignatures={clientSignatures} />} />
         <Route path="/quotes" element={
           <QuoteAcceptance 
             clientId={activeClient.id} 
@@ -159,38 +138,39 @@ function ClientDashboard() {
           />
         } />
         <Route path="/account" element={
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">My Account</h2>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <h3 className="text-lg font-medium mb-4">Account Information</h3>
-              <div className="space-y-4">
-                <div><p className="text-sm text-gray-500">Name</p><p className="font-medium">{activeClient.name}</p></div>
-                <div><p className="text-sm text-gray-500">Email</p><p className="font-medium">{activeClient.email}</p></div>
-                {activeClient.phone && <div><p className="text-sm text-gray-500">Phone</p><p className="font-medium">{activeClient.phone}</p></div>}
-                <div><p className="text-sm text-gray-500">Last Login</p><p className="font-medium">{activeClient.lastLogin ? new Date(activeClient.lastLogin).toLocaleString() : 'N/A'}</p></div>
-              </div>
-              <div className="mt-6 pt-6 border-t">
-                <button
-                  onClick={handleLogout}
-                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                >
-                  Sign Out
-                </button>
-              </div>
-            </div>
-          </div>
+          <div className="p-6 bg-white shadow rounded">Logged in as {activeClient.name}</div>
         } />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<div>Not Found</div>} />
       </Routes>
     </ClientPortalLayout>
+  );
+}
+
+function HomeDashboard({ activeClient, clientSignatures }: { activeClient: any, clientSignatures: ClientSignature[] }) {
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold">Welcome, {activeClient.name}</h1>
+      <p className="text-gray-600">This is your personalized client dashboard.</p>
+      {clientSignatures.length > 0 ? (
+        <div>
+          <h2 className="font-semibold text-lg">Recent Signatures</h2>
+          <ul className="text-sm text-gray-700 list-disc ml-5">
+            {clientSignatures.map((sig, i) => (
+              <li key={i}>Signed doc #{sig.documentId} on {new Date(sig.signedAt).toLocaleDateString()}</li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <p className="text-sm text-gray-500">No recent activity.</p>
+      )}
+    </div>
   );
 }
 
 export default function ClientPortal() {
   return (
     <Routes>
+      <Route path="/" element={<ClientDashboard />} />
       <Route path="/*" element={<ClientDashboard />} />
     </Routes>
   );
