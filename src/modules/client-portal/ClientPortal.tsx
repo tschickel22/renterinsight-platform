@@ -677,10 +677,7 @@ function PortalDashboard() {
 export default function ClientPortal() {
   return (
     <Routes>
-    <div>
-      <Routes>
-        <Route path="/*" element={<ClientDashboard />} />
-      </Routes>
-    </div>
+      <Route path="/*" element={<PortalDashboard />} />
+    </Routes>
   )
 }
