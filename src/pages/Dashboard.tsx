@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Users, Package, FileText, DollarSign, TrendingUp, Calendar, Plus } from 'lucide-react'
 import { NewLeadForm } from '@/modules/crm-prospecting/components/NewLeadForm'
+import { NewClientAccountForm } from '@/components/NewClientAccountForm'
 import { Lead } from '@/types'
 
 const stats = [
@@ -68,9 +69,15 @@ const recentActivity = [
 
 export default function Dashboard() {
   const [showNewLeadForm, setShowNewLeadForm] = useState(false)
+  const [showNewClientAccountForm, setShowNewClientAccountForm] = useState(false)
 
   const handleNewLeadSuccess = (newLead: Lead) => {
     console.log('New lead created from dashboard:', newLead)
+    // Optionally show a success message or redirect
+  }
+
+  const handleNewClientAccountSuccess = (account: any) => {
+    console.log('New client account created from dashboard:', account)
     // Optionally show a success message or redirect
   }
 
@@ -78,6 +85,9 @@ export default function Dashboard() {
     switch (action) {
       case 'add-lead':
         setShowNewLeadForm(true)
+        break
+      case 'add-client':
+        setShowNewClientAccountForm(true)
         break
       case 'add-inventory':
         window.location.href = '/inventory'
@@ -100,6 +110,12 @@ export default function Dashboard() {
         <NewLeadForm
           onClose={() => setShowNewLeadForm(false)}
           onSuccess={handleNewLeadSuccess}
+        />
+      )}
+      {showNewClientAccountForm && (
+        <NewClientAccountForm
+          onClose={() => setShowNewClientAccountForm(false)}
+          onSuccess={handleNewClientAccountSuccess}
         />
       )}
 
@@ -182,6 +198,16 @@ export default function Dashboard() {
                 <div className="flex items-center space-x-3">
                   <Users className="h-5 w-5 text-primary" />
                   <span className="font-medium">Add New Lead</span>
+                </div>
+                <Plus className="h-4 w-4 text-muted-foreground" />
+              </button>
+              <button 
+                onClick={() => handleQuickAction('add-client')}
+                className="flex items-center justify-between p-3 text-left border rounded-lg hover:bg-accent transition-colors"
+              >
+                <div className="flex items-center space-x-3">
+                  <Users className="h-5 w-5 text-primary" />
+                  <span className="font-medium">Add Client to Portal</span>
                 </div>
                 <Plus className="h-4 w-4 text-muted-foreground" />
               </button>
