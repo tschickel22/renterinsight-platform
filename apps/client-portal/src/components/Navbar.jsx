@@ -1,8 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, User, Bell } from 'lucide-react';
+import { Menu, User, Bell, ExternalLink } from 'lucide-react';
 
 const Navbar = ({ onMenuToggle }) => {
+  const handleViewDealerDashboard = () => {
+    window.open('/', '_blank');
+  }
+
   return (
     <nav className="bg-white shadow-sm">
       <div className="container mx-auto px-4">
@@ -42,6 +46,13 @@ const Navbar = ({ onMenuToggle }) => {
             </div>
           </div>
           <div className="flex items-center">
+            <button 
+              onClick={handleViewDealerDashboard}
+              className="mr-3 flex items-center text-sm font-medium text-gray-700 hover:text-gray-900"
+            >
+              <ExternalLink className="h-4 w-4 mr-1" />
+              <span className="hidden md:inline-block">Dealer Dashboard</span>
+            </button>
             <button className="p-1 rounded-full text-gray-700 hover:text-gray-900 focus:outline-none">
               <Bell className="h-6 w-6" />
             </button>

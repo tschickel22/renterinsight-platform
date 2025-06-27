@@ -2,11 +2,15 @@ import React from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTenant } from '@/contexts/TenantContext'
 import { Button } from '@/components/ui/button'
-import { LogOut, User } from 'lucide-react'
+import { LogOut, User, ExternalLink } from 'lucide-react'
 
 export default function Header() {
   const { user, logout } = useAuth()
   const { tenant } = useTenant()
+
+  const handleViewClientPortal = () => {
+    window.open('/client-portal', '_blank');
+  }
 
   return (
     <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-border bg-background px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
@@ -23,6 +27,15 @@ export default function Header() {
               {user?.name}
             </span>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleViewClientPortal}
+            className="flex items-center gap-x-2 mr-2"
+          >
+            <ExternalLink className="h-4 w-4" />
+            Client Portal
+          </Button>
           <Button
             variant="ghost"
             size="sm"

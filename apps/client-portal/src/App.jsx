@@ -8,6 +8,7 @@ import ServiceRequests from './pages/ServiceRequests';
 import OrderTracking from './pages/OrderTracking';
 import Surveys from './pages/Surveys';
 import Footer from './components/Footer';
+import DealerRedirect from './components/DealerRedirect';
 import MobileMenu from './components/MobileMenu';
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
         <main className="flex-grow container mx-auto px-4 py-6">
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/dealer" element={<DealerRedirect />} />
             <Route path="/quotes" element={<Quotes />} />
             <Route path="/documents" element={<Documents />} />
             <Route path="/service" element={<ServiceRequests />} />

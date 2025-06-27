@@ -6,6 +6,7 @@ import { TenantProvider } from '@/contexts/TenantContext'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import Layout from '@/components/layout/Layout'
 import Dashboard from '@/pages/Dashboard'
+import ClientPortalRedirect from '@/components/ClientPortalRedirect'
 import Login from '@/pages/Login'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 
@@ -35,6 +36,7 @@ function App() {
             <div className="min-h-screen bg-background">
               <Routes>
                 <Route path="/login" element={<Login />} />
+                <Route path="/client-portal" element={<ClientPortalRedirect />} />
                 <Route
                   path="/*"
                   element={

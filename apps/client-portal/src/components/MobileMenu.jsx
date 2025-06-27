@@ -1,9 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { X, Home, FileText, FileSignature, Wrench, Truck, BarChart2 } from 'lucide-react';
+import { X, Home, FileText, FileSignature, Wrench, Truck, BarChart2, ExternalLink } from 'lucide-react';
 
 const MobileMenu = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
+
+  const handleViewDealerDashboard = () => {
+    window.open('/', '_blank');
+    onClose();
+  }
 
   return (
     <div className="fixed inset-0 flex z-40 md:hidden">
@@ -72,6 +77,13 @@ const MobileMenu = ({ isOpen, onClose }) => {
               <BarChart2 className="mr-4 h-6 w-6 text-gray-500" />
               Surveys
             </Link>
+            <button 
+              onClick={handleViewDealerDashboard}
+              className="group flex items-center px-2 py-2 text-base font-medium rounded-md text-gray-900 hover:bg-gray-100 w-full text-left"
+            >
+              <ExternalLink className="mr-4 h-6 w-6 text-gray-500" />
+              Dealer Dashboard
+            </button>
           </nav>
         </div>
         
