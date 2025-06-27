@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Routes, Route, Navigate, useLocation, useSearchParams } from 'react-router-dom'
+import { Routes, Route, Navigate, useSearchParams } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,17 +8,63 @@ import { Globe, Plus, Search, Filter, Users, Eye, Settings, MessageSquare, Trend
 import { cn } from '@/lib/utils'
 import { loadFromLocalStorage, saveToLocalStorage } from '@/lib/utils'
 import { useClientPortalAccounts } from '@/hooks/useClientPortalAccounts'
-import { useToast } from '@/hooks/use-toast'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { NewClientAccountForm } from '@/components/NewClientAccountForm'
 import { Key } from 'lucide-react'
+import { ClientLogin } from './components/ClientLogin'
+import { ClientPortalLayout } from './components/ClientPortalLayout'
+import { ServiceRequestForm } from './components/ServiceRequestForm'
+import { OrderTracking } from './components/OrderTracking'
+import { CustomerSurveyForm } from './components/CustomerSurvey'
+import { QuoteAcceptance } from './components/QuoteAcceptance'
 
-// Helper function to get URL parameters
-function useQuery() {
-  return new URLSearchParams(useLocation().search);
-}
+// Mock data for client portal
+const mockQuotes = [
+  {
+    id: '1',
+    customerId: 'cust-1',
+    items: [
+      { id: '1', description: '2024 Forest River Georgetown', quantity: 1, unitPrice: 125000, total: 125000 }
+    ],
+    subtotal: 125000,
+    tax: 10000,
+    total: 135000,
+    status: 'sent',
+    validUntil: new Date('2024-12-31'),
+    createdAt: new Date('2024-01-15')
+  }
+];
+
+const mockDeliveries = [
+  {
+    id: '1',
+    customerId: 'cust-1',
+    vehicleId: 'veh-1',
+    status: 'scheduled',
+    scheduledDate: new Date('2024-07-15'),
+    address: {
+      street: '123 Main St',
+      city: 'Springfield',
+      state: 'IL',
+      zipCode: '62701',
+      country: 'USA'
+    },
+    customFields: {
+      estimatedArrival: '10:00 AM'
+    }
+  }
+];
+
+const mockVehicles = [
+  {
+    id: 'veh-1',
+    year: 2024,
+    make: 'Forest River',
+    model: 'Georgetown'
+  }
+];
 
 function PortalDashboard() {
   const { getAllClientAccounts, resetClientPassword, updateClientStatus, sendInvitation, getClientAccountByEmail, getClientAccount } = useClientPortalAccounts()
@@ -686,7 +732,198 @@ export default function ClientPortal() {
   return (
     <Routes>
       <Route path="/" element={<PortalDashboard />} />
-      <Route path="/*" element={<PortalDashboard />} />
+      <Route path="/admin" element={<PortalDashboard />} />
+      <Route path="/preview/*" element={<ClientPortalPreview />} />
+      <Route path="/*" element={<Navigate to="/" replace />} />
     </Routes>
   )
+}
+
+function ClientDashboard() {
+  const [searchParams] = useSearchParams();
+  const isPreview = searchParams.get('preview') === 'true';
+  const clientId = searchParams.get('clientId') || '';
+  const [activeClient, setActiveClient] = useState<any>(null);
+  const { getClientAccountByEmail } = useClientPortalAccounts();
+
+  useEffect(() => {
+    // For preview mode, create a mock client
+    if (isPreview && clientId) {
+      const mockClient = {
+        id: clientId,
+        name: 'Preview User',
+        email: 'preview@example.com',
+        isPreview: true
+      };
+      setActiveClient(mockClient);
+    } else {
+      // Check for stored client session
+      const storedClient = loadFromLocalStorage('renter-insight-client-session', null);
+      if (storedClient) {
+        setActiveClient(storedClient);
+      }
+    }
+  }, [isPreview, clientId, getClientAccountByEmail]);
+
+  const handleLogin = (client: any) => {
+    setActiveClient(client);
+    saveToLocalStorage('renter-insight-client-session', client);
+  };
+
+  const handleLogout = () => {
+    setActiveClient(null);
+    saveToLocalStorage('renter-insight-client-session', null);
+  };
+
+  if (!activeClient) {
+    return <ClientLogin onLogin={handleLogin} />;
+  }
+
+  return (
+    <ClientPortalLayout>
+      <Routes>
+        <Route path="/" element={
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-3xl font-bold">Welcome, {activeClient.name}</h1>
+              <p className="text-gray-600 mt-2">
+                Access your quotes, service requests, and delivery information
+              </p>
+            </div>
+            
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="bg-white p-6 rounded-lg shadow">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-medium">My Quotes</h2>
+                  <div className="p-2 bg-blue-100 rounded-full">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                </div>
+                <p className="text-gray-600 mb-4">View and accept quotes for your Home/RV</p>
+                <a href="/quotes" className="text-primary font-medium hover:text-primary-dark">
+                  View Quotes →
+                </a>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-medium">Service Requests</h2>
+                  <div className="p-2 bg-green-100 rounded-full">
+                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                </div>
+                <p className="text-gray-600 mb-4">Submit and track service requests</p>
+                <a href="/service" className="text-primary font-medium hover:text-primary-dark">
+                  Request Service →
+                </a>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-medium">Delivery Tracking</h2>
+                  <div className="p-2 bg-yellow-100 rounded-full">
+                    <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                    </svg>
+                  </div>
+                </div>
+                <p className="text-gray-600 mb-4">Track your Home/RV delivery status</p>
+                <a href="/deliveries" className="text-primary font-medium hover:text-primary-dark">
+                  Track Deliveries →
+                </a>
+              </div>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow">
+              <h3 className="text-lg font-medium mb-4">Recent Activity</h3>
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0">
+                    <div className="h-2 w-2 bg-primary rounded-full mt-2"></div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900">
+                      Quote Accepted
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      You accepted quote #Q-2024-001 on {new Date().toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        } />
+        <Route path="/quotes" element={
+          <QuoteAcceptance 
+            clientId={activeClient.id} 
+            quotes={mockQuotes}
+            onAcceptQuote={() => {}}
+          />
+        } />
+        <Route path="/service" element={
+          <ServiceRequestForm 
+            clientId={activeClient.id}
+            vehicles={mockVehicles}
+            onSubmit={() => {}}
+          />
+        } />
+        <Route path="/deliveries" element={
+          <OrderTracking 
+            clientId={activeClient.id}
+            deliveries={mockDeliveries}
+          />
+        } />
+        <Route path="/feedback" element={
+          <CustomerSurveyForm 
+            clientId={activeClient.id}
+            onSubmit={() => {}}
+          />
+        } />
+        <Route path="/account" element={
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold">My Account</h2>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow">
+              <h3 className="text-lg font-medium mb-4">Account Information</h3>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-gray-500">Name</p>
+                  <p className="font-medium">{activeClient.name}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Email</p>
+                  <p className="font-medium">{activeClient.email}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Last Login</p>
+                  <p className="font-medium">{activeClient.lastLogin ? new Date(activeClient.lastLogin).toLocaleString() : 'N/A'}</p>
+                </div>
+              </div>
+              <div className="mt-6 pt-6 border-t">
+                <button
+                  onClick={handleLogout}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                >
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          </div>
+        } />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </ClientPortalLayout>
+  );
+}
+
+function ClientPortalPreview() {
+  return <ClientDashboard />;
 }
