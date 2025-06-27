@@ -93,12 +93,12 @@ function PlatformAdminDashboard() {
 
   const handleClientPreview = (clientId: string) => {
     // Create a preview URL with the client ID that points directly to the client portal
-    const previewUrl = `/client-portal?preview=true&clientId=${clientId}`
+    const previewUrl = `/client-portal?impersonateClientId=${clientId}`
     window.open(previewUrl, '_blank')
     
     toast({
       title: 'Client Preview',
-      description: 'Opening client portal preview in a new window',
+      description: 'Opening client portal in impersonation mode',
     })
   }
 

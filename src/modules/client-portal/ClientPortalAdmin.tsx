@@ -191,6 +191,17 @@ function PortalDashboard() {
     }
   }
 
+  const handleClientPreview = (clientId: string) => {
+    // Create a preview URL with the client ID that points directly to the client portal
+    const previewUrl = `/client-portal?impersonateClientId=${clientId}`
+    window.open(previewUrl, '_blank')
+    
+    toast({
+      title: 'Client Preview',
+      description: 'Opening client portal in impersonation mode',
+    })
+  }
+
   const filteredUsers = portalUsers.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -253,6 +264,14 @@ function PortalDashboard() {
                   </Button>
                   <Button size="sm" onClick={() => handleSendNotification(selectedUser.id, 'sms', new MouseEvent('click') as any)}>
                     Send SMS
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => handleClientPreview(selectedUser.id)}
+                  >
+                    <Eye className="h-3 w-3 mr-1" />
+                    Preview Portal
                   </Button>
                 </div>
               </div>
