@@ -4,7 +4,9 @@ import { Menu, User, Bell, ExternalLink } from 'lucide-react';
 
 const Navbar = ({ onMenuToggle }) => {
   const handleViewDealerDashboard = () => {
-    window.open('/', '_blank');
+    // Redirect to the main dealer dashboard URL
+    const dealerDashboardUrl = window.location.origin.replace('client-portal', '');
+    window.open(dealerDashboardUrl, '_blank');
   }
 
   return (

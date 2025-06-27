@@ -6,7 +6,9 @@ const MobileMenu = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   const handleViewDealerDashboard = () => {
-    window.open('/', '_blank');
+    // Redirect to the main dealer dashboard URL
+    const dealerDashboardUrl = window.location.origin.replace('client-portal', '');
+    window.open(dealerDashboardUrl, '_blank');
     onClose();
   }
 

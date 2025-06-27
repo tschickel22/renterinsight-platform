@@ -2,9 +2,9 @@ import React, { useEffect } from 'react';
 
 const DealerRedirect = () => {
   useEffect(() => {
-    // In a production environment, this would redirect to the actual dealer dashboard URL
-    // For local development, we'll redirect to the main app
-    const dealerDashboardUrl = '/';
+    // Redirect to the main dealer dashboard URL
+    // This should be the URL of the main application
+    const dealerDashboardUrl = window.location.origin.replace('client-portal', '');
     
     window.location.href = dealerDashboardUrl;
   }, []);
