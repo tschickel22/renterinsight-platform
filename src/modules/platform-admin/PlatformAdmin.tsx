@@ -93,7 +93,7 @@ function PlatformAdminDashboard() {
 
   const handleClientPreview = (clientId: string) => {
     // Create a preview URL with the client ID
-    const previewUrl = `/portal?preview=true&clientId=${clientId}`
+    const previewUrl = `/client-portal?preview=true&clientId=${clientId}`
     
     // Open in a new window/tab
     const newWindow = window.open(previewUrl, '_blank')
