@@ -15,6 +15,7 @@ export function QuoteAcceptance({ clientId, quotes = [], onAcceptQuote }: QuoteA
   const [signature, setSignature] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hoveredStar, setHoveredStar] = useState<number | null>(null);
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
@@ -156,9 +157,15 @@ export function QuoteAcceptance({ clientId, quotes = [], onAcceptQuote }: QuoteA
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Page Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">My Quotes</h2>
+        <div>
+          <h2 className="text-2xl font-bold">My Quotes</h2>
+          <p className="text-muted-foreground">
+            View and accept quotes for your Home/RV
+          </p>
+        </div>
       </div>
 
       {relevantQuotes.length === 0 ? (
@@ -186,19 +193,19 @@ export function QuoteAcceptance({ clientId, quotes = [], onAcceptQuote }: QuoteA
               
               <div className="grid gap-4 md:grid-cols-2 mb-4">
                 <div>
-                  <p className="text-sm text-gray-500">Created</p>
+                  <p className="text-sm text-muted-foreground">Created</p>
                   <p className="font-medium">{formatDate(quote.createdAt)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Valid Until</p>
+                  <p className="text-sm text-muted-foreground">Valid Until</p>
                   <p className="font-medium">{formatDate(quote.validUntil)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Total Items</p>
+                  <p className="text-sm text-muted-foreground">Total Items</p>
                   <p className="font-medium">{quote.items.length}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Total Amount</p>
+                  <p className="text-sm text-muted-foreground">Total Amount</p>
                   <p className="font-medium text-primary">{formatCurrency(quote.total)}</p>
                 </div>
               </div>
@@ -243,7 +250,7 @@ export function QuoteAcceptance({ clientId, quotes = [], onAcceptQuote }: QuoteA
 
       {/* Signature Modal */}
       {showSignatureModal && selectedQuote && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
           <div className="w-full max-w-lg p-6 bg-white rounded-lg shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-medium">Accept Quote #{selectedQuote.id}</h3>

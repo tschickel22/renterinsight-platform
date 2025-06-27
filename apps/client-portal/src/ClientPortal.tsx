@@ -146,7 +146,7 @@ function ClientDashboard() {
             </div>
             
             <div className="bg-white p-6 rounded-lg shadow">
-              <h2 className="text-lg font-medium mb-4">Recent Activity</h2>
+              <h3 className="text-lg font-medium mb-4">Recent Activity</h3>
               <div className="space-y-4">
                 {clientSignatures.filter(s => s.clientId === activeClient.id).slice(0, 3).map((signature, index) => (
                   <div key={index} className="flex items-start space-x-3">

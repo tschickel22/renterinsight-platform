@@ -503,3 +503,45 @@ export interface CustomerSurvey {
   comments: string
   submittedAt: Date
 }
+
+export enum ClientAccountStatus {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  SUSPENDED = 'suspended'
+}
+
+export interface ClientAccount {
+  id: string
+  name: string
+  email: string
+  phone?: string
+  password: string
+  status: ClientAccountStatus
+  tenantId: string
+  leadId: string
+  lastLogin?: Date
+  customFields?: Record<string, any>
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface ClientSignature {
+  id: string
+  clientId: string
+  documentId: string
+  documentType: 'quote' | 'agreement' | 'other'
+  signatureUrl: string
+  ipAddress: string
+  signedAt: Date
+  createdAt: Date
+}
+
+export interface CustomerSurvey {
+  id: string
+  clientId: string
+  serviceTicketId?: string
+  deliveryId?: string
+  rating: number
+  comments: string
+  submittedAt: Date
+}
