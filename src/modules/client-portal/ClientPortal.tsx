@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,6 +15,11 @@ import { NewClientAccountForm } from '@/components/NewClientAccountForm'
 import { ClientAccountStatus } from '@/types'
 import { Key } from 'lucide-react'
 
+// Helper function to get URL parameters
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
+}
+
 function PortalDashboard() {
   const { getAllClientAccounts, resetClientPassword, updateClientStatus, sendInvitation } = useClientPortalAccounts()
   const { toast } = useToast()
@@ -25,6 +30,9 @@ function PortalDashboard() {
   const [loading, setLoading] = useState(false)
   const [showUserDetail, setShowUserDetail] = useState(false)
   const [showUserSettings, setShowUserSettings] = useState(false)
+  const query = useQuery();
+  const isPreview = query.get('preview') === 'true';
+  const previewClientId = query.get('clientId');
 
   // Load client accounts on component mount
   useEffect(() => {
@@ -39,7 +47,38 @@ function PortalDashboard() {
       serviceTickets: Math.floor(Math.random() * 3), // Mock data
       invoices: Math.floor(Math.random() * 4) // Mock data
     })));
-  }, [getAllClientAccounts]);
+    
+    // Check if this is a preview mode from admin
+    if (isPreview && previewClientId) {
+      // Get client account from the client portal accounts
+      const { getClientAccount } = useClientPortalAccounts();
+      const clientAccount = getClientAccount(previewClientId);
+      
+      if (clientAccount) {
+        setActiveClient({
+          id: clientAccount.id,
+          name: clientAccount.name,
+          email: clientAccount.email,
+          phone: clientAccount.phone,
+          isPreview: true
+        });
+      } else {
+        // Fallback to a preview user if client account not found
+        setActiveClient({
+          id: previewClientId,
+          name: 'Preview User',
+          email: 'preview@example.com',
+          isPreview: true
+        });
+      }
+    } else {
+      // Check for stored client session
+      const storedClient = loadFromLocalStorage('renter-insight-client-session', null);
+      if (storedClient) {
+        setActiveClient(storedClient);
+      }
+    }
+  }, [getAllClientAccounts, isPreview, previewClientId]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
