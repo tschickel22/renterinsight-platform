@@ -10,7 +10,9 @@
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "shadcn-ui": "^0.4.1"
+    "shadcn-ui": "^0.4.1",
+    "react-router-dom": "^6.8.1",
+    "lucide-react": "^0.321.0"
   },
   "devDependencies": {
     "vite": "^4.4.0",
