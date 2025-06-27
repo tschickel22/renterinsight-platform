@@ -25,6 +25,13 @@ function PortalDashboard() {
   const [loading, setLoading] = useState(false)
   const [showUserDetail, setShowUserDetail] = useState(false)
   const [showUserSettings, setShowUserSettings] = useState(false)
+  const [activeClient, setActiveClient] = useState<any>(null)
+  const [clientSignatures, setClientSignatures] = useState<ClientSignature[]>([])
+  const [customerSurveys, setCustomerSurveys] = useState<CustomerSurvey[]>([])
+  const [isPreviewMode, setIsPreviewMode] = useState(false)
+  
+  const { getClientAccountByEmail } = useClientPortalAccounts()
+  const { quotes, updateQuote } = useQuoteManagement()
 
   // Load client accounts on component mount
   useEffect(() => {
@@ -40,6 +47,41 @@ function PortalDashboard() {
       invoices: Math.floor(Math.random() * 4) // Mock data
     })));
   }, [getAllClientAccounts]);
+
+  React.useEffect(() => {
+    // Load client signatures and surveys from localStorage
+    const savedSignatures = loadFromLocalStorage('renter-insight-client-signatures', []);
+    const savedSurveys = loadFromLocalStorage('renter-insight-customer-surveys', []);
+    
+    setClientSignatures(savedSignatures);
+    setCustomerSurveys(savedSurveys);
+    
+    // Check for preview mode from URL parameters
+    const params = new URLSearchParams(window.location.search);
+    const isPreview = params.get('preview') === 'true';
+    const clientId = params.get('clientId');
+    
+    if (isPreview && clientId) {
+      // In a real app, this would validate a special token
+      // For this demo, we'll just simulate a successful login
+      setActiveClient({
+        id: clientId,
+        name: 'Preview User',
+        email: 'preview@example.com',
+        isPreview: true
+      });
+      setIsPreviewMode(true);
+    } else {
+      // Check for stored client session
+      const storedClient = loadFromLocalStorage('renter-insight-client-session', null);
+      if (storedClient) {
+        setActiveClient(storedClient);
+      }
+    }
+  }, []);
+
+  const handleLogin = (client: any) => {
+    setActiveClient(client);
 
   const getStatusColor = (status: string) => {
     switch (status) {
