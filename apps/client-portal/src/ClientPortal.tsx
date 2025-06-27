@@ -14,31 +14,44 @@ import { useInventoryManagement } from '@/modules/inventory-management/hooks/use
 import { ClientSignature, CustomerSurvey, Quote, QuoteStatus, ServiceTicket } from '@/types';
 import { saveToLocalStorage, loadFromLocalStorage } from '@/lib/utils';
 
-function ClientDashboard() {
-  const [activeClient, setActiveClient] = React.useState<any>(null);
-  const [clientSignatures, setClientSignatures] = React.useState<ClientSignature[]>([]);
-  const [customerSurveys, setCustomerSurveys] = React.useState<CustomerSurvey[]>([]);
-  
+          id: clientAccount.id,
+          name: clientAccount.name,
+          email: clientAccount.email,
+          phone: clientAccount.phone,
+          isImpersonated: true
   const { getClientAccountByEmail } = useClientPortalAccounts();
   const { quotes, updateQuote } = useQuoteManagement();
-  const { createTicket } = useServiceManagement();
+        // Fallback if client account not found
+        const allAccounts = getAllClientAccounts();
+        if (allAccounts.length > 0) {
+          const firstAccount = allAccounts[0];
+          setActiveClient({
+            id: firstAccount.id,
+            name: firstAccount.name,
+            email: firstAccount.email,
+            phone: firstAccount.phone,
+            isImpersonated: true
+          });
+        } else {
+          // Last resort fallback
+          setActiveClient({
+            id: impersonateClientId,
+            name: 'Client User',
+            email: 'client@example.com',
+            isImpersonated: true
+          });
+        }
+      }
+    } else {
+      // Check for stored client session
+      const storedClient = loadFromLocalStorage('renter-insight-client-session', null);
+      if (storedClient) {
   const { deliveries } = useDeliveryManagement();
-  const { vehicles } = useInventoryManagement();
-
-  React.useEffect(() => {
+          ...storedClient
     // Load client signatures and surveys from localStorage
     const savedSignatures = loadFromLocalStorage('renter-insight-client-signatures', []);
     const savedSurveys = loadFromLocalStorage('renter-insight-customer-surveys', []);
-    
-    setClientSignatures(savedSignatures);
-    setCustomerSurveys(savedSurveys);
-    
-    // Check for stored client session
-    const storedClient = loadFromLocalStorage('renter-insight-client-session', null);
-    if (storedClient) {
-      setActiveClient(storedClient);
-    }
-  }, []);
+  }, [impersonateClientId, getClientAccount, getAllClientAccounts]);
 
   const handleLogin = (client: any) => {
     setActiveClient(client);

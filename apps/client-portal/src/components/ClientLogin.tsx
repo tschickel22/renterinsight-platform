@@ -12,22 +12,6 @@ export function ClientLogin({ onLogin }: ClientLoginProps) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      const client = await authenticateClient(email, password);
-      onLogin(client);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Check if this is a preview mode from admin
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const isPreview = params.get('preview') === 'true';
