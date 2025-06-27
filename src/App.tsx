@@ -53,6 +53,7 @@ function App() {
                           <Route path="/delivery/*" element={<DeliveryTracker />} />
                           <Route path="/commissions/*" element={<CommissionEngine />} />
                           <Route path="/portal/*" element={<ClientPortal />} />
+                          <Route path="/client-portal/*" element={<ClientPortal />} />
                           <Route path="/invoices/*" element={<InvoicePayments />} />
                           <Route path="/settings/*" element={<CompanySettings />} />
                           <Route path="/admin/*" element={<PlatformAdmin />} />

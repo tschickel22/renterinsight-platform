@@ -92,16 +92,9 @@ function PlatformAdminDashboard() {
   }
 
   const handleClientPreview = (clientId: string) => {
-    // Create a preview URL with the client ID
-    const previewUrl = `/client-portal?preview=true&clientId=${clientId}`
-    
-    // Open in a new window/tab
-    const newWindow = window.open(previewUrl, '_blank')
-    
-    // Focus the new window if it was successfully opened
-    if (newWindow) {
-      newWindow.focus()
-    }
+    // Create a preview URL with the client ID that points directly to the client portal
+    const previewUrl = `/portal?preview=true&clientId=${clientId}`
+    window.open(previewUrl, '_blank')
     
     toast({
       title: 'Client Preview',
