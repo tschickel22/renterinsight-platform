@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation, useSearchParams } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -631,6 +631,55 @@ function PortalDashboard() {
       </Card>
     </div>
   )
+}
+
+function ClientDashboard() {
+  const [searchParams] = useSearchParams();
+  const isPreview = searchParams.get('preview') === 'true';
+  const previewClientId = searchParams.get('clientId');
+  const [activeClient, setActiveClient] = useState<any>(null);
+  const [clientSignatures, setClientSignatures] = useState<ClientSignature[]>([]);
+  const [customerSurveys, setCustomerSurveys] = useState<CustomerSurvey[]>([]);
+
+  React.useEffect(() => {
+    // Load client signatures and surveys from localStorage
+    const savedSignatures = loadFromLocalStorage('renter-insight-client-signatures', []);
+    const savedSurveys = loadFromLocalStorage('renter-insight-customer-surveys', []);
+    
+    setClientSignatures(savedSignatures);
+    setCustomerSurveys(savedSurveys);
+    
+    // Check if this is a preview mode from admin
+    if (isPreview && previewClientId) {
+      // Get client account from the client portal accounts
+      const clientAccount = getClientAccountByEmail ? 
+        getClientAccountByEmail('demo@example.com') : 
+        { id: previewClientId, name: 'Preview User', email: 'preview@example.com' };
+      
+      if (clientAccount) {
+        setActiveClient({
+          id: clientAccount.id || previewClientId,
+          name: clientAccount.name || 'Preview User',
+          email: clientAccount.email || 'preview@example.com',
+          isPreview: true
+        });
+      } else {
+        // Fallback to a preview user if client account not found
+        setActiveClient({
+          id: previewClientId,
+          name: 'Preview User',
+          email: 'preview@example.com',
+          isPreview: true
+        });
+      }
+    } else {
+      // Check for stored client session
+      const storedClient = loadFromLocalStorage('renter-insight-client-session', null);
+      if (storedClient) {
+        setActiveClient(storedClient);
+      }
+    }
+  }, [isPreview, previewClientId, getClientAccountByEmail]);
 }
 
 export default function ClientPortal() {
