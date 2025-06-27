@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ClientPortalLayout } from './components/ClientPortalLayout';
 import { ClientLogin } from './components/ClientLogin';
@@ -15,9 +15,9 @@ import { ClientSignature, CustomerSurvey, Quote, QuoteStatus, ServiceTicket } fr
 import { saveToLocalStorage, loadFromLocalStorage } from '@/lib/utils';
 
 function ClientDashboard() {
-  const [activeClient, setActiveClient] = useState<any>(null);
-  const [clientSignatures, setClientSignatures] = useState<ClientSignature[]>([]);
-  const [customerSurveys, setCustomerSurveys] = useState<CustomerSurvey[]>([]);
+  const [activeClient, setActiveClient] = React.useState<any>(null);
+  const [clientSignatures, setClientSignatures] = React.useState<ClientSignature[]>([]);
+  const [customerSurveys, setCustomerSurveys] = React.useState<CustomerSurvey[]>([]);
   
   const { getClientAccountByEmail } = useClientPortalAccounts();
   const { quotes, updateQuote } = useQuoteManagement();
@@ -25,7 +25,7 @@ function ClientDashboard() {
   const { deliveries } = useDeliveryManagement();
   const { vehicles } = useInventoryManagement();
 
-  useEffect(() => {
+  React.useEffect(() => {
     // Load client signatures and surveys from localStorage
     const savedSignatures = loadFromLocalStorage('renter-insight-client-signatures', []);
     const savedSurveys = loadFromLocalStorage('renter-insight-customer-surveys', []);
