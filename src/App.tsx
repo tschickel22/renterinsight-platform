@@ -22,6 +22,7 @@ import PDIChecklist from '@/modules/pdi-checklist/PDIChecklist'
 import CommissionEngine from '@/modules/commission-engine/CommissionEngine'
 import ClientPortalAdmin from '@/modules/client-portal/ClientPortalAdmin'
 import ClientPortal from '@/modules/client-portal/ClientPortal'
+import ClientPreview from '@/modules/client-portal/ClientPortal'
 import InvoicePayments from '@/modules/invoice-payments/InvoicePayments'
 import CompanySettings from '@/modules/company-settings/CompanySettings'
 import PlatformAdmin from '@/modules/platform-admin/PlatformAdmin'
@@ -36,6 +37,7 @@ function App() {
             <div className="min-h-screen bg-background">
               <Routes>
                 <Route path="/login" element={<Login />} />
+                <Route path="/client-preview/*" element={<ClientPreview />} />
                 <Route
                   path="/*"
                   element={
