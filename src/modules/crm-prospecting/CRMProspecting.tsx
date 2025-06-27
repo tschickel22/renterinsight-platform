@@ -46,8 +46,6 @@ function LeadsList() {
   const [showNewLeadForm, setShowNewLeadForm] = useState(false)
 
   const getStatusColor = (status: LeadStatus) => {
-  const [showNewClientAccountForm, setShowNewClientAccountForm] = useState(false)
-  const [selectedLeadForAccount, setSelectedLeadForAccount] = useState<Lead | null>(null)
     switch (status) {
       case LeadStatus.NEW:
         return 'bg-blue-50 text-blue-700 border-blue-200'
@@ -100,20 +98,6 @@ function LeadsList() {
     // The lead is already added to the state by the createLead function
     // We can optionally show a success message or redirect to the lead detail
     console.log('New lead created:', newLead)
-  }
-
-  const handleInviteToPortal = (lead: Lead) => {
-    setSelectedLeadForAccount(lead)
-    setShowNewClientAccountForm(true)
-  }
-
-  const handleNewClientAccountSuccess = (account: any) => {
-    toast({
-      title: 'Client Account Created',
-      description: `Portal account created for ${account.name}`,
-    })
-    setShowNewClientAccountForm(false)
-    setSelectedLeadForAccount(null)
   }
 
   const handleInviteToPortal = (lead: Lead) => {
@@ -273,18 +257,6 @@ function LeadsList() {
         />
       )}
 
-      {/* New Client Account Form Modal */}
-      {showNewClientAccountForm && (
-        <NewClientAccountForm
-          lead={selectedLeadForAccount || undefined}
-          onClose={() => {
-            setShowNewClientAccountForm(false)
-            setSelectedLeadForAccount(null)
-          }}
-          onSuccess={handleNewClientAccountSuccess}
-        />
-      )}
-
       {/* Page Header */}
       <div className="ri-page-header">
         <div className="flex items-center justify-between">
@@ -298,12 +270,6 @@ function LeadsList() {
             <Button variant="outline" className="shadow-sm" onClick={() => setShowNewClientAccountForm(true)}>
               <Users className="h-4 w-4 mr-2" />
               Invite to Portal
-            </Button>
-            <Button className="shadow-sm" onClick={() => setShowNewLeadForm(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Lead
-            </Button>
-          </div>
             </Button>
             <Button className="shadow-sm" onClick={() => setShowNewLeadForm(true)}>
               <Plus className="h-4 w-4 mr-2" />
@@ -521,13 +487,6 @@ function LeadsList() {
                       }}>
                         <Brain className="h-3 w-3 mr-1" />
                         AI Insights
-                      </Button>
-                      <Button variant="outline" size="sm" className="shadow-sm" onClick={(e) => {
-                        e.stopPropagation()
-                        handleInviteToPortal(lead)
-                      }}>
-                        <Users className="h-3 w-3 mr-1" />
-                        Invite to Portal
                       </Button>
                       <Button variant="outline" size="sm" className="shadow-sm" onClick={(e) => {
                         e.stopPropagation()
