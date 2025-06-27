@@ -6,20 +6,20 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Globe, Plus, Search, Filter, Users, Eye, Settings, MessageSquare, TrendingUp, Activity, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { loadFromLocalStorage, saveToLocalStorage } from '@/lib/utils'
 import { useClientPortalAccounts } from '@/hooks/useClientPortalAccounts'
 import { useToast } from '@/hooks/use-toast'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { NewClientAccountForm } from '@/components/NewClientAccountForm'
-import { ClientAccountStatus } from '@/types'
 import { Key } from 'lucide-react'
 
 // Helper function to get URL parameters
 function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
-
+  const { getClientAccountByEmail, getClientAccount } = useClientPortalAccounts()
 function PortalDashboard() {
   const { getAllClientAccounts, resetClientPassword, updateClientStatus, sendInvitation } = useClientPortalAccounts()
   const { toast } = useToast()

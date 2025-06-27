@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { 
   Home, 
   FileText, 
@@ -9,6 +9,9 @@ import {
 export function ClientPortalLayout({ children }: ClientPortalLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate()
+  const searchParams = new URLSearchParams(location.search)
+  const isPreview = searchParams.get('preview') === 'true'
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
   const isPreview = searchParams.get('preview') === 'true';
@@ -40,8 +43,34 @@ export function ClientPortalLayout({ children }: ClientPortalLayoutProps) {
     }
   }, [isPreview, searchParams, navigate]);
 
+  // Preserve preview parameters when navigating
+  React.useEffect(() => {
+    if (isPreview) {
+      const handleClick = (e: MouseEvent) => {
+        const target = e.target as HTMLElement
+        const link = target.closest('a')
+        
+        if (link && link.getAttribute('href')?.startsWith('/') && !link.getAttribute('href')?.includes('?')) {
+          e.preventDefault()
+          const href = link.getAttribute('href')
+          if (href) {
+            navigate(`${href}?${searchParams.toString()}`)
+          }
+        }
+      }
+      
+      document.addEventListener('click', handleClick)
+      return () => document.removeEventListener('click', handleClick)
+    }
+  }, [isPreview, searchParams, navigate])
+
   return (
     <div className="min-h-screen bg-gray-50">
+      {isPreview && (
+        <div className="fixed top-0 left-0 right-0 bg-blue-600 text-white p-2 text-center z-50">
+          <p className="text-sm font-medium">Client Portal Preview Mode</p>
+        </div>
+      )}
       {isPreview && (
         <div className="fixed top-0 left-0 right-0 bg-blue-600 text-white p-2 text-center z-50">
           <p className="text-sm font-medium">Client Portal Preview Mode</p>
