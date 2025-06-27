@@ -1,13 +1,16 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Globe, Plus, Search, Filter, Users, Eye, Settings, MessageSquare, TrendingUp, Activity } from 'lucide-react'
+import { Globe, Plus, Search, Filter, Users, Eye, Settings, MessageSquare, TrendingUp, Activity, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useClientPortalAccounts } from '@/hooks/useClientPortalAccounts'
 import { useToast } from '@/hooks/use-toast'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
 import { NewClientAccountForm } from '@/components/NewClientAccountForm'
 import { ClientAccountStatus } from '@/types'
 import { Key } from 'lucide-react'
@@ -20,6 +23,8 @@ function PortalDashboard() {
   const [showNewClientAccountForm, setShowNewClientAccountForm] = useState(false)
   const [selectedUser, setSelectedUser] = useState<any | null>(null)
   const [loading, setLoading] = useState(false)
+  const [showUserDetail, setShowUserDetail] = useState(false)
+  const [showUserSettings, setShowUserSettings] = useState(false)
 
   // Load client accounts on component mount
   useEffect(() => {
@@ -65,25 +70,28 @@ function PortalDashboard() {
     setShowNewClientAccountForm(false);
   }
 
-  const handleManageUser = (user: any) => {
+  const handleManageUser = (user: any, e: React.MouseEvent) => {
+    e.stopPropagation()
     setSelectedUser(user);
-    // In a real implementation, you would navigate to a management page or open a modal
+    setShowUserDetail(true)
     toast({
       title: 'Manage User',
       description: `Managing ${user.name}`,
     });
   }
 
-  const handleUserSettings = (user: any) => {
+  const handleUserSettings = (user: any, e: React.MouseEvent) => {
+    e.stopPropagation()
     setSelectedUser(user);
-    // In a real implementation, you would navigate to a settings page or open a modal
+    setShowUserSettings(true)
     toast({
       title: 'User Settings',
       description: `Settings for ${user.name}`,
     });
   }
 
-  const handleResetPassword = async (userId: string) => {
+  const handleResetPassword = async (userId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
     setLoading(true);
     try {
       const result = await resetClientPassword(userId);
@@ -102,7 +110,8 @@ function PortalDashboard() {
     }
   }
 
-  const handleStatusChange = async (userId: string, status: ClientAccountStatus) => {
+  const handleStatusChange = async (userId: string, status: ClientAccountStatus, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation()
     setLoading(true);
     try {
       await updateClientStatus(userId, status);
@@ -123,7 +132,8 @@ function PortalDashboard() {
     }
   }
 
-  const handleSendNotification = async (userId: string, type: 'email' | 'sms') => {
+  const handleSendNotification = async (userId: string, type: 'email' | 'sms', e: React.MouseEvent) => {
+    e.stopPropagation()
     setLoading(true);
     try {
       await sendInvitation(userId, type);
@@ -149,6 +159,132 @@ function PortalDashboard() {
 
   return (
     <div className="space-y-8">
+      {/* User Detail Modal */}
+      {showUserDetail && selectedUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-lg">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>User Details</CardTitle>
+                  <CardDescription>
+                    Manage {selectedUser.name}'s account
+                  </CardDescription>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setShowUserDetail(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <h3 className="font-semibold">Account Information</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <span className="text-sm text-muted-foreground">Name</span>
+                    <p>{selectedUser.name}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-muted-foreground">Email</span>
+                    <p>{selectedUser.email}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-muted-foreground">Status</span>
+                    <p>
+                      <Badge className={cn("ri-badge-status", getStatusColor(selectedUser.status))}>
+                        {selectedUser.status.toUpperCase()}
+                      </Badge>
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-muted-foreground">Last Login</span>
+                    <p>{selectedUser.lastLogin ? new Date(selectedUser.lastLogin).toLocaleString() : 'Never'}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <h3 className="font-semibold">Actions</h3>
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" onClick={() => handleResetPassword(selectedUser.id, new MouseEvent('click') as any)}>
+                    Reset Password
+                  </Button>
+                  <Button size="sm" onClick={() => handleSendNotification(selectedUser.id, 'email', new MouseEvent('click') as any)}>
+                    Send Email
+                  </Button>
+                  <Button size="sm" onClick={() => handleSendNotification(selectedUser.id, 'sms', new MouseEvent('click') as any)}>
+                    Send SMS
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="pt-4 border-t">
+                <Button variant="outline" onClick={() => setShowUserDetail(false)}>
+                  Close
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+      
+      {/* User Settings Modal */}
+      {showUserSettings && selectedUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-lg">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>User Settings</CardTitle>
+                  <CardDescription>
+                    Configure settings for {selectedUser.name}
+                  </CardDescription>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setShowUserSettings(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <h3 className="font-semibold">Account Status</h3>
+                <Select 
+                  value={selectedUser.status} 
+                  onValueChange={(value) => handleStatusChange(selectedUser.id, value as ClientAccountStatus)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="suspended">Suspended</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <h3 className="font-semibold">Notification Preferences</h3>
+                <div className="flex items-center space-x-2">
+                  <Checkbox id="emailNotifications" defaultChecked />
+                  <Label htmlFor="emailNotifications">Email Notifications</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox id="smsNotifications" defaultChecked />
+                  <Label htmlFor="smsNotifications">SMS Notifications</Label>
+                </div>
+              </div>
+              
+              <div className="pt-4 border-t">
+                <Button variant="outline" onClick={() => setShowUserSettings(false)}>
+                  Close
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* New Client Account Form Modal */}
       {showNewClientAccountForm && (
         <NewClientAccountForm
@@ -404,7 +540,7 @@ function PortalDashboard() {
                     variant="outline" 
                     size="sm"
                     className="shadow-sm"
-                    onClick={() => handleManageUser(user)}
+                    onClick={(e) => handleManageUser(user, e)}
                   >
                     <Users className="h-3 w-3 mr-1" />
                     Manage
@@ -413,7 +549,7 @@ function PortalDashboard() {
                     variant="outline" 
                     size="sm"
                     className="shadow-sm"
-                    onClick={() => handleUserSettings(user)}
+                    onClick={(e) => handleUserSettings(user, e)}
                   >
                     <Settings className="h-3 w-3 mr-1" />
                     Settings
@@ -422,7 +558,7 @@ function PortalDashboard() {
                     variant="outline" 
                     size="sm"
                     className="shadow-sm"
-                    onClick={() => handleResetPassword(user.id)}
+                    onClick={(e) => handleResetPassword(user.id, e)}
                     disabled={loading}
                   >
                     <Key className="h-3 w-3 mr-1" />
@@ -430,7 +566,7 @@ function PortalDashboard() {
                   </Button>
                   <select
                     value={user.status}
-                    onChange={(e) => handleStatusChange(user.id, e.target.value as ClientAccountStatus)}
+                    onChange={(e) => handleStatusChange(user.id, e.target.value as ClientAccountStatus, undefined)}
                     className="px-2 py-1 text-xs rounded-md border border-input bg-background"
                     disabled={loading}
                   >
@@ -442,7 +578,7 @@ function PortalDashboard() {
                     variant="outline" 
                     size="sm"
                     className="shadow-sm"
-                    onClick={() => handleSendNotification(user.id, 'email')}
+                    onClick={(e) => handleSendNotification(user.id, 'email', e)}
                     disabled={loading}
                   >
                     <MessageSquare className="h-3 w-3 mr-1" />
