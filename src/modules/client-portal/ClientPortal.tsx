@@ -19,9 +19,9 @@ import { Key } from 'lucide-react'
 function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
-  const { getClientAccountByEmail, getClientAccount } = useClientPortalAccounts()
+
 function PortalDashboard() {
-  const { getAllClientAccounts, resetClientPassword, updateClientStatus, sendInvitation } = useClientPortalAccounts()
+  const { getAllClientAccounts, resetClientPassword, updateClientStatus, sendInvitation, getClientAccountByEmail, getClientAccount } = useClientPortalAccounts()
   const { toast } = useToast()
   const [portalUsers, setPortalUsers] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -30,6 +30,7 @@ function PortalDashboard() {
   const [loading, setLoading] = useState(false)
   const [showUserDetail, setShowUserDetail] = useState(false)
   const [showUserSettings, setShowUserSettings] = useState(false)
+  const [activeClient, setActiveClient] = useState<any>(null)
   const query = useQuery();
   const isPreview = query.get('preview') === 'true';
   const previewClientId = query.get('clientId');
@@ -51,7 +52,6 @@ function PortalDashboard() {
     // Check if this is a preview mode from admin
     if (isPreview && previewClientId) {
       // Get client account from the client portal accounts
-      const { getClientAccount } = useClientPortalAccounts();
       const clientAccount = getClientAccount(previewClientId);
       
       if (clientAccount) {

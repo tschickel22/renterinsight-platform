@@ -31,3 +31,4 @@ export function ClientLogin({ onLogin }: ClientLoginProps) {
       })
     }
   }, [onLogin, location.search])
+}

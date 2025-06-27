@@ -102,6 +102,12 @@ function PlatformAdminDashboard() {
     if (newWindow) {
       newWindow.focus()
     }
+    const newWindow = window.open(previewUrl, '_blank')
+    
+    // Focus the new window if it was successfully opened
+    if (newWindow) {
+      newWindow.focus()
+    }
     
     toast({
       title: 'Client Preview',
