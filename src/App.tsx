@@ -1,15 +1,18 @@
 import React from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+
 import { Toaster } from '@/components/ui/toaster'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { TenantProvider } from '@/contexts/TenantContext'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import Layout from '@/components/layout/Layout'
-import Dashboard from '@/pages/Dashboard'
-import Login from '@/pages/Login'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 
-// Module imports
+// Pages
+import Dashboard from '@/pages/Dashboard'
+import Login from '@/pages/Login'
+
+// Modules
 import CRMProspecting from '@/modules/crm-prospecting/CRMProspecting'
 import InventoryManagement from '@/modules/inventory-management/InventoryManagement'
 import QuoteBuilder from '@/modules/quote-builder/QuoteBuilder'
@@ -22,11 +25,22 @@ import PDIChecklist from '@/modules/pdi-checklist/PDIChecklist'
 import CommissionEngine from '@/modules/commission-engine/CommissionEngine'
 import ClientPortalAdmin from '@/modules/client-portal/ClientPortalAdmin'
 import ClientPortal from '@/modules/client-portal/ClientPortal'
-import ClientPreview from '@/modules/client-portal/ClientPortal'
 import InvoicePayments from '@/modules/invoice-payments/InvoicePayments'
 import CompanySettings from '@/modules/company-settings/CompanySettings'
 import PlatformAdmin from '@/modules/platform-admin/PlatformAdmin'
 import ReportingSuite from '@/modules/reporting-suite/ReportingSuite'
+
+// Fallback wrapper for /client-preview
+function ClientPreviewWrapper() {
+  const query = new URLSearchParams(useLocation().search)
+  const impersonateClientId = query.get('impersonateClientId')
+
+  if (!impersonateClientId) {
+    return <Navigate to="/portal" replace />
+  }
+
+  return <ClientPortal />
+}
 
 function App() {
   return (
@@ -36,8 +50,20 @@ function App() {
           <TenantProvider>
             <div className="min-h-screen bg-background">
               <Routes>
+                {/* Public login route */}
                 <Route path="/login" element={<Login />} />
-                <Route path="/client-preview/*" element={<ClientPreview />} />
+
+                {/* Protected client preview (must be logged in AND have impersonateClientId) */}
+                <Route
+                  path="/client-preview/*"
+                  element={
+                    <ProtectedRoute>
+                      <ClientPreviewWrapper />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* All other protected routes */}
                 <Route
                   path="/*"
                   element={
