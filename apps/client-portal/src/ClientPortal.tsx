@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Routes, Route, Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import { ClientPortalLayout } from './components/ClientPortalLayout';
 import { ClientLogin } from './components/ClientLogin';
 import { QuoteAcceptance } from './components/QuoteAcceptance';
@@ -14,13 +15,42 @@ import { useInventoryManagement } from '@/modules/inventory-management/hooks/use
 import { ClientSignature, CustomerSurvey, Quote, QuoteStatus, ServiceTicket } from '@/types';
 import { saveToLocalStorage, loadFromLocalStorage } from '@/lib/utils';
 
+function ClientDashboard() {
+  const [activeClient, setActiveClient] = useState<any>(null);
+  const [searchParams] = useSearchParams();
+  const impersonateClientId = searchParams.get('impersonateClientId');
+  const [clientSignatures, setClientSignatures] = useState<ClientSignature[]>([]);
+  const [customerSurveys, setCustomerSurveys] = useState<CustomerSurvey[]>([]);
+
+  const { getClientAccountByEmail } = useClientPortalAccounts();
+  const { quotes, updateQuote } = useQuoteManagement();
+  const { createTicket } = useServiceManagement();
+  const { deliveries } = useDeliveryManagement();
+  const { vehicles } = useInventoryManagement();
+
+  useEffect(() => {
+    // Load client signatures and surveys from localStorage
+    const savedSignatures = loadFromLocalStorage('renter-insight-client-signatures', []);
+    const savedSurveys = loadFromLocalStorage('renter-insight-customer-surveys', []);
+    setClientSignatures(savedSignatures);
+    setCustomerSurveys(savedSurveys);
+    
+    // Check if this is an impersonation request from admin
+    if (impersonateClientId) {
+      const { getAllClientAccounts, getClientAccount } = useClientPortalAccounts();
+      
+      // Try to get the client account by ID
+      const clientAccount = getClientAccount(impersonateClientId);
+      
+      if (clientAccount) {
+        setActiveClient({
           id: clientAccount.id,
           name: clientAccount.name,
           email: clientAccount.email,
           phone: clientAccount.phone,
           isImpersonated: true
-  const { getClientAccountByEmail } = useClientPortalAccounts();
-  const { quotes, updateQuote } = useQuoteManagement();
+        });
+      } else {
         // Fallback if client account not found
         const allAccounts = getAllClientAccounts();
         if (allAccounts.length > 0) {
@@ -46,12 +76,10 @@ import { saveToLocalStorage, loadFromLocalStorage } from '@/lib/utils';
       // Check for stored client session
       const storedClient = loadFromLocalStorage('renter-insight-client-session', null);
       if (storedClient) {
-  const { deliveries } = useDeliveryManagement();
-          ...storedClient
-    // Load client signatures and surveys from localStorage
-    const savedSignatures = loadFromLocalStorage('renter-insight-client-signatures', []);
-    const savedSurveys = loadFromLocalStorage('renter-insight-customer-surveys', []);
-  }, [impersonateClientId, getClientAccount, getAllClientAccounts]);
+        setActiveClient(storedClient);
+      }
+    }
+  }, [impersonateClientId]);
 
   const handleLogin = (client: any) => {
     setActiveClient(client);
