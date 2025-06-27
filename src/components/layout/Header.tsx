@@ -9,7 +9,8 @@ export default function Header() {
   const { tenant } = useTenant()
 
   const handleViewClientPortal = () => {
-    window.open('/client-portal', '_blank');
+    // Open the client portal in a new tab
+    window.open(`${window.location.origin}/apps/client-portal/`, '_blank');
   }
 
   return (

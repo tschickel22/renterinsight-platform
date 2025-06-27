@@ -6,8 +6,8 @@ const ClientPortalRedirect = () => {
   
   useEffect(() => {
     // In a production environment, this would redirect to the actual client portal URL
-    // For local development, we'll redirect to the client portal running on a different port
-    const clientPortalUrl = import.meta.env.VITE_CLIENT_PORTAL_URL || '/apps/client-portal/';
+    // Get the current origin and append the client-portal path
+    const clientPortalUrl = `${window.location.origin}/apps/client-portal/`;
     
     // If we have a user, we can pass some authentication information
     const url = user ? `${clientPortalUrl}?userId=${user.id}` : clientPortalUrl;
