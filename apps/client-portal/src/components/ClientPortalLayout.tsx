@@ -1,11 +1,16 @@
 // ✅ apps/client-portal/src/modules/client-portal/components/ClientPortalLayout.tsx
+
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-export function ClientPortalLayout({ children }: { children: React.ReactNode }) {
+interface ClientPortalLayoutProps {
+  children: React.ReactNode;
+}
+
+export function ClientPortalLayout({ children }: ClientPortalLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const [showBanner, setShowBanner] = useState(true);
@@ -18,14 +23,15 @@ export function ClientPortalLayout({ children }: { children: React.ReactNode }) 
   }, [location.search]);
 
   const handleExitPreview = () => {
+    // Remove the impersonation query param but retain the pathname
     const cleanPath = location.pathname;
-    navigate(cleanPath);
+    navigate(cleanPath, { replace: true });
   };
 
   return (
-    <div>
+    <div className="min-h-screen bg-muted">
       {isPreview && showBanner && (
-        <div className="bg-yellow-100 text-yellow-800 border-b border-yellow-300 py-3 px-4 flex items-center justify-between text-sm">
+        <div className="bg-yellow-100 text-yellow-900 border-b border-yellow-300 py-3 px-4 flex items-center justify-between text-sm z-50 shadow-sm">
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4" />
             You are impersonating a client
@@ -41,7 +47,9 @@ export function ClientPortalLayout({ children }: { children: React.ReactNode }) 
         </div>
       )}
 
-      <main className={cn("p-6", isPreview && showBanner ? "pt-10" : "")}>{children}</main>
+      <main className={cn('p-6', isPreview && showBanner ? 'pt-10' : '')}>
+        {children}
+      </main>
     </div>
   );
 }
