@@ -6,8 +6,11 @@ const MobileMenu = ({ isOpen, onClose, customerName = 'John Smith' }) => {
   if (!isOpen) return null;
 
   const handleViewDealerDashboard = () => {
-    // Redirect to the main dealer dashboard URL
-    const dealerDashboardUrl = window.location.origin.replace('/apps/client-portal', '');
+    // Get the base URL without the client-portal part
+    const currentUrl = window.location.href;
+    const baseUrl = currentUrl.split('/apps/client-portal')[0];
+    const dealerDashboardUrl = baseUrl;
+    
     window.open(dealerDashboardUrl, '_blank');
     onClose();
   }

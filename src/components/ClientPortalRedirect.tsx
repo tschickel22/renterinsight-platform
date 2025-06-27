@@ -5,9 +5,8 @@ const ClientPortalRedirect = () => {
   const { user } = useAuth();
   
   useEffect(() => {
-    // In a production environment, this would redirect to the actual client portal URL
-    // Get the current origin and append the client-portal path
-    const clientPortalUrl = `${window.location.origin}/apps/client-portal/`;
+    // Get the correct client portal URL in the WebContainer environment
+    const clientPortalUrl = `${window.location.origin}/apps/client-portal/index.html`;
     
     // If we have a user, we can pass some authentication information
     const url = user ? `${clientPortalUrl}?userId=${user.id}` : clientPortalUrl;

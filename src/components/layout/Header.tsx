@@ -10,7 +10,7 @@ export default function Header() {
 
   const handleViewClientPortal = () => {
     // Open the client portal in a new tab
-    window.open(`${window.location.origin}/apps/client-portal/`, '_blank');
+    window.open(`${window.location.origin}/apps/client-portal/index.html`, '_blank');
   }
 
   return (
