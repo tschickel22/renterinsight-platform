@@ -21,6 +21,7 @@ import { AIInsights } from './components/AIInsights'
 import { CommunicationCenter } from './components/CommunicationCenter'
 import { NewLeadForm } from './components/NewLeadForm'
 import { QuotesList } from './components/QuotesList'
+import { NewClientAccountForm } from './components/NewClientAccountForm'
 
 function LeadsList() {
   const {
@@ -41,6 +42,8 @@ function LeadsList() {
   const [assigneeFilter, setAssigneeFilter] = useState<string>('all')
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
   const [showNewLeadForm, setShowNewLeadForm] = useState(false)
+  const [showNewClientAccountForm, setShowNewClientAccountForm] = useState(false)
+  const [selectedLeadForPortal, setSelectedLeadForPortal] = useState<Lead | null>(null)
 
   const getStatusColor = (status: LeadStatus) => {
     switch (status) {
@@ -95,6 +98,30 @@ function LeadsList() {
     // The lead is already added to the state by the createLead function
     // We can optionally show a success message or redirect to the lead detail
     console.log('New lead created:', newLead)
+  }
+
+  const handleCreateClientAccount = async (accountData: { email: string; name: string; sendInvite: boolean; leadId?: string }) => {
+    try {
+      // In a real app, this would call an API endpoint to create the client account
+      // For this demo, we'll just simulate a successful creation
+      console.log('Creating client account:', accountData)
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      toast({
+        title: 'Client Account Created',
+        description: accountData.sendInvite 
+          ? 'Account created and invitation sent successfully' 
+          : 'Account created successfully',
+      })
+      
+      setShowNewClientAccountForm(false)
+      setSelectedLeadForPortal(null)
+    } catch (error) {
+      console.error('Error creating client account:', error)
+      throw error
+    }
   }
 
   if (selectedLead) {
@@ -162,6 +189,21 @@ function LeadsList() {
                         <p className="font-medium">{selectedLead.source}</p>
                       </div>
                       <div>
+                      <div className="flex items-center justify-between mt-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-xs"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedLeadForPortal(lead);
+                            setShowNewClientAccountForm(true);
+                          }}
+                        >
+                          <Globe className="h-3 w-3 mr-1" />
+                          Invite to Portal
+                        </Button>
+                      </div>
                         <label className="text-sm font-medium text-muted-foreground">Assigned To</label>
                         <p className="font-medium">
                           {salesReps.find(rep => rep.id === selectedLead.assignedTo)?.name || 'Unassigned'}
@@ -227,6 +269,20 @@ function LeadsList() {
           onSuccess={handleNewLeadSuccess}
         />
       )}
+      
+      {/* New Client Account Form Modal */}
+      {showNewClientAccountForm && (
+        <NewClientAccountForm
+          leadId={selectedLeadForPortal?.id}
+          leadName={selectedLeadForPortal ? `${selectedLeadForPortal.firstName} ${selectedLeadForPortal.lastName}` : undefined}
+          leadEmail={selectedLeadForPortal?.email}
+          onSave={handleCreateClientAccount}
+          onCancel={() => {
+            setShowNewClientAccountForm(false)
+            setSelectedLeadForPortal(null)
+          }}
+        />
+      )}
 
       {/* Page Header */}
       <div className="ri-page-header">
@@ -237,10 +293,16 @@ function LeadsList() {
               Manage leads, track activities, and monitor sales pipeline with AI-powered insights
             </p>
           </div>
-          <Button className="shadow-sm" onClick={() => setShowNewLeadForm(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Lead
-          </Button>
+          <div className="flex space-x-2">
+            <Button variant="outline" className="shadow-sm" onClick={() => setShowNewClientAccountForm(true)}>
+              <Globe className="h-4 w-4 mr-2" />
+              Invite to Portal
+            </Button>
+            <Button className="shadow-sm" onClick={handleCreateLead}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Lead
+            </Button>
+          </div>
         </div>
       </div>
 
