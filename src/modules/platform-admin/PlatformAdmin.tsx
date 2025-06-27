@@ -47,63 +47,9 @@ function PlatformAdminDashboard() {
   const { hasRole } = useAuth()
   const { getAllClientAccounts, resetClientPassword, updateClientStatus } = useClientPortalAccounts()
   const { toast } = useToast()
-  const { getAllClientAccounts, resetClientPassword, updateClientStatus } = useClientPortalAccounts()
-  const { toast } = useToast()
   const [tenants] = useState(mockTenants)
   const [searchTerm, setSearchTerm] = useState('')
   const [activeTab, setActiveTab] = useState('tenants')
-  const [clientAccounts, setClientAccounts] = useState<ClientAccount[]>([])
-  const [clientSearchTerm, setClientSearchTerm] = useState('')
-
-  useEffect(() => {
-    // Load client accounts
-    setClientAccounts(getAllClientAccounts())
-  }, [getAllClientAccounts])
-
-  const handleResetPassword = async (clientId: string) => {
-    try {
-      const result = await resetClientPassword(clientId)
-      toast({
-        title: 'Password Reset',
-        description: `New temporary password: ${result.tempPassword}`,
-      })
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to reset password',
-        variant: 'destructive'
-      })
-    }
-  }
-
-  const handleStatusChange = async (clientId: string, status: ClientAccountStatus) => {
-    try {
-      await updateClientStatus(clientId, status)
-      setClientAccounts(getAllClientAccounts())
-      toast({
-        title: 'Status Updated',
-        description: `Client account status changed to ${status}`,
-      })
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to update status',
-        variant: 'destructive'
-      })
-    }
-  }
-
-  const handleClientPreview = (clientId: string) => {
-    // In a real app, this would generate a special token and open a new window
-    // For this demo, we'll just open a new window with a simulated token
-    const previewUrl = `/client-portal?preview=true&clientId=${clientId}`
-    window.open(previewUrl, '_blank')
-    
-    toast({
-      title: 'Client Preview',
-      description: 'Opening client portal preview in a new window',
-    })
-  }
   const [clientAccounts, setClientAccounts] = useState<ClientAccount[]>([])
   const [clientSearchTerm, setClientSearchTerm] = useState('')
 
@@ -199,27 +145,9 @@ function PlatformAdminDashboard() {
     }
   }
 
-  const getClientStatusColor = (status: ClientAccountStatus) => {
-    switch (status) {
-      case ClientAccountStatus.ACTIVE:
-        return 'bg-green-50 text-green-700 border-green-200'
-      case ClientAccountStatus.INACTIVE:
-        return 'bg-gray-50 text-gray-700 border-gray-200'
-      case ClientAccountStatus.SUSPENDED:
-        return 'bg-red-50 text-red-700 border-red-200'
-      default:
-        return 'bg-gray-50 text-gray-700 border-gray-200'
-    }
-  }
-
   const filteredTenants = tenants.filter(tenant =>
     tenant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     tenant.domain.toLowerCase().includes(searchTerm.toLowerCase())
-  )
-
-  const filteredClientAccounts = clientAccounts.filter(account =>
-    account.name.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
-    account.email.toLowerCase().includes(clientSearchTerm.toLowerCase())
   )
 
   const filteredClientAccounts = clientAccounts.filter(account =>
@@ -332,7 +260,6 @@ function PlatformAdminDashboard() {
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="tenants">Tenants</TabsTrigger>
           <TabsTrigger value="client-accounts">Client Portal Accounts</TabsTrigger>
-          <TabsTrigger value="client-accounts">Client Portal Accounts</TabsTrigger>
           <TabsTrigger value="system-health">System Health</TabsTrigger>
         </TabsList>
 
@@ -406,116 +333,6 @@ function PlatformAdminDashboard() {
                     </div>
                   </div>
                 ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="client-accounts" className="space-y-6">
-          {/* Search and Filters */}
-          <div className="flex gap-4">
-            <div className="ri-search-bar">
-              <Search className="ri-search-icon" />
-              <Input
-                placeholder="Search client accounts..."
-                value={clientSearchTerm}
-                onChange={(e) => setClientSearchTerm(e.target.value)}
-                className="ri-search-input shadow-sm"
-              />
-            </div>
-            <Button variant="outline" className="shadow-sm">
-              <Filter className="h-4 w-4 mr-2" />
-              Filter
-            </Button>
-          </div>
-
-          {/* Client Accounts Table */}
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-xl">Client Portal Accounts</CardTitle>
-              <CardDescription>
-                Manage client portal access and settings
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {filteredClientAccounts.length > 0 ? (
-                  filteredClientAccounts.map((account) => (
-                    <div key={account.id} className="ri-table-row">
-                      <div className="flex items-center space-x-4 flex-1">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h3 className="font-semibold text-foreground">{account.name}</h3>
-                            <Badge className={cn("ri-badge-status", getClientStatusColor(account.status))}>
-                              {account.status.toUpperCase()}
-                            </Badge>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
-                            <div>
-                              <span className="font-medium">Email:</span> 
-                              <span className="ml-1">{account.email}</span>
-                            </div>
-                            <div>
-                              <span className="font-medium">Phone:</span> 
-                              <span className="ml-1">{account.phone || 'Not provided'}</span>
-                            </div>
-                            <div>
-                              <span className="font-medium">Created:</span> 
-                              <span className="ml-1">{new Date(account.createdAt).toLocaleDateString()}</span>
-                            </div>
-                            <div>
-                              <span className="font-medium">Last Login:</span> 
-                              <span className="ml-1">{account.lastLogin ? new Date(account.lastLogin).toLocaleDateString() : 'Never'}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="ri-action-buttons">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="shadow-sm"
-                          onClick={() => handleResetPassword(account.id)}
-                        >
-                          <Key className="h-3 w-3 mr-1" />
-                          Reset Password
-                        </Button>
-                        <select
-                          value={account.status}
-                          onChange={(e) => handleStatusChange(account.id, e.target.value as ClientAccountStatus)}
-                          className="px-2 py-1 text-xs rounded-md border border-input bg-background"
-                        >
-                          <option value={ClientAccountStatus.ACTIVE}>Active</option>
-                          <option value={ClientAccountStatus.INACTIVE}>Inactive</option>
-                          <option value={ClientAccountStatus.SUSPENDED}>Suspended</option>
-                        </select>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="shadow-sm"
-                        >
-                          <Settings className="h-3 w-3 mr-1" />
-                          Settings
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="shadow-sm"
-                          onClick={() => handleClientPreview(account.id)}
-                        >
-                          <Eye className="h-3 w-3 mr-1" />
-                          Client Preview
-                        </Button>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                    <p>No client accounts found</p>
-                    <p className="text-sm">Create client accounts from the CRM module</p>
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>
