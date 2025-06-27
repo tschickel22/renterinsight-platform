@@ -1,4 +1,3 @@
-// ✅ apps/client-portal/src/ClientPortal.tsx
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, useSearchParams } from 'react-router-dom';
 import { ClientPortalLayout } from './components/ClientPortalLayout';
