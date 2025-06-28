@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { useDropzone } from 'react-dropzone'
-import { X, Save, Plus, Trash2, Upload, Image as ImageIcon, Video, ScanBarcode, Camera } from 'lucide-react'
+import { X, Save, Plus, Trash2, Upload, Image as ImageIcon, Video, ScanIcon as ScanBarcode, Camera } from 'lucide-react'
 import { X, Save, Plus, Trash2, Upload, Image as ImageIcon, Video, QrCode, Camera } from 'lucide-react'
 import { Vehicle, VehicleStatus, VehicleType } from '@/types'
 import { useToast } from '@/hooks/use-toast'
