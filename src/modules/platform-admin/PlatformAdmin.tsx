@@ -15,6 +15,7 @@ import { AddTenantForm } from './components/AddTenantForm'
 import { TenantDetail } from './components/TenantDetail'
 import { useToast } from '@/hooks/use-toast'
 
+const mockTenants = [
   {
     id: '1',
     name: 'Demo RV Dealership',
@@ -381,8 +382,8 @@ function PlatformAdminDashboard() {
                   </div>
                 </div>
                 <div className="ri-action-buttons">
-                  <Button variant="outline" size="sm" className="shadow-sm">
-                    <Shield className="h-3 w-3 mr-1" />
+                  <Button 
+                    variant="outline" 
                     size="sm" 
                     className="shadow-sm"
                     onClick={() => handleManageTenant(tenant)}
