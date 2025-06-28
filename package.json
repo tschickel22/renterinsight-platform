@@ -15,7 +15,6 @@
     "react-hook-form": "^7.43.1",
     "react-beautiful-dnd": "^13.1.1",
     "react-dropzone": "^14.2.3",
-    "react-barcode-reader": "^0.0.2",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.8.1",
     "papaparse": "^5.4.1",

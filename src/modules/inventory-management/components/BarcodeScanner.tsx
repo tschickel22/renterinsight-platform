@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { X, Camera, Check } from 'lucide-react'
+import { X, Camera } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
 interface BarcodeScannerProps {
@@ -14,8 +14,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   const [scanning, setScanning] = useState(false)
   const [result, setResult] = useState<string | null>(null)
 
-  // In a real implementation, this would use a barcode scanning library
-  // For this demo, we'll simulate scanning
+  // Simulate scanning instead of using react-barcode-reader
 
   useEffect(() => {
     // Simulate camera initialization

@@ -54,7 +54,6 @@ export function VehicleForm({ vehicle, onSave, onCancel, onScanBarcode }: Vehicl
   const [newVideo, setNewVideo] = useState('')
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
 
-  // Initialize form with vehicle data if editing
   useEffect(() => {
     if (vehicle) {
       setFormData({
