@@ -3,11 +3,14 @@ import { Routes, Route } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { Shield, Plus, Search, Filter, Users, Building, Activity, AlertTriangle, TrendingUp } from 'lucide-react'
+import { Badge } from '@/components/ui/badge' 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Shield, Plus, Search, Filter, Users, Building, Activity, AlertTriangle, TrendingUp, BarChart3, Logs } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { UserRole } from '@/types'
 import { cn } from '@/lib/utils'
+import { UsageStats } from './components/UsageStats'
+import { AuditLogs } from './components/AuditLogs'
 
 const mockTenants = [
   {
@@ -179,42 +182,60 @@ function PlatformAdminDashboard() {
       </div>
 
       {/* System Health */}
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-xl">System Health</CardTitle>
-          <CardDescription>
-            Real-time system status and health metrics
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-              <div className="h-3 w-3 bg-green-500 rounded-full"></div>
-              <span className="text-sm font-medium text-green-900">Database: Healthy</span>
-            </div>
-            <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-              <div className="h-3 w-3 bg-green-500 rounded-full"></div>
-              <span className="text-sm font-medium text-green-900">API Services: Operational</span>
-            </div>
-            <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-              <div className="h-3 w-3 bg-green-500 rounded-full"></div>
-              <span className="text-sm font-medium text-green-900">Payment Gateway: Connected</span>
-            </div>
-            <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-              <div className="h-3 w-3 bg-green-500 rounded-full"></div>
-              <span className="text-sm font-medium text-green-900">Email Service: Active</span>
-            </div>
-            <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-              <div className="h-3 w-3 bg-green-500 rounded-full"></div>
-              <span className="text-sm font-medium text-green-900">File Storage: Available</span>
-            </div>
-            <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-              <div className="h-3 w-3 bg-green-500 rounded-full"></div>
-              <span className="text-sm font-medium text-green-900">Backup System: Running</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="health" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="health">System Health</TabsTrigger>
+          <TabsTrigger value="usage">Usage Stats</TabsTrigger>
+          <TabsTrigger value="logs">Audit Logs</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="health">
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-xl">System Health</CardTitle>
+              <CardDescription>
+                Real-time system status and health metrics
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
+                  <div className="h-3 w-3 bg-green-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-green-900">Database: Healthy</span>
+                </div>
+                <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
+                  <div className="h-3 w-3 bg-green-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-green-900">API Services: Operational</span>
+                </div>
+                <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
+                  <div className="h-3 w-3 bg-green-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-green-900">Payment Gateway: Connected</span>
+                </div>
+                <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
+                  <div className="h-3 w-3 bg-green-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-green-900">Email Service: Active</span>
+                </div>
+                <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
+                  <div className="h-3 w-3 bg-green-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-green-900">File Storage: Available</span>
+                </div>
+                <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
+                  <div className="h-3 w-3 bg-green-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-green-900">Backup System: Running</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="usage">
+          <UsageStats />
+        </TabsContent>
+        
+        <TabsContent value="logs">
+          <AuditLogs />
+        </TabsContent>
+      </Tabs>
 
       {/* Search and Filters */}
       <div className="flex gap-4">
