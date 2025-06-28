@@ -20,7 +20,6 @@ function CompanySettingsPage() {
   const { toast } = useToast()
   const [activeTab, setActiveTab] = useState('general')
   const [showCustomFieldModal, setShowCustomFieldModal] = useState(false)
-  const [selectedCustomField, setSelectedCustomField] = useState<CustomField | null>(null)
 
   const tabs = [
     { id: 'general', name: 'General', icon: Building },
@@ -329,9 +328,10 @@ function CompanySettingsPage() {
     </div>
   )
   
-  const handleSaveSettings = async () => {
-    console.log('Saving settings...')
-  }
+}
+
+const handleSaveSettings = async () => {
+  console.log('Saving settings...')
 }
 
 export default function CompanySettings() {
