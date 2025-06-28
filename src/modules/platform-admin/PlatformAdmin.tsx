@@ -3,7 +3,7 @@ import { Routes, Route } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge' 
+import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Shield, Plus, Search, Filter, Users, Building, Activity, AlertTriangle, TrendingUp, BarChart3, LogIn as Logs } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -11,6 +11,8 @@ import { UserRole } from '@/types'
 import { cn } from '@/lib/utils'
 import { UsageStats } from './components/UsageStats'
 import { AuditLogs } from './components/AuditLogs'
+import { AddTenantForm } from './components/AddTenantForm'
+import { useToast } from '@/hooks/use-toast'
 
 const mockTenants = [
   {
@@ -44,8 +46,10 @@ const mockSystemMetrics = {
 
 function PlatformAdminDashboard() {
   const { hasRole } = useAuth()
-  const [tenants] = useState(mockTenants)
+  const { toast } = useToast()
+  const [tenants, setTenants] = useState(mockTenants)
   const [searchTerm, setSearchTerm] = useState('')
+  const [showAddTenantForm, setShowAddTenantForm] = useState(false)
 
   if (!hasRole(UserRole.ADMIN)) {
     return (
@@ -81,8 +85,47 @@ function PlatformAdminDashboard() {
     tenant.domain.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
+  const handleAddTenant = () => {
+    setShowAddTenantForm(true)
+  }
+
+  const handleSaveTenant = async (tenantData: any) => {
+    try {
+      // In a real app, this would be an API call
+      const newTenant = {
+        id: Math.random().toString(36).substring(2, 9),
+        ...tenantData,
+        users: 0,
+        createdAt: new Date(),
+        lastActivity: new Date()
+      }
+      
+      setTenants(prev => [...prev, newTenant])
+      setShowAddTenantForm(false)
+      
+      toast({
+        title: 'Tenant Created',
+        description: `${tenantData.name} has been created successfully.`,
+      })
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to create tenant',
+        variant: 'destructive'
+      })
+    }
+  }
+
   return (
     <div className="space-y-8">
+      {/* Add Tenant Form Modal */}
+      {showAddTenantForm && (
+        <AddTenantForm
+          onSave={handleSaveTenant}
+          onCancel={() => setShowAddTenantForm(false)}
+        />
+      )}
+
       {/* Page Header */}
       <div className="ri-page-header">
         <div className="flex items-center justify-between">
@@ -92,7 +135,7 @@ function PlatformAdminDashboard() {
               System administration and tenant management
             </p>
           </div>
-          <Button className="shadow-sm">
+          <Button className="shadow-sm" onClick={handleAddTenant}>
             <Plus className="h-4 w-4 mr-2" />
             Add Tenant
           </Button>
