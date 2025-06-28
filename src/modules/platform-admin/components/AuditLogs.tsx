@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { User, Building, Key, Settings, Mail, MessageSquare, FileText, Database, Shield, AlertTriangle, CheckCircle, XCircle, Clock, ListFilter, Download, RefreshCw, Search, Logs } from 'lucide-react'
+import { User, Building, Key, Settings, Mail, MessageSquare, FileText, Database, Shield, AlertTriangle, CheckCircle, XCircle, Clock, ListFilter, Download, RefreshCw, Search, ScrollText } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatDate } from '@/lib/utils'
 
@@ -204,7 +204,7 @@ export function AuditLogs() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center">
-                <Logs className="h-5 w-5 mr-2 text-primary" />
+                <ScrollText className="h-5 w-5 mr-2 text-primary" />
                 Audit Logs
               </CardTitle>
               <CardDescription>
@@ -297,7 +297,7 @@ export function AuditLogs() {
               })
             ) : (
               <div className="text-center py-12 text-muted-foreground">
-                <Logs className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <ScrollText className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>No audit logs found</p>
                 <p className="text-sm">Adjust your filters or refresh the logs</p>
               </div>
