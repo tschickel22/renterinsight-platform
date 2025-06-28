@@ -8,8 +8,8 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { X, Save, Building, Users, Settings, Shield, Activity, Globe } from 'lucide-react'
-import { AddUserForm } from './AddUserForm'
+import { X, Save, Building, Users, Settings, Shield, Activity, Globe, Edit, Trash2 } from 'lucide-react'
+import { UserForm } from './UserForm'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase'
@@ -27,6 +27,7 @@ export function TenantDetail({ tenant, onSave, onClose }: TenantDetailProps) {
   const [users, setUsers] = useState<any[]>([])
   const [loadingUsers, setLoadingUsers] = useState(false)
   const [showAddUserForm, setShowAddUserForm] = useState(false)
+  const [editingUser, setEditingUser] = useState<any | null>(null)
   const [formData, setFormData] = useState({
     ...tenant,
     settings: {
@@ -131,20 +132,66 @@ export function TenantDetail({ tenant, onSave, onClose }: TenantDetailProps) {
   const handleAddUser = async (userData: any) => {
     try {
       // In a real app, this would be an API call
-      console.log('Adding user:', userData);
+      console.log(editingUser ? 'Updating user:' : 'Adding user:', userData);
       
-      toast({
-        title: 'User Added',
-        description: `${userData.name} has been added successfully.`,
-      });
+      // If we're editing, update the users array
+      if (editingUser) {
+        setUsers(prevUsers => 
+          prevUsers.map(user => 
+            user.id === userData.id ? { ...user, ...userData } : user
+          )
+        );
+        
+        toast({
+          title: 'User Updated',
+          description: `${userData.name} has been updated successfully.`,
+        });
+      } else {
+        // For new users, add to the array
+        setUsers(prevUsers => [...prevUsers, userData]);
+        
+        toast({
+          title: 'User Added',
+          description: `${userData.name} has been added successfully.`,
+        });
+      }
       
       setShowAddUserForm(false);
+      setEditingUser(null);
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to add user',
+        title: editingUser ? 'Update Error' : 'Add Error',
+        description: `Failed to ${editingUser ? 'update' : 'add'} user`,
         variant: 'destructive'
       });
+    }
+  }
+
+  const handleEditUser = (user: any) => {
+    setEditingUser(user);
+    setShowAddUserForm(true);
+  }
+
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    if (window.confirm(`Are you sure you want to delete user ${userName}?`)) {
+      try {
+        // In a real app, this would be an API call to delete the user
+        console.log('Deleting user:', userId);
+        
+        // Update the users array by filtering out the deleted user
+        setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
+        
+        toast({
+          title: 'User Deleted',
+          description: `${userName} has been deleted successfully.`,
+        });
+      } catch (error) {
+        toast({
+          title: 'Delete Error',
+          description: 'Failed to delete user',
+          variant: 'destructive'
+        });
+      }
     }
   }
 
@@ -152,10 +199,14 @@ export function TenantDetail({ tenant, onSave, onClose }: TenantDetailProps) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       {/* Add User Form Modal */}
       {showAddUserForm && (
-        <AddUserForm
+        <UserForm
           tenantId={tenant.id}
+          user={editingUser}
           onSave={handleAddUser}
-          onCancel={() => setShowAddUserForm(false)}
+          onCancel={() => {
+            setShowAddUserForm(false);
+            setEditingUser(null);
+          }}
         />
       )}
       
@@ -459,9 +510,24 @@ export function TenantDetail({ tenant, onSave, onClose }: TenantDetailProps) {
                         <Badge variant="outline">
                           {user.role.toUpperCase()}
                         </Badge>
-                        <Button variant="outline" size="sm">
-                          Edit
-                        </Button>
+                        <div className="flex space-x-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleEditUser(user)}
+                          >
+                            <Edit className="h-3 w-3 mr-1" />
+                            Edit
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleDeleteUser(user.id, user.name)}
+                          >
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            Delete
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}

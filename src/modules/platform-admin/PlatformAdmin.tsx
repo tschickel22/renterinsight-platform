@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils'
 import { UsageStats } from './components/UsageStats'
 import { AuditLogs } from './components/AuditLogs'
 import { AddTenantForm } from './components/AddTenantForm'
-import { TenantDetail } from './components/TenantDetail'
+import { TenantDetail } from './components/TenantDetail' 
 import { useToast } from '@/hooks/use-toast'
 
 const mockTenants = [
