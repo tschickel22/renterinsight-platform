@@ -2,10 +2,13 @@ import React, { useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Settings, Save, Plus, Edit, Trash2, Users, Building, Palette } from 'lucide-react'
+import { Settings, Save, Plus, Edit, Trash2, Users, Building, Palette, Tag, Mail, Globe } from 'lucide-react'
 import { useTenant } from '@/contexts/TenantContext'
 import { CustomField, CustomFieldType } from '@/types'
+import { useToast } from '@/hooks/use-toast'
+import { cn } from '@/lib/utils'
 import { CustomFieldModal } from './components/CustomFieldModal'
 import { BrandingSettings } from './components/BrandingSettings'
 import { LabelOverrides } from './components/LabelOverrides'
@@ -14,6 +17,7 @@ import { IntegrationSettings } from './components/IntegrationSettings'
 
 function CompanySettingsPage() {
   const { tenant, customFields, updateTenantSettings, addCustomField, updateCustomField, deleteCustomField } = useTenant()
+  const { toast } = useToast()
   const [activeTab, setActiveTab] = useState('general')
   const [showCustomFieldModal, setShowCustomFieldModal] = useState(false)
   const [selectedCustomField, setSelectedCustomField] = useState<CustomField | null>(null)
@@ -325,6 +329,10 @@ function CompanySettingsPage() {
       </div>
     </div>
   )
+  
+  const handleSaveSettings = async () => {
+    console.log('Saving settings...')
+  }
 }
 
 export default function CompanySettings() {
