@@ -4,35 +4,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Globe, Plus, Search, Filter, Users, Eye, Settings, MessageSquare, TrendingUp, Activity } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useClientPortalAccounts } from './hooks/useClientPortalAccounts'
+import { PortalUserCard } from './components/PortalUserCard'
+import { InviteClientModal } from './components/InviteClientModal'
+import { ProxyClientButton } from './components/ProxyClientButton'
 
-const mockPortalUsers = [
-  {
-    id: '1',
-    name: 'John Smith',
-    email: 'john.smith@email.com',
-    status: 'active',
-    lastLogin: new Date('2024-01-18'),
-    vehicleCount: 1,
-    serviceTickets: 2,
-    invoices: 3
-  },
-  {
-    id: '2',
-    name: 'Sarah Johnson',
-    email: 'sarah.j@email.com',
-    status: 'active',
-    lastLogin: new Date('2024-01-16'),
-    vehicleCount: 1,
-    serviceTickets: 0,
-    invoices: 1
-  }
-]
-
-function PortalDashboard() {
-  const [portalUsers] = useState(mockPortalUsers)
+function ManagePortalUsers() {
+  const { portalUsers, loading, inviteUser, updateUserStatus } = useClientPortalAccounts()
   const [searchTerm, setSearchTerm] = useState('')
+  const [showInviteModal, setShowInviteModal] = useState(false)
+  const [activeTab, setActiveTab] = useState('all')
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -50,22 +34,40 @@ function PortalDashboard() {
   const filteredUsers = portalUsers.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  ).filter(user => 
+    activeTab === 'all' || user.status === activeTab
   )
+
+  const handleInviteUser = async (userData: any) => {
+    try {
+      await inviteUser(userData)
+      setShowInviteModal(false)
+    } catch (error) {
+      console.error('Failed to invite user:', error)
+    }
+  }
 
   return (
     <div className="space-y-8">
+      {showInviteModal && (
+        <InviteClientModal 
+          onInvite={handleInviteUser} 
+          onCancel={() => setShowInviteModal(false)} 
+        />
+      )}
+
       {/* Page Header */}
       <div className="ri-page-header">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="ri-page-title">Client Portal</h1>
+            <h1 className="ri-page-title">Client Portal Management</h1>
             <p className="ri-page-description">
               Manage customer portal access and self-service features
             </p>
           </div>
-          <Button className="shadow-sm">
+          <Button className="shadow-sm" onClick={() => setShowInviteModal(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Add Portal User
+            Invite Client
           </Button>
         </div>
       </div>
@@ -236,75 +238,53 @@ function PortalDashboard() {
         </Card>
       </div>
 
-      {/* Search and Filters */}
-      <div className="flex gap-4">
-        <div className="ri-search-bar">
-          <Search className="ri-search-icon" />
-          <Input
-            placeholder="Search portal users..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="ri-search-input shadow-sm"
-          />
-        </div>
-        <Button variant="outline" className="shadow-sm">
-          <Filter className="h-4 w-4 mr-2" />
-          Filter
-        </Button>
-      </div>
-
-      {/* Portal Users Table */}
+      {/* User Management */}
       <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle className="text-xl">Portal Users</CardTitle>
-          <CardDescription>
-            Manage customer portal access and permissions
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-xl">Portal Users</CardTitle>
+              <CardDescription>
+                Manage customer portal access and permissions
+              </CardDescription>
+            </div>
+            <div className="flex gap-2">
+              <div className="ri-search-bar">
+                <Search className="ri-search-icon" />
+                <Input
+                  placeholder="Search users..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="ri-search-input shadow-sm"
+                />
+              </div>
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList>
+                  <TabsTrigger value="all">All</TabsTrigger>
+                  <TabsTrigger value="active">Active</TabsTrigger>
+                  <TabsTrigger value="inactive">Inactive</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {filteredUsers.map((user) => (
-              <div key={user.id} className="ri-table-row">
-                <div className="flex items-center space-x-4 flex-1">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="font-semibold text-foreground">{user.name}</h3>
-                      <Badge className={cn("ri-badge-status", getStatusColor(user.status))}>
-                        {user.status.toUpperCase()}
-                      </Badge>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
-                      <div>
-                        <span className="font-medium">Email:</span> 
-                        <span className="ml-1">{user.email}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium">Last Login:</span> 
-                        <span className="ml-1">{user.lastLogin.toLocaleDateString()}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium">Vehicles:</span> 
-                        <span className="ml-1">{user.vehicleCount}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium">Service Tickets:</span> 
-                        <span className="ml-1">{user.serviceTickets}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="ri-action-buttons">
-                  <Button variant="outline" size="sm" className="shadow-sm">
-                    <Users className="h-3 w-3 mr-1" />
-                    Manage
-                  </Button>
-                  <Button variant="outline" size="sm" className="shadow-sm">
-                    <Settings className="h-3 w-3 mr-1" />
-                    Settings
-                  </Button>
-                </div>
-              </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {filteredUsers.map(user => (
+              <PortalUserCard 
+                key={user.id} 
+                user={user} 
+                onStatusChange={updateUserStatus}
+              />
             ))}
+            
+            {filteredUsers.length === 0 && (
+              <div className="col-span-3 text-center py-12 text-muted-foreground">
+                <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                <p>No users found</p>
+                <p className="text-sm">Try adjusting your search or filters</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -315,8 +295,8 @@ function PortalDashboard() {
 export default function ClientPortal() {
   return (
     <Routes>
-      <Route path="/" element={<PortalDashboard />} />
-      <Route path="/*" element={<PortalDashboard />} />
+      <Route path="/admin/portal-users" element={<ManagePortalUsers />} />
+      <Route path="/*" element={<ManagePortalUsers />} />
     </Routes>
   )
 }

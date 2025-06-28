@@ -21,6 +21,7 @@ import DeliveryTracker from '@/modules/delivery-tracker/DeliveryTracker'
 import PDIChecklist from '@/modules/pdi-checklist/PDIChecklist'
 import CommissionEngine from '@/modules/commission-engine/CommissionEngine'
 import ClientPortal from '@/modules/client-portal/ClientPortal'
+import CustomerPortal from '@/modules/customer-portal/CustomerPortal'
 import InvoicePayments from '@/modules/invoice-payments/InvoicePayments'
 import CompanySettings from '@/modules/company-settings/CompanySettings'
 import PlatformAdmin from '@/modules/platform-admin/PlatformAdmin'
@@ -35,6 +36,7 @@ function App() {
             <div className="min-h-screen bg-background">
               <Routes>
                 <Route path="/login" element={<Login />} />
+                <Route path="/customer-portal/*" element={<CustomerPortal />} />
                 <Route
                   path="/*"
                   element={
