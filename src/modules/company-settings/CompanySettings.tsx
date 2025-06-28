@@ -21,7 +21,6 @@ function CompanySettingsPage() {
   const [activeTab, setActiveTab] = useState('general')
   const [showCustomFieldModal, setShowCustomFieldModal] = useState(false)
   const [selectedCustomField, setSelectedCustomField] = useState<CustomField | null>(null)
-  const { toast } = useToast()
 
   const tabs = [
     { id: 'general', name: 'General', icon: Building },
