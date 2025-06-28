@@ -11,7 +11,7 @@ import { BrandingSettings } from './components/BrandingSettings'
 import { LabelOverrides } from './components/LabelOverrides'
 import { NotificationTemplates } from './components/NotificationTemplates'
 import { IntegrationSettings } from './components/IntegrationSettings'
-import { Settings, Save, CreditCard, FileText, AlertTriangle, Shield, DollarSign, Tag, Palette, Mail, MessageSquare, Globe, Plus } from 'lucide-react'
+
 function CompanySettingsPage() {
   const { tenant, customFields, updateTenantSettings, addCustomField, updateCustomField, deleteCustomField } = useTenant()
   const [activeTab, setActiveTab] = useState('general')
