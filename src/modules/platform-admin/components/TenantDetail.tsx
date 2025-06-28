@@ -12,6 +12,7 @@ import { X, Save, Building, Users, Settings, Shield, Activity, Globe } from 'luc
 import { AddUserForm } from './AddUserForm'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
+import { createClient } from '@/lib/supabase'
 
 interface TenantDetailProps {
   tenant: any
@@ -23,6 +24,8 @@ export function TenantDetail({ tenant, onSave, onClose }: TenantDetailProps) {
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('general')
+  const [users, setUsers] = useState<any[]>([])
+  const [loadingUsers, setLoadingUsers] = useState(false)
   const [showAddUserForm, setShowAddUserForm] = useState(false)
   const [formData, setFormData] = useState({
     ...tenant,
@@ -93,6 +96,37 @@ export function TenantDetail({ tenant, onSave, onClose }: TenantDetailProps) {
         return 'bg-gray-50 text-gray-700 border-gray-200'
     }
   }
+
+  // Fetch users when the Users tab is selected
+  useEffect(() => {
+    if (activeTab === 'users') {
+      fetchTenantUsers();
+    }
+  }, [activeTab, tenant.id]);
+
+  const fetchTenantUsers = async () => {
+    setLoadingUsers(true);
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .rpc('get_tenant_users', { tenant_id_param: tenant.id });
+      
+      if (error) {
+        throw error;
+      }
+      
+      setUsers(data || []);
+    } catch (error) {
+      console.error('Error fetching tenant users:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load users for this tenant',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
 
   const handleAddUser = async (userData: any) => {
     try {
@@ -396,17 +430,49 @@ export function TenantDetail({ tenant, onSave, onClose }: TenantDetailProps) {
             <TabsContent value="users" className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">Users</h3>
-                <Button size="sm" onClick={() => setShowAddUserForm(true)}>
+                <Button 
+                  size="sm" 
+                  onClick={() => setShowAddUserForm(true)}
+                >
                   <Users className="h-4 w-4 mr-2" />
                   Add User
                 </Button>
               </div>
               
-              <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
-                <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                <p>No users found for this tenant</p>
-                <p className="text-sm">Add users to provide access to this tenant</p>
-              </div>
+              {loadingUsers ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                  <p className="mt-2 text-muted-foreground">Loading users...</p>
+                </div>
+              ) : users.length > 0 ? (
+                <div className="space-y-3">
+                  {users.map((user) => (
+                    <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
+                      <div>
+                        <h4 className="font-semibold">{user.name}</h4>
+                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <Badge className={user.is_active ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-700 border-gray-200'}>
+                          {user.is_active ? 'ACTIVE' : 'INACTIVE'}
+                        </Badge>
+                        <Badge variant="outline">
+                          {user.role.toUpperCase()}
+                        </Badge>
+                        <Button variant="outline" size="sm">
+                          Edit
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
+                  <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                  <p>No users found for this tenant</p>
+                  <p className="text-sm">Add users to provide access to this tenant</p>
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="activity" className="space-y-4">

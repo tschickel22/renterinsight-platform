@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { X, Save, User, Mail, Shield } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { UserRole } from '@/types'
+import { createClient } from '@/lib/supabase'
 
 interface AddUserFormProps {
   tenantId: string
@@ -28,7 +29,7 @@ export function AddUserForm({ tenantId, onSave, onCancel }: AddUserFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!formData.name || !formData.email) {
       toast({
         title: 'Validation Error',
@@ -40,10 +41,25 @@ export function AddUserForm({ tenantId, onSave, onCancel }: AddUserFormProps) {
 
     setLoading(true)
     try {
-      await onSave({
+      // Create the user in Supabase Auth
+      const supabase = createClient();
+      
+      // In a real implementation, you would use the Supabase Admin API to create users
+      // For this demo, we'll simulate the API call
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Create a user object with a generated ID
+      const newUser = {
+        id: crypto.randomUUID(),
         ...formData,
-        tenantId
-      })
+        tenantId,
+        createdAt: new Date()
+      };
+      
+      await onSave(newUser);
+      
       toast({
         title: 'Success',
         description: 'User added successfully',
