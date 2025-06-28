@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { X, Save, Building, Users, Settings, Shield, Activity, Globe } from 'lucide-react'
+import { AddUserForm } from './AddUserForm'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 
@@ -22,6 +23,7 @@ export function TenantDetail({ tenant, onSave, onClose }: TenantDetailProps) {
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('general')
+  const [showAddUserForm, setShowAddUserForm] = useState(false)
   const [formData, setFormData] = useState({
     ...tenant,
     settings: {
@@ -92,8 +94,37 @@ export function TenantDetail({ tenant, onSave, onClose }: TenantDetailProps) {
     }
   }
 
+  const handleAddUser = async (userData: any) => {
+    try {
+      // In a real app, this would be an API call
+      console.log('Adding user:', userData);
+      
+      toast({
+        title: 'User Added',
+        description: `${userData.name} has been added successfully.`,
+      });
+      
+      setShowAddUserForm(false);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to add user',
+        variant: 'destructive'
+      });
+    }
+  }
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      {/* Add User Form Modal */}
+      {showAddUserForm && (
+        <AddUserForm
+          tenantId={tenant.id}
+          onSave={handleAddUser}
+          onCancel={() => setShowAddUserForm(false)}
+        />
+      )}
+      
       <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -365,7 +396,7 @@ export function TenantDetail({ tenant, onSave, onClose }: TenantDetailProps) {
             <TabsContent value="users" className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">Users</h3>
-                <Button size="sm">
+                <Button size="sm" onClick={() => setShowAddUserForm(true)}>
                   <Users className="h-4 w-4 mr-2" />
                   Add User
                 </Button>
