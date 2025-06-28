@@ -12,9 +12,9 @@ import { cn } from '@/lib/utils'
 import { UsageStats } from './components/UsageStats'
 import { AuditLogs } from './components/AuditLogs'
 import { AddTenantForm } from './components/AddTenantForm'
+import { TenantDetail } from './components/TenantDetail'
 import { useToast } from '@/hooks/use-toast'
 
-const mockTenants = [
   {
     id: '1',
     name: 'Demo RV Dealership',
@@ -49,7 +49,9 @@ function PlatformAdminDashboard() {
   const { toast } = useToast()
   const [tenants, setTenants] = useState(mockTenants)
   const [searchTerm, setSearchTerm] = useState('')
+  const [selectedTenant, setSelectedTenant] = useState<any | null>(null)
   const [showAddTenantForm, setShowAddTenantForm] = useState(false)
+  const [showTenantDetail, setShowTenantDetail] = useState(false)
 
   if (!hasRole(UserRole.ADMIN)) {
     return (
@@ -117,6 +119,34 @@ function PlatformAdminDashboard() {
     }
   }
 
+  const handleManageTenant = (tenant: any) => {
+    setSelectedTenant(tenant)
+    setShowTenantDetail(true)
+  }
+
+  const handleUpdateTenant = async (tenantId: string, tenantData: any) => {
+    try {
+      // In a real app, this would be an API call
+      const updatedTenants = tenants.map(t => 
+        t.id === tenantId ? { ...t, ...tenantData } : t
+      )
+      
+      setTenants(updatedTenants)
+      setShowTenantDetail(false)
+      
+      toast({
+        title: 'Tenant Updated',
+        description: `${tenantData.name} has been updated successfully.`,
+      })
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update tenant',
+        variant: 'destructive'
+      })
+    }
+  }
+
   return (
     <div className="space-y-8">
       {/* Add Tenant Form Modal */}
@@ -124,6 +154,18 @@ function PlatformAdminDashboard() {
         <AddTenantForm
           onSave={handleSaveTenant}
           onCancel={() => setShowAddTenantForm(false)}
+        />
+      )}
+
+      {/* Tenant Detail Modal */}
+      {showTenantDetail && selectedTenant && (
+        <TenantDetail
+          tenant={selectedTenant}
+          onSave={handleUpdateTenant}
+          onClose={() => {
+            setShowTenantDetail(false)
+            setSelectedTenant(null)
+          }}
         />
       )}
 
@@ -341,11 +383,12 @@ function PlatformAdminDashboard() {
                 <div className="ri-action-buttons">
                   <Button variant="outline" size="sm" className="shadow-sm">
                     <Shield className="h-3 w-3 mr-1" />
+                    size="sm" 
+                    className="shadow-sm"
+                    onClick={() => handleManageTenant(tenant)}
+                  >
+                    <Shield className="h-3 w-3 mr-1" />
                     Manage
-                  </Button>
-                  <Button variant="outline" size="sm" className="shadow-sm">
-                    <Activity className="h-3 w-3 mr-1" />
-                    Monitor
                   </Button>
                 </div>
               </div>
