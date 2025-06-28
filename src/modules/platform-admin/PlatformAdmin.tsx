@@ -95,6 +95,7 @@ function PlatformAdminDashboard() {
       const newTenant = {
         id: Math.random().toString(36).substring(2, 9),
         ...tenantData,
+        status: tenantData.isActive ? 'active' : 'inactive',
         users: 0,
         createdAt: new Date(),
         lastActivity: new Date()
