@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button' 
-import { Package, Plus, Upload, Download, ScanBarcode, TrendingUp, DollarSign } from 'lucide-react'
+import { Package, Plus, Upload, Download, QrCode, TrendingUp, DollarSign } from 'lucide-react'
 import { Vehicle, VehicleStatus, VehicleType } from '@/types'
 import { formatCurrency } from '@/lib/utils'
 import { useInventoryManagement } from './hooks/useInventoryManagement'
@@ -206,7 +206,7 @@ function InventoryList() {
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setShowBarcodeScanner(true)}>
-              <ScanBarcode className="h-4 w-4 mr-2" />
+              <QrCode className="h-4 w-4 mr-2" />
               Scan Barcode
             </Button>
             <Button variant="outline" onClick={() => setShowCSVImport(true)}>
