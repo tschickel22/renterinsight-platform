@@ -209,8 +209,9 @@ export function UsageStats() {
                     <Line type="monotone" dataKey="calls" stroke="#8884d8" activeDot={{ r: 8 }} />
                   </LineChart>
                 </ResponsiveContainer>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
         </CardContent>
       </Card>
     </div>
