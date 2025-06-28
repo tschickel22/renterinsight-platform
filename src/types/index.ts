@@ -27,6 +27,21 @@ export interface TenantSettings {
   dateFormat: string
   businessHours: BusinessHours
   features: FeatureFlags
+  labelOverrides?: Record<string, string>
+  platformType?: string
+  emailProvider?: string
+  emailApiKey?: string
+  emailFromAddress?: string
+  emailFromName?: string
+  smsProvider?: string
+  smsApiKey?: string
+  smsFromNumber?: string
+  webhooks?: Array<{id: string, event: string, url: string, active: boolean}>
+  apiEnabled?: boolean
+  apiKey?: string
+  allowedOrigins?: string[]
+  emailTemplates?: Array<any>
+  smsTemplates?: Array<any>
 }
 
 export interface TenantBranding {
