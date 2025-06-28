@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { useDropzone } from 'react-dropzone'
 import { X, Save, Plus, Trash2, Upload, Image as ImageIcon, Video, ScanBarcode, Camera } from 'lucide-react'
+import { X, Save, Plus, Trash2, Upload, Image as ImageIcon, Video, QrCode, Camera } from 'lucide-react'
 import { Vehicle, VehicleStatus, VehicleType } from '@/types'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
@@ -229,7 +230,7 @@ export function VehicleForm({ vehicle, onSave, onCancel, onScanBarcode }: Vehicl
                       className="ml-2"
                       onClick={() => setShowBarcodeScanner(true)}
                     >
-                      <ScanBarcode className="h-4 w-4" />
+                      <QrCode className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
