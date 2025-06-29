@@ -5,6 +5,16 @@ import { Input } from '@/components/ui/input'
 import { Download, Search, ArrowUp, ArrowDown } from 'lucide-react'
 import { ReportType } from '@/types'
 import { formatCurrency, formatDate } from '@/lib/utils'
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableFooter,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableCaption,
+} from '@/components/ui/table'
 
 interface ReportDisplayTableProps {
   reportType: ReportType
