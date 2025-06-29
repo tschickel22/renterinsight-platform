@@ -3,13 +3,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { X, Edit, Receipt, DollarSign, Calendar, Clock, User, Printer, Download, Send, CreditCard } from 'lucide-react'
+import { X, Edit, Receipt, DollarSign, Calendar, Clock, User, Printer, Download, Send, CreditCard, Plus, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 import { Invoice, InvoiceStatus, Payment } from '@/types'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
 import { jsPDF } from 'jspdf'
 import 'jspdf-autotable'
+import { RecordPaymentForm } from './RecordPaymentForm'
 
 interface InvoiceDetailProps {
   invoice: Invoice
@@ -17,6 +18,7 @@ interface InvoiceDetailProps {
   onClose: () => void
   onEdit: (invoice: Invoice) => void
   onSendPaymentRequest?: (invoiceId: string) => Promise<void>
+  onRecordPayment?: (paymentData: Partial<Payment>) => Promise<void>
 }
 
 export function InvoiceDetail({ 
@@ -24,11 +26,13 @@ export function InvoiceDetail({
   payments, 
   onClose, 
   onEdit,
-  onSendPaymentRequest
+  onSendPaymentRequest,
+  onRecordPayment
 }: InvoiceDetailProps) {
   const { toast } = useToast()
   const [activeTab, setActiveTab] = useState('details')
   const [sendingRequest, setSendingRequest] = useState(false)
+  const [showRecordPaymentForm, setShowRecordPaymentForm] = useState(false)
 
   const getStatusColor = (status: InvoiceStatus) => {
     switch (status) {
@@ -46,6 +50,40 @@ export function InvoiceDetail({
         return 'bg-gray-50 text-gray-700 border-gray-200'
       default:
         return 'bg-gray-50 text-gray-700 border-gray-200'
+    }
+  }
+
+  const getPaymentStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <CheckCircle className="h-4 w-4 text-green-500" />
+      case 'pending':
+        return <Clock className="h-4 w-4 text-yellow-500" />
+      case 'processing':
+        return <Clock className="h-4 w-4 text-blue-500" />
+      case 'failed':
+        return <XCircle className="h-4 w-4 text-red-500" />
+      case 'refunded':
+        return <AlertCircle className="h-4 w-4 text-purple-500" />
+      default:
+        return null
+    }
+  }
+
+  const getPaymentMethodIcon = (method: string) => {
+    switch (method) {
+      case 'credit_card':
+        return <CreditCard className="h-4 w-4 text-blue-500" />
+      case 'bank_transfer':
+        return <DollarSign className="h-4 w-4 text-green-500" />
+      case 'cash':
+        return <DollarSign className="h-4 w-4 text-green-500" />
+      case 'check':
+        return <Receipt className="h-4 w-4 text-blue-500" />
+      case 'financing':
+        return <DollarSign className="h-4 w-4 text-purple-500" />
+      default:
+        return <DollarSign className="h-4 w-4 text-gray-500" />
     }
   }
 
@@ -144,12 +182,34 @@ export function InvoiceDetail({
     }
   }
 
+  const handleRecordPayment = async (paymentData: Partial<Payment>) => {
+    if (!onRecordPayment) return
+    
+    try {
+      await onRecordPayment(paymentData)
+      setShowRecordPaymentForm(false)
+    } catch (error) {
+      throw error
+    }
+  }
+
   const invoicePayments = payments.filter(payment => payment.invoiceId === invoice.id)
   const totalPaid = invoicePayments.reduce((sum, payment) => sum + payment.amount, 0)
   const remainingBalance = invoice.total - totalPaid
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      {/* Record Payment Form Modal */}
+      {showRecordPaymentForm && (
+        <RecordPaymentForm
+          invoiceId={invoice.id}
+          invoiceTotal={invoice.total}
+          remainingBalance={remainingBalance}
+          onSave={handleRecordPayment}
+          onCancel={() => setShowRecordPaymentForm(false)}
+        />
+      )}
+      
       <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -299,16 +359,31 @@ export function InvoiceDetail({
             <TabsContent value="payments" className="space-y-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">Payment History</h3>
-                {invoice.status !== InvoiceStatus.PAID && invoice.status !== InvoiceStatus.CANCELLED && (
-                  <Button 
-                    onClick={handleSendPaymentRequest} 
-                    disabled={sendingRequest}
-                    size="sm"
-                  >
-                    <Send className="h-4 w-4 mr-2" />
-                    {sendingRequest ? 'Sending...' : 'Send Payment Request'}
-                  </Button>
-                )}
+                <div className="flex space-x-2">
+                  {invoice.status !== InvoiceStatus.PAID && invoice.status !== InvoiceStatus.CANCELLED && (
+                    <>
+                      <Button 
+                        onClick={handleSendPaymentRequest} 
+                        disabled={sendingRequest}
+                        size="sm"
+                        variant="outline"
+                      >
+                        <Send className="h-4 w-4 mr-2" />
+                        {sendingRequest ? 'Sending...' : 'Send Payment Request'}
+                      </Button>
+                      
+                      {onRecordPayment && remainingBalance > 0 && (
+                        <Button 
+                          onClick={() => setShowRecordPaymentForm(true)} 
+                          size="sm"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Record Payment
+                        </Button>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
 
               {invoicePayments.length > 0 ? (
@@ -316,33 +391,46 @@ export function InvoiceDetail({
                   {invoicePayments.map((payment) => (
                     <div key={payment.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <h4 className="font-medium">Payment #{payment.id}</h4>
+                        <div className="flex items-center space-x-2 mb-2">
+                          <h4 className="font-medium">Payment #{payment.id.substring(0, 8)}</h4>
                           <Badge className={
                             payment.status === 'completed' ? 'bg-green-50 text-green-700 border-green-200' :
                             payment.status === 'pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                            payment.status === 'processing' ? 'bg-blue-50 text-blue-700 border-blue-200' :
                             payment.status === 'failed' ? 'bg-red-50 text-red-700 border-red-200' :
+                            payment.status === 'refunded' ? 'bg-purple-50 text-purple-700 border-purple-200' :
                             'bg-gray-50 text-gray-700 border-gray-200'
                           }>
+                            <span className="flex items-center">
+                              {getPaymentStatusIcon(payment.status)}
+                              <span className="ml-1">
                             {payment.status.toUpperCase()}
+                              </span>
+                            </span>
                           </Badge>
                         </div>
-                        <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
-                          <div>
-                            <span className="font-medium">Date:</span> {formatDate(payment.processedDate)}
+                        <div className="grid grid-cols-2 gap-3 text-sm text-muted-foreground">
+                          <div className="flex items-center">
+                            <Calendar className="h-3 w-3 mr-1 text-blue-500" />
+                            <span className="font-medium">Date:</span> 
+                            <span className="ml-1">{formatDate(payment.processedDate)}</span>
                           </div>
-                          <div>
-                            <span className="font-medium">Method:</span> {payment.method.replace('_', ' ')}
+                          <div className="flex items-center">
+                            {getPaymentMethodIcon(payment.method)}
+                            <span className="font-medium ml-1">Method:</span> 
+                            <span className="ml-1">{payment.method.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
                           </div>
                           {payment.transactionId && (
-                            <div>
-                              <span className="font-medium">Transaction ID:</span> {payment.transactionId}
+                            <div className="flex items-center">
+                              <Receipt className="h-3 w-3 mr-1 text-purple-500" />
+                              <span className="font-medium">Transaction ID:</span> 
+                              <span className="ml-1 font-mono text-xs">{payment.transactionId}</span>
                             </div>
                           )}
                         </div>
                         {payment.notes && (
-                          <p className="text-sm text-muted-foreground mt-2">
-                            <span className="font-medium">Notes:</span> {payment.notes}
+                          <p className="text-sm text-muted-foreground mt-2 bg-muted/20 p-2 rounded-md">
+                            {payment.notes}
                           </p>
                         )}
                       </div>
@@ -355,16 +443,16 @@ export function InvoiceDetail({
                   <div className="bg-muted/30 p-4 rounded-lg">
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span>Invoice Total:</span>
+                        <span className="font-medium">Invoice Total:</span>
                         <span>{formatCurrency(invoice.total)}</span>
                       </div>
-                      <div className="flex justify-between text-green-600">
-                        <span>Total Paid:</span>
+                      <div className="flex justify-between text-green-700">
+                        <span className="font-medium">Total Paid:</span>
                         <span>{formatCurrency(totalPaid)}</span>
                       </div>
                       <div className="flex justify-between font-bold border-t pt-2">
-                        <span>Balance Due:</span>
-                        <span>{formatCurrency(remainingBalance)}</span>
+                        <span className={remainingBalance > 0 ? 'text-red-700' : 'text-green-700'}>Balance Due:</span>
+                        <span className={remainingBalance > 0 ? 'text-red-700' : 'text-green-700'}>{formatCurrency(remainingBalance)}</span>
                       </div>
                     </div>
                   </div>
@@ -373,8 +461,15 @@ export function InvoiceDetail({
                 <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
                   <CreditCard className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
                   <p>No payments recorded for this invoice</p>
-                  {invoice.status !== InvoiceStatus.PAID && invoice.status !== InvoiceStatus.CANCELLED && (
-                    <p className="text-sm">Send a payment request to the customer</p>
+                  {invoice.status !== InvoiceStatus.PAID && invoice.status !== InvoiceStatus.CANCELLED && onRecordPayment && (
+                    <Button 
+                      onClick={() => setShowRecordPaymentForm(true)} 
+                      className="mt-4"
+                      size="sm"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Record Payment
+                    </Button>
                   )}
                 </div>
               )}
@@ -465,17 +560,28 @@ export function InvoiceDetail({
               <Printer className="h-4 w-4 mr-2" />
               Print PDF
             </Button>
-            {invoice.status === InvoiceStatus.DRAFT && (
-              <Button>
-                <Send className="h-4 w-4 mr-2" />
-                Send Invoice
-              </Button>
-            )}
-            {invoice.status !== InvoiceStatus.PAID && invoice.status !== InvoiceStatus.CANCELLED && (
-              <Button onClick={handleSendPaymentRequest} disabled={sendingRequest}>
-                <CreditCard className="h-4 w-4 mr-2" />
-                {sendingRequest ? 'Sending...' : 'Request Payment'}
-              </Button>
+            <div className="flex space-x-2">
+              {invoice.status === InvoiceStatus.DRAFT && (
+                <Button>
+                  <Send className="h-4 w-4 mr-2" />
+                  Send Invoice
+                </Button>
+              )}
+              {invoice.status !== InvoiceStatus.PAID && invoice.status !== InvoiceStatus.CANCELLED && (
+                <>
+                  <Button onClick={handleSendPaymentRequest} disabled={sendingRequest} variant="outline">
+                    <Send className="h-4 w-4 mr-2" />
+                    {sendingRequest ? 'Sending...' : 'Request Payment'}
+                  </Button>
+                  {onRecordPayment && remainingBalance > 0 && (
+                    <Button onClick={() => setShowRecordPaymentForm(true)}>
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      Record Payment
+                    </Button>
+                  )}
+                </>
+              )}
+            </div>
             )}
           </div>
         </CardContent>

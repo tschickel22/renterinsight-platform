@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Receipt, Plus, Search, Filter, Send, Eye, Download, CreditCard, TrendingUp, DollarSign } from 'lucide-react'
+import { Receipt, Plus, Search, Filter, Send, Eye, Download, CreditCard, TrendingUp, DollarSign, CheckCircle, XCircle, Clock, Tabs } from 'lucide-react'
 import { Invoice, InvoiceStatus, Payment, PaymentStatus } from '@/types'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
@@ -13,6 +13,8 @@ import { useToast } from '@/hooks/use-toast'
 import { useInvoiceManagement } from './hooks/useInvoiceManagement'
 import { InvoiceForm } from './components/InvoiceForm'
 import { InvoiceDetail } from './components/InvoiceDetail'
+import { PaymentHistory } from './components/PaymentHistory'
+import { Tabs as TabsComponent, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 function InvoicesList() {
   const { 
@@ -23,11 +25,13 @@ function InvoicesList() {
     deleteInvoice, 
     updateInvoiceStatus,
     sendInvoice,
-    sendPaymentRequest
+    sendPaymentRequest,
+    recordPayment
   } = useInvoiceManagement()
   const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [activeTab, setActiveTab] = useState('invoices')
   const [showInvoiceForm, setShowInvoiceForm] = useState(false)
   const [showInvoiceDetail, setShowInvoiceDetail] = useState(false)
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
@@ -146,6 +150,24 @@ function InvoicesList() {
     }
   }
 
+  const handleRecordPayment = async (paymentData: Partial<Payment>) => {
+    try {
+      await recordPayment(paymentData)
+      toast({
+        title: 'Success',
+        description: 'Payment recorded successfully',
+      })
+      return true
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to record payment',
+        variant: 'destructive'
+      })
+      throw error
+    }
+  }
+
   return (
     <div className="space-y-8">
       {/* Invoice Form Modal */}
@@ -168,6 +190,7 @@ function InvoicesList() {
           onClose={() => setShowInvoiceDetail(false)}
           onEdit={handleEditInvoice}
           onSendPaymentRequest={handleSendPaymentRequest}
+          onRecordPayment={handleRecordPayment}
         />
       )}
 
@@ -188,7 +211,7 @@ function InvoicesList() {
       </div>
 
       {/* Stats Cards */}
-      <div className="ri-stats-grid">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="shadow-sm border-0 bg-gradient-to-br from-blue-50 to-blue-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-blue-900">Total Invoices</CardTitle>
@@ -240,8 +263,8 @@ function InvoicesList() {
           <CardContent>
             <div className="text-2xl font-bold text-purple-900">98.5%</div>
             <p className="text-xs text-purple-600 flex items-center mt-1">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              Excellent rate
+              <CheckCircle className="h-3 w-3 mr-1" />
+              {payments.filter(p => p.status === 'completed').length} successful payments
             </p>
           </CardContent>
         </Card>
@@ -276,140 +299,180 @@ function InvoicesList() {
         </CardContent>
       </Card>
 
-      {/* Search and Filters */}
-      <div className="flex gap-4">
-        <div className="ri-search-bar">
-          <Search className="ri-search-icon" />
-          <Input
-            placeholder="Search invoices..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="ri-search-input shadow-sm"
-          />
-        </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value={InvoiceStatus.DRAFT}>Draft</SelectItem>
-            <SelectItem value={InvoiceStatus.SENT}>Sent</SelectItem>
-            <SelectItem value={InvoiceStatus.VIEWED}>Viewed</SelectItem>
-            <SelectItem value={InvoiceStatus.PAID}>Paid</SelectItem>
-            <SelectItem value={InvoiceStatus.OVERDUE}>Overdue</SelectItem>
-            <SelectItem value={InvoiceStatus.CANCELLED}>Cancelled</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button variant="outline" className="shadow-sm">
-          <Filter className="h-4 w-4 mr-2" />
-          Filter
-        </Button>
-      </div>
+      {/* Main Content Tabs */}
+      <TabsComponent value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="invoices" className="flex items-center">
+            <Receipt className="h-4 w-4 mr-2" />
+            Invoices
+          </TabsTrigger>
+          <TabsTrigger value="payments" className="flex items-center">
+            <CreditCard className="h-4 w-4 mr-2" />
+            Payments
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Invoices Table */}
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-xl">Invoices</CardTitle>
-          <CardDescription>
-            Manage invoices and track payments
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {filteredInvoices.map((invoice) => (
-              <div key={invoice.id} className="ri-table-row">
-                <div className="flex items-center space-x-4 flex-1">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="font-semibold text-foreground">{invoice.number}</h3>
-                      <Badge className={cn("ri-badge-status", getStatusColor(invoice.status))}>
-                        {invoice.status.toUpperCase()}
-                      </Badge>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
-                      <div>
-                        <span className="font-medium">Customer:</span> 
-                        <span className="ml-1">{invoice.customerId}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium">Total:</span> 
-                        <span className="ml-1 font-bold text-primary">{formatCurrency(invoice.total)}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium">Due Date:</span> 
-                        <span className="ml-1">{formatDate(invoice.dueDate)}</span>
-                      </div>
-                      {invoice.paidDate && (
-                        <div>
-                          <span className="font-medium">Paid Date:</span> 
-                          <span className="ml-1">{formatDate(invoice.paidDate)}</span>
+        <TabsContent value="invoices">
+          {/* Search and Filters */}
+          <div className="flex gap-4">
+            <div className="ri-search-bar">
+              <Search className="ri-search-icon" />
+              <Input
+                placeholder="Search invoices..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="ri-search-input shadow-sm"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value={InvoiceStatus.DRAFT}>Draft</SelectItem>
+                <SelectItem value={InvoiceStatus.SENT}>Sent</SelectItem>
+                <SelectItem value={InvoiceStatus.VIEWED}>Viewed</SelectItem>
+                <SelectItem value={InvoiceStatus.PAID}>Paid</SelectItem>
+                <SelectItem value={InvoiceStatus.OVERDUE}>Overdue</SelectItem>
+                <SelectItem value={InvoiceStatus.CANCELLED}>Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="outline" className="shadow-sm">
+              <Filter className="h-4 w-4 mr-2" />
+              Filter
+            </Button>
+          </div>
+
+          {/* Invoices Table */}
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-xl">Invoices</CardTitle>
+              <CardDescription>
+                Manage invoices and track payments
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {filteredInvoices.map((invoice) => (
+                  <div key={invoice.id} className="ri-table-row">
+                    <div className="flex items-center space-x-4 flex-1">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="font-semibold text-foreground">{invoice.number}</h3>
+                          <Badge className={cn("ri-badge-status", getStatusColor(invoice.status))}>
+                            {invoice.status.toUpperCase()}
+                          </Badge>
                         </div>
-                      )}
+                        <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
+                          <div>
+                            <span className="font-medium">Customer:</span> 
+                            <span className="ml-1">{invoice.customerId}</span>
+                          </div>
+                          <div>
+                            <span className="font-medium">Total:</span> 
+                            <span className="ml-1 font-bold text-primary">{formatCurrency(invoice.total)}</span>
+                          </div>
+                          <div>
+                            <span className="font-medium">Due Date:</span> 
+                            <span className="ml-1">{formatDate(invoice.dueDate)}</span>
+                          </div>
+                          {invoice.paidDate && (
+                            <div>
+                              <span className="font-medium">Paid Date:</span> 
+                              <span className="ml-1">{formatDate(invoice.paidDate)}</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="mt-2 bg-muted/30 p-2 rounded-md">
+                          <p className="text-sm text-muted-foreground">
+                            {invoice.items.length} item(s) - {invoice.notes}
+                          </p>
+                          {invoice.paymentMethod && (
+                            <p className="text-sm text-muted-foreground">
+                              <span className="font-medium">Payment Method:</span> {invoice.paymentMethod}
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <div className="mt-2 bg-muted/30 p-2 rounded-md">
-                      <p className="text-sm text-muted-foreground">
-                        {invoice.items.length} item(s) - {invoice.notes}
-                      </p>
-                      {invoice.paymentMethod && (
-                        <p className="text-sm text-muted-foreground">
-                          <span className="font-medium">Payment Method:</span> {invoice.paymentMethod}
-                        </p>
+                    <div className="ri-action-buttons">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="shadow-sm"
+                        onClick={() => handleViewInvoice(invoice)}
+                      >
+                        <Eye className="h-3 w-3 mr-1" />
+                        View
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="shadow-sm"
+                        onClick={() => handleEditInvoice(invoice)}
+                      >
+                        Edit
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="shadow-sm"
+                      >
+                        <Download className="h-3 w-3 mr-1" />
+                        PDF
+                      </Button>
+                      {invoice.status !== InvoiceStatus.PAID && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="shadow-sm"
+                          onClick={() => handleSendPaymentRequest(invoice.id)}
+                        >
+                          <Send className="h-3 w-3 mr-1" />
+                          Send Payment Request
+                        </Button>
                       )}
                     </div>
                   </div>
-                </div>
-                <div className="ri-action-buttons">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="shadow-sm"
-                    onClick={() => handleViewInvoice(invoice)}
-                  >
-                    <Eye className="h-3 w-3 mr-1" />
-                    View
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="shadow-sm"
-                    onClick={() => handleEditInvoice(invoice)}
-                  >
-                    Edit
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="shadow-sm"
-                  >
-                    <Download className="h-3 w-3 mr-1" />
-                    PDF
-                  </Button>
-                  {invoice.status !== InvoiceStatus.PAID && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="shadow-sm"
-                      onClick={() => handleSendPaymentRequest(invoice.id)}
-                    >
-                      <Send className="h-3 w-3 mr-1" />
-                      Send Payment Request
-                    </Button>
-                  )}
-                </div>
+                ))}
+                
+                {filteredInvoices.length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Receipt className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                    <p>No invoices found</p>
+                    <p className="text-sm">Create your first invoice to get started</p>
+                  </div>
+                )}
               </div>
-            ))}
-            
-            {filteredInvoices.length === 0 && (
-              <div className="text-center py-12 text-muted-foreground">
-                <Receipt className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                <p>No invoices found</p>
-                <p className="text-sm">Create your first invoice to get started</p>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="payments">
+          <PaymentHistory 
+            payments={payments} 
+            onViewPaymentDetails={(payment) => {
+              // Find the invoice for this payment
+              const invoice = invoices.find(i => i.id === payment.invoiceId)
+              if (invoice) {
+                setSelectedInvoice(invoice)
+                setShowInvoiceDetail(true)
+                // Set the active tab to payments
+                setTimeout(() => {
+                  const tabsElement = document.querySelector('[role="tablist"]')
+                  if (tabsElement) {
+                    const paymentsTab = Array.from(tabsElement.children).find(
+                      child => child.textContent?.includes('Payments')
+                    ) as HTMLButtonElement
+                    if (paymentsTab) paymentsTab.click()
+                  }
+                }, 100)
+              }
+            }}
+          />
+        </TabsContent>
+      </TabsComponent>
     </div>
   )
 }
