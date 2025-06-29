@@ -582,7 +582,6 @@ export function InvoiceDetail({
                 </>
               )}
             </div>
-            )}
           </div>
         </CardContent>
       </Card>
