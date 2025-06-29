@@ -4,89 +4,33 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Receipt, Plus, Search, Filter, Send, Eye, Download, CreditCard, TrendingUp, DollarSign } from 'lucide-react'
 import { Invoice, InvoiceStatus, Payment, PaymentStatus } from '@/types'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
-
-const mockInvoices: Invoice[] = [
-  {
-    id: '1',
-    customerId: 'cust-1',
-    number: 'INV-2024-001',
-    items: [
-      {
-        id: '1',
-        description: '2024 Forest River Georgetown',
-        quantity: 1,
-        unitPrice: 125000,
-        total: 125000
-      },
-      {
-        id: '2',
-        description: 'Extended Warranty',
-        quantity: 1,
-        unitPrice: 2500,
-        total: 2500
-      }
-    ],
-    subtotal: 127500,
-    tax: 10200,
-    total: 137700,
-    status: InvoiceStatus.PAID,
-    dueDate: new Date('2024-02-15'),
-    paidDate: new Date('2024-01-20'),
-    paymentMethod: 'Credit Card',
-    notes: 'Payment received via Zego',
-    customFields: {},
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-20')
-  },
-  {
-    id: '2',
-    customerId: 'cust-2',
-    number: 'INV-2024-002',
-    items: [
-      {
-        id: '3',
-        description: 'Service - AC Repair',
-        quantity: 1,
-        unitPrice: 620,
-        total: 620
-      }
-    ],
-    subtotal: 620,
-    tax: 49.60,
-    total: 669.60,
-    status: InvoiceStatus.SENT,
-    dueDate: new Date('2024-02-20'),
-    notes: 'Service invoice for AC repair',
-    customFields: {},
-    createdAt: new Date('2024-01-12'),
-    updatedAt: new Date('2024-01-18')
-  }
-]
-
-const mockPayments: Payment[] = [
-  {
-    id: '1',
-    invoiceId: '1',
-    amount: 137700,
-    method: 'CREDIT_CARD' as any,
-    status: 'COMPLETED' as PaymentStatus,
-    transactionId: 'txn_1234567890',
-    processedDate: new Date('2024-01-20'),
-    notes: 'Processed via Zego payment gateway',
-    customFields: {},
-    createdAt: new Date('2024-01-20'),
-    updatedAt: new Date('2024-01-20')
-  }
-]
+import { useToast } from '@/hooks/use-toast'
+import { useInvoiceManagement } from './hooks/useInvoiceManagement'
+import { InvoiceForm } from './components/InvoiceForm'
+import { InvoiceDetail } from './components/InvoiceDetail'
 
 function InvoicesList() {
-  const [invoices] = useState<Invoice[]>(mockInvoices)
-  const [payments] = useState<Payment[]>(mockPayments)
+  const { 
+    invoices, 
+    payments, 
+    createInvoice, 
+    updateInvoice, 
+    deleteInvoice, 
+    updateInvoiceStatus,
+    sendInvoice,
+    sendPaymentRequest
+  } = useInvoiceManagement()
+  const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [showInvoiceForm, setShowInvoiceForm] = useState(false)
+  const [showInvoiceDetail, setShowInvoiceDetail] = useState(false)
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
 
   const getStatusColor = (status: InvoiceStatus) => {
     switch (status) {
@@ -107,13 +51,126 @@ function InvoicesList() {
     }
   }
 
-  const filteredInvoices = invoices.filter(invoice =>
-    invoice.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    invoice.customerId.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredInvoices = invoices
+    .filter(invoice =>
+      invoice.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      invoice.customerId.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .filter(invoice => statusFilter === 'all' || invoice.status === statusFilter)
+
+  const handleCreateInvoice = () => {
+    setSelectedInvoice(null)
+    setShowInvoiceForm(true)
+  }
+
+  const handleEditInvoice = (invoice: Invoice) => {
+    setSelectedInvoice(invoice)
+    setShowInvoiceForm(true)
+    setShowInvoiceDetail(false)
+  }
+
+  const handleViewInvoice = (invoice: Invoice) => {
+    setSelectedInvoice(invoice)
+    setShowInvoiceDetail(true)
+  }
+
+  const handleSaveInvoice = async (invoiceData: Partial<Invoice>) => {
+    try {
+      if (selectedInvoice) {
+        // Update existing invoice
+        await updateInvoice(selectedInvoice.id, invoiceData)
+        toast({
+          title: 'Success',
+          description: 'Invoice updated successfully',
+        })
+      } else {
+        // Create new invoice
+        await createInvoice(invoiceData)
+        toast({
+          title: 'Success',
+          description: 'Invoice created successfully',
+        })
+      }
+      setShowInvoiceForm(false)
+      setSelectedInvoice(null)
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: `Failed to ${selectedInvoice ? 'update' : 'create'} invoice`,
+        variant: 'destructive'
+      })
+    }
+  }
+
+  const handleDeleteInvoice = async (invoiceId: string) => {
+    if (window.confirm('Are you sure you want to delete this invoice?')) {
+      try {
+        await deleteInvoice(invoiceId)
+        toast({
+          title: 'Success',
+          description: 'Invoice deleted successfully',
+        })
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to delete invoice',
+          variant: 'destructive'
+        })
+      }
+    }
+  }
+
+  const handleSendInvoice = async (invoiceId: string) => {
+    try {
+      await sendInvoice(invoiceId)
+      toast({
+        title: 'Success',
+        description: 'Invoice sent successfully',
+      })
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to send invoice',
+        variant: 'destructive'
+      })
+    }
+  }
+
+  const handleSendPaymentRequest = async (invoiceId: string) => {
+    try {
+      await sendPaymentRequest(invoiceId)
+      return true
+    } catch (error) {
+      console.error('Error sending payment request:', error)
+      throw error
+    }
+  }
 
   return (
     <div className="space-y-8">
+      {/* Invoice Form Modal */}
+      {showInvoiceForm && (
+        <InvoiceForm
+          invoice={selectedInvoice || undefined}
+          onSave={handleSaveInvoice}
+          onCancel={() => {
+            setShowInvoiceForm(false)
+            setSelectedInvoice(null)
+          }}
+        />
+      )}
+      
+      {/* Invoice Detail Modal */}
+      {showInvoiceDetail && selectedInvoice && (
+        <InvoiceDetail
+          invoice={selectedInvoice}
+          payments={payments.filter(p => p.invoiceId === selectedInvoice.id)}
+          onClose={() => setShowInvoiceDetail(false)}
+          onEdit={handleEditInvoice}
+          onSendPaymentRequest={handleSendPaymentRequest}
+        />
+      )}
+
       {/* Page Header */}
       <div className="ri-page-header">
         <div className="flex items-center justify-between">
@@ -123,7 +180,7 @@ function InvoicesList() {
               Manage invoices and process payments via Zego integration
             </p>
           </div>
-          <Button className="shadow-sm">
+          <Button className="shadow-sm" onClick={handleCreateInvoice}>
             <Plus className="h-4 w-4 mr-2" />
             New Invoice
           </Button>
@@ -230,6 +287,20 @@ function InvoicesList() {
             className="ri-search-input shadow-sm"
           />
         </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value={InvoiceStatus.DRAFT}>Draft</SelectItem>
+            <SelectItem value={InvoiceStatus.SENT}>Sent</SelectItem>
+            <SelectItem value={InvoiceStatus.VIEWED}>Viewed</SelectItem>
+            <SelectItem value={InvoiceStatus.PAID}>Paid</SelectItem>
+            <SelectItem value={InvoiceStatus.OVERDUE}>Overdue</SelectItem>
+            <SelectItem value={InvoiceStatus.CANCELLED}>Cancelled</SelectItem>
+          </SelectContent>
+        </Select>
         <Button variant="outline" className="shadow-sm">
           <Filter className="h-4 w-4 mr-2" />
           Filter
@@ -289,16 +360,38 @@ function InvoicesList() {
                   </div>
                 </div>
                 <div className="ri-action-buttons">
-                  <Button variant="outline" size="sm" className="shadow-sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="shadow-sm"
+                    onClick={() => handleViewInvoice(invoice)}
+                  >
                     <Eye className="h-3 w-3 mr-1" />
                     View
                   </Button>
-                  <Button variant="outline" size="sm" className="shadow-sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="shadow-sm"
+                    onClick={() => handleEditInvoice(invoice)}
+                  >
+                    Edit
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="shadow-sm"
+                  >
                     <Download className="h-3 w-3 mr-1" />
                     PDF
                   </Button>
                   {invoice.status !== InvoiceStatus.PAID && (
-                    <Button variant="outline" size="sm" className="shadow-sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="shadow-sm"
+                      onClick={() => handleSendPaymentRequest(invoice.id)}
+                    >
                       <Send className="h-3 w-3 mr-1" />
                       Send Payment Request
                     </Button>
@@ -306,6 +399,14 @@ function InvoicesList() {
                 </div>
               </div>
             ))}
+            
+            {filteredInvoices.length === 0 && (
+              <div className="text-center py-12 text-muted-foreground">
+                <Receipt className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                <p>No invoices found</p>
+                <p className="text-sm">Create your first invoice to get started</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
