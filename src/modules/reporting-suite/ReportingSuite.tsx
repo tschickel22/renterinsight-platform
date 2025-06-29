@@ -10,6 +10,8 @@ import { cn } from '@/lib/utils'
 import { ReportGeneratorForm } from './components/ReportGeneratorForm'
 import { ReportDisplayTable } from './components/ReportDisplayTable'
 import { useReportGenerator } from './hooks/useReportGenerator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { DashboardReports } from './components/DashboardReports'
 
 const mockReports: Report[] = [
   {
@@ -92,6 +94,8 @@ function ReportingDashboard() {
     generateReport, 
     exportToCSV 
   } = useReportGenerator()
+
+  const [activeTab, setActiveTab] = useState('dashboard')
 
   const getTypeColor = (type: ReportType) => {
     switch (type) {
@@ -194,76 +198,93 @@ function ReportingDashboard() {
         </Card>
       </div>
 
-      {/* Report Templates */}
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-xl">Report Templates</CardTitle>
-          <CardDescription>
-            Quick start templates for common reports
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {reportTemplates.map((template) => (
-              <Card key={template.id} className={cn("overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer border-0 bg-gradient-to-br", template.color)}>
-                <CardContent className="p-6">
-                  <div className="flex items-center space-x-3 mb-3">
-                    <template.icon className="h-8 w-8 text-primary" />
-                    <div>
-                      <h3 className="font-semibold text-foreground">{template.name}</h3>
-                      <Badge className={cn("ri-badge-status mt-1", getTypeColor(template.type))}>
-                        {template.type.toUpperCase()}
-                      </Badge>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {template.description}
-                  </p>
-                  <Button size="sm" className="w-full shadow-sm">
-                    Generate Report
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Main Content Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="generator">Report Generator</TabsTrigger>
+          <TabsTrigger value="saved">Saved Reports</TabsTrigger>
+        </TabsList>
 
-      {/* Report Generator Form */}
-      <ReportGeneratorForm 
-        onGenerate={handleGenerateReport}
-        onExportCSV={handleExportCSV}
-        isGenerating={loading}
-        hasData={reportData.length > 0}
-      />
+        <TabsContent value="dashboard">
+          <DashboardReports />
+        </TabsContent>
 
-      {/* Report Display Table */}
-      {reportData.length > 0 && currentReportConfig && (
-        <ReportDisplayTable
-          reportType={currentReportConfig.type}
-          reportName={currentReportConfig.name}
-          data={reportData}
-          columns={reportColumns}
-          onExportCSV={handleExportCSV}
-        />
-      )}
+        <TabsContent value="generator">
+          {/* Report Templates */}
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-xl">Report Templates</CardTitle>
+              <CardDescription>
+                Quick start templates for common reports
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                {reportTemplates.map((template) => (
+                  <Card key={template.id} className={cn("overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer border-0 bg-gradient-to-br", template.color)}>
+                    <CardContent className="p-6">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <template.icon className="h-8 w-8 text-primary" />
+                        <div>
+                          <h3 className="font-semibold text-foreground">{template.name}</h3>
+                          <Badge className={cn("ri-badge-status mt-1", getTypeColor(template.type))}>
+                            {template.type.toUpperCase()}
+                          </Badge>
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        {template.description}
+                      </p>
+                      <Button size="sm" className="w-full shadow-sm">
+                        Generate Report
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Previously Generated Reports */}
-      {reports.length > 0 && (
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-xl">Saved Reports</CardTitle>
-            <CardDescription>
-              Previously generated reports
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8 text-muted-foreground">
-              <p>Select a report template above to generate a new report</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+          {/* Report Generator Form */}
+          <ReportGeneratorForm 
+            onGenerate={handleGenerateReport}
+            onExportCSV={handleExportCSV}
+            isGenerating={loading}
+            hasData={reportData.length > 0}
+          />
+
+          {/* Report Display Table */}
+          {reportData.length > 0 && currentReportConfig && (
+            <ReportDisplayTable
+              reportType={currentReportConfig.type}
+              reportName={currentReportConfig.name}
+              data={reportData}
+              columns={reportColumns}
+              onExportCSV={handleExportCSV}
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="saved">
+          {/* Previously Generated Reports */}
+          {reports.length > 0 && (
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-xl">Saved Reports</CardTitle>
+                <CardDescription>
+                  Previously generated reports
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>Select a report template above to generate a new report</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
