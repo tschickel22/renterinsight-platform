@@ -16,6 +16,7 @@
     "react-router-dom": "^6.8.1",
     "lucide-react": "^0.263.1",
     "clsx": "^1.2.1",
+    "@headlessui/react": "^1.7.17",
     "@supabase/supabase-js": "^2.21.0",
     "papaparse": "^5.4.1",
     "react-dropzone": "^14.2.3",
