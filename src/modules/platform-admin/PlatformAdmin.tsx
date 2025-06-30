@@ -92,7 +92,7 @@ function PlatformAdminDashboard() {
     setShowAddTenantForm(true)
   }
 
-  const handleSaveTenant = async (tenantData: any) => {
+  const handleSaveTenant = (tenantData: any) => {
     try {
       // In a real app, this would be an API call
       const newTenant = {
@@ -125,7 +125,7 @@ function PlatformAdminDashboard() {
     setShowTenantDetail(true)
   }
 
-  const handleUpdateTenant = async (tenantId: string, tenantData: any) => {
+  const handleUpdateTenant = (tenantId: string, tenantData: any) => {
     try {
       // In a real app, this would be an API call
       const updatedTenants = tenants.map(t => 
