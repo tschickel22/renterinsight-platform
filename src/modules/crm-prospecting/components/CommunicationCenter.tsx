@@ -9,8 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Mail, MessageSquare, Send, Clock, CheckCircle, AlertCircle, Phone, Calendar, X } from 'lucide-react'
 import { CommunicationLog, EmailTemplate, SMSTemplate, Lead } from '../types'
 import { useNurturing } from '../hooks/useNurturing'
-import { formatDate } from '@/lib/utils'
-import { cn } from '@/lib/utils'
+import { formatDate, cn } from '@/lib/utils'
 import DOMPurify from 'dompurify'
 
 interface CommunicationCenterProps {
@@ -161,7 +160,6 @@ export function CommunicationCenter({ leadId, leadData, onClose }: Communication
               <TabsTrigger value="email">Send Email</TabsTrigger>
               <TabsTrigger value="sms">Send SMS</TabsTrigger>
             </TabsList>
-            {/* Email tab content */}
             <TabsContent value="email" className="space-y-4">
               <Card className="shadow-sm">
                 <CardHeader>
@@ -182,7 +180,6 @@ export function CommunicationCenter({ leadId, leadData, onClose }: Communication
                 </CardContent>
               </Card>
             </TabsContent>
-            {/* SMS tab content */}
             <TabsContent value="sms" className="space-y-4">
               <Card className="shadow-sm">
                 <CardHeader>
