@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Mail, MessageSquare, Send, Clock, CheckCircle, AlertCircle, Phone, Calendar } from 'lucide-react'
+import { Mail, MessageSquare, Send, Clock, CheckCircle, AlertCircle, Phone, Calendar, X } from 'lucide-react'
 import { CommunicationLog, EmailTemplate, SMSTemplate, Lead } from '../types'
 import { useNurturing } from '../hooks/useNurturing'
 import { formatDate } from '@/lib/utils'
@@ -137,7 +137,7 @@ export function CommunicationCenter({ leadId, leadData, onClose }: Communication
       setSelectedSMSTemplate(templateId)
       const template = smsTemplates.find(t => t.id === templateId)
       if (template) {
-        setCustomSMSMessage(replaceVariables(template.message, leadData))
+        message = replaceVariables(template.message, leadData)
       }
     }
   }
@@ -400,3 +400,4 @@ export function CommunicationCenter({ leadId, leadData, onClose }: Communication
     </div>
   )
 }
+
