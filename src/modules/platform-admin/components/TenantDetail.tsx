@@ -12,7 +12,6 @@ import { X, Save, Building, Users, Settings, Shield, Activity, Globe, Edit, Tras
 import { UserForm } from './UserForm'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
-import { createClient } from '@/lib/supabase'
 
 interface TenantDetailProps {
   tenant: any
@@ -105,66 +104,50 @@ export function TenantDetail({ tenant, onSave, onClose }: TenantDetailProps) {
     }
   }, [activeTab, tenant.id]);
 
-  const fetchTenantUsers = async () => {
+  const fetchTenantUsers = () => {
     setLoadingUsers(true);
-    try {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .rpc('get_tenant_users', { tenant_id_param: tenant.id });
-      
-      if (error) {
-        throw error;
-      }
-      
-      setUsers(data || []);
-    } catch (error) {
-      console.error('Error fetching tenant users:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load users for this tenant',
-        variant: 'destructive'
-      });
-    } finally {
+    // Simulate API call delay
+    setTimeout(() => {
+      // Mock user data for the selected tenant
+      const mockUsers = [
+        { id: 'user-1', name: 'Tenant Admin', email: 'admin@tenant.com', role: 'admin', is_active: true },
+        { id: 'user-2', name: 'Tenant Manager', email: 'manager@tenant.com', role: 'manager', is_active: true },
+        { id: 'user-3', name: 'Sales Rep', email: 'sales@tenant.com', role: 'sales', is_active: false },
+      ];
+      setUsers(mockUsers);
       setLoadingUsers(false);
-    }
+    }, 500); // Simulate network delay
   };
 
-  const handleAddUser = async (userData: any) => {
-    try {
-      // In a real app, this would be an API call
-      console.log(editingUser ? 'Updating user:' : 'Adding user:', userData);
+  const handleAddUser = (userData: any) => {
+    // In a real app, this would be an API call
+    console.log(editingUser ? 'Updating user:' : 'Adding user:', userData);
+    
+    // If we're editing, update the users array
+    if (editingUser) {
+      setUsers(prevUsers => 
+        prevUsers.map(user => 
+          user.id === userData.id ? { ...user, ...userData } : user
+        )
+      );
       
-      // If we're editing, update the users array
-      if (editingUser) {
-        setUsers(prevUsers => 
-          prevUsers.map(user => 
-            user.id === userData.id ? { ...user, ...userData } : user
-          )
-        );
-        
-        toast({
-          title: 'User Updated',
-          description: `${userData.name} has been updated successfully.`,
-        });
-      } else {
-        // For new users, add to the array
-        setUsers(prevUsers => [...prevUsers, userData]);
-        
-        toast({
-          title: 'User Added',
-          description: `${userData.name} has been added successfully.`,
-        });
-      }
-      
-      setShowAddUserForm(false);
-      setEditingUser(null);
-    } catch (error) {
       toast({
-        title: editingUser ? 'Update Error' : 'Add Error',
-        description: `Failed to ${editingUser ? 'update' : 'add'} user`,
-        variant: 'destructive'
+        title: 'User Updated',
+        description: `${userData.name} has been updated successfully.`,
+      });
+    } else {
+      // For new users, add to the array
+      const newUser = { ...userData, id: userData.id || Math.random().toString(36).substr(2, 9) };
+      setUsers(prevUsers => [...prevUsers, newUser]);
+      
+      toast({
+        title: 'User Added',
+        description: `${userData.name} has been added successfully.`,
       });
     }
+    
+    setShowAddUserForm(false);
+    setEditingUser(null);
   }
 
   const handleEditUser = (user: any) => {
@@ -172,26 +155,18 @@ export function TenantDetail({ tenant, onSave, onClose }: TenantDetailProps) {
     setShowAddUserForm(true);
   }
 
-  const handleDeleteUser = async (userId: string, userName: string) => {
+  const handleDeleteUser = (userId: string, userName: string) => {
     if (window.confirm(`Are you sure you want to delete user ${userName}?`)) {
-      try {
-        // In a real app, this would be an API call to delete the user
-        console.log('Deleting user:', userId);
-        
-        // Update the users array by filtering out the deleted user
-        setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
-        
-        toast({
-          title: 'User Deleted',
-          description: `${userName} has been deleted successfully.`,
-        });
-      } catch (error) {
-        toast({
-          title: 'Delete Error',
-          description: 'Failed to delete user',
-          variant: 'destructive'
-        });
-      }
+      // In a real app, this would be an API call to delete the user
+      console.log('Deleting user:', userId);
+      
+      // Update the users array by filtering out the deleted user
+      setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
+      
+      toast({
+        title: 'User Deleted',
+        description: `${userName} has been deleted successfully.`,
+      });
     }
   }
 
