@@ -400,4 +400,4 @@ export function CommunicationCenter({ leadId, leadData, onClose }: Communication
     </div>
   )
 }
-
+ 
