@@ -8,7 +8,6 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { X, Save, User, Mail, Shield } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { UserRole } from '@/types'
-import { createClient } from '@/lib/supabase'
 
 interface UserFormProps {
   tenantId: string
@@ -28,7 +27,7 @@ export function UserForm({ tenantId, user, onSave, onCancel }: UserFormProps) {
     sendInvite: !user
   })
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!formData.name || !formData.email) {
@@ -50,7 +49,7 @@ export function UserForm({ tenantId, user, onSave, onCancel }: UserFormProps) {
         createdAt: user?.created_at || new Date()
       };
       
-      await onSave(userData);
+      onSave(userData);
       
       toast({
         title: 'Success',
