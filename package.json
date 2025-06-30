@@ -33,7 +33,8 @@
     "tailwind-merge": "^1.12.0",
     "class-variance-authority": "^0.6.0",
     "@radix-ui/react-slot": "^1.0.2",
-    "@types/papaparse": "^5.3.14"
+    "@types/papaparse": "^5.3.14",
+    "dompurify": "^3.0.0"
   },
   "devDependencies": {
     "@types/react": "^18.0.28",
