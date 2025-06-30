@@ -1,15 +1,28 @@
+// src/components/layout/Header.tsx
 import React from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTenant } from '@/contexts/TenantContext'
 import { Button } from '@/components/ui/button'
-import { LogOut, User } from 'lucide-react'
+import { LogOut, User, Menu } from 'lucide-react'
 
-export default function Header() {
+interface HeaderProps {
+  onMenuButtonClick: () => void
+}
+
+export default function Header({ onMenuButtonClick }: HeaderProps) {
   const { user, logout } = useAuth()
   const { tenant } = useTenant()
 
   return (
     <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-border bg-background px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+      <button
+        type="button"
+        className="-m-2.5 p-2.5 text-muted-foreground lg:hidden"
+        onClick={onMenuButtonClick}
+      >
+        <span className="sr-only">Open sidebar</span>
+        <Menu className="h-6 w-6" aria-hidden="true" />
+      </button>
       <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
         <div className="flex flex-1 items-center">
           <h2 className="text-lg font-semibold text-foreground">
