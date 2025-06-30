@@ -6,11 +6,10 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Mail, MessageSquare, Send, Clock, CheckCircle, AlertCircle, Phone, Calendar, X } from 'lucide-react'
+import { Mail, MessageSquare, Send, Clock, CheckCircle, AlertCircle, X } from 'lucide-react'
 import { CommunicationLog, EmailTemplate, SMSTemplate, Lead } from '../types'
 import { useNurturing } from '../hooks/useNurturing'
-import { formatDate } from '@/lib/utils'
-import { cn } from '@/lib/utils'
+import { formatDate, cn } from '@/lib/utils'
 import DOMPurify from 'dompurify'
 
 interface CommunicationCenterProps {
@@ -86,14 +85,11 @@ export function CommunicationCenter({ leadId, leadData, onClose }: Communication
         }
       }
 
-      // Simulate sending email
       await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      // Reset form
+
       setCustomEmailSubject('')
       setCustomEmailBody('')
       setSelectedEmailTemplate('')
-      
       console.log('Email sent:', { subject, body, to: leadData.email })
     } finally {
       setSending(false)
@@ -112,13 +108,10 @@ export function CommunicationCenter({ leadId, leadData, onClose }: Communication
         }
       }
 
-      // Simulate sending SMS
       await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      // Reset form
+
       setCustomSMSMessage('')
       setSelectedSMSTemplate('')
-      
       console.log('SMS sent:', { message, to: leadData.phone })
     } finally {
       setSending(false)
@@ -191,7 +184,6 @@ export function CommunicationCenter({ leadId, leadData, onClose }: Communication
                           {index < communicationHistory.length - 1 && (
                             <div className="absolute left-4 top-12 bottom-0 w-px bg-border" />
                           )}
-                          
                           <div className="flex items-start space-x-4">
                             <div className={cn(
                               "flex-shrink-0 w-8 h-8 rounded-full border-2 bg-background flex items-center justify-center",
@@ -201,10 +193,8 @@ export function CommunicationCenter({ leadId, leadData, onClose }: Communication
                                 <Mail className="h-4 w-4 text-blue-500" />
                               ) : (
                                 <MessageSquare className="h-4 w-4 text-green-500" />
-                              )
-                              }
+                              )}
                             </div>
-                            
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center space-x-2">
@@ -220,18 +210,15 @@ export function CommunicationCenter({ leadId, leadData, onClose }: Communication
                                   {formatDate(log.sentAt)}
                                 </span>
                               </div>
-                              
                               {log.subject && (
                                 <p className="font-medium text-sm mb-1">{log.subject}</p>
                               )}
-                              
                               <div className="bg-muted/30 p-3 rounded-md">
-                                <p 
+                                <p
                                   className="text-sm text-muted-foreground whitespace-pre-wrap"
                                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(log.content) }}
                                 />
                               </div>
-                              
                               <div className="flex items-center space-x-4 mt-2 text-xs text-muted-foreground">
                                 <span>Sent: {formatDate(log.sentAt)}</span>
                                 {log.deliveredAt && (
@@ -309,10 +296,10 @@ export function CommunicationCenter({ leadId, leadData, onClose }: Communication
 
                   <div className="flex justify-between items-center">
                     <div className="text-xs text-muted-foreground">
-                      Available variables: {{first_name}}, {{last_name}}, {{company_name}}, {{rep_name}}
+                      Available variables: {'{{first_name}}, {{last_name}}, {{company_name}}, {{rep_name}}'}
                     </div>
-                    <Button 
-                      onClick={handleSendEmail} 
+                    <Button
+                      onClick={handleSendEmail}
                       disabled={sending || !customEmailSubject || !customEmailBody}
                     >
                       <Send className="h-4 w-4 mr-2" />
@@ -381,10 +368,10 @@ export function CommunicationCenter({ leadId, leadData, onClose }: Communication
 
                   <div className="flex justify-between items-center">
                     <div className="text-xs text-muted-foreground">
-                      Available variables: {{first_name}}, {{company_name}}, {{rep_name}}
+                      Available variables: {'{{first_name}}, {{company_name}}, {{rep_name}}'}
                     </div>
-                    <Button 
-                      onClick={handleSendSMS} 
+                    <Button
+                      onClick={handleSendSMS}
                       disabled={sending || !customSMSMessage || customSMSMessage.length > 160}
                     >
                       <Send className="h-4 w-4 mr-2" />
@@ -400,4 +387,3 @@ export function CommunicationCenter({ leadId, leadData, onClose }: Communication
     </div>
   )
 }
-
