@@ -137,7 +137,7 @@ export function CommunicationCenter({ leadId, leadData, onClose }: Communication
       setSelectedSMSTemplate(templateId)
       const template = smsTemplates.find(t => t.id === templateId)
       if (template) {
-        message = replaceVariables(template.message, leadData)
+        setCustomSMSMessage(replaceVariables(template.message, leadData))
       }
     }
   }
