@@ -44,20 +44,7 @@ export function useNurturing() {
         id: '1',
         name: 'Welcome New Lead',
         subject: 'Welcome to {{company_name}}, {{first_name}}!',
-        body: `Hi {{first_name}},
-
-Thank you for your interest in our RV inventory! We're excited to help you find the perfect recreational vehicle for your adventures.
-
-Here's what happens next:
-- One of our RV specialists will contact you within 24 hours
-- We'll schedule a personalized tour of our showroom
-- You'll receive our latest inventory updates and special offers
-
-In the meantime, feel free to browse our current inventory at {{website_url}}.
-
-Best regards,
-{{rep_name}}
-{{company_name}}`,
+        body: 'Hi {{first_name}},\n\nThank you for your interest in our RV inventory! We\'re excited to help you find the perfect recreational vehicle for your adventures.\n\nHere\'s what happens next:\n- One of our RV specialists will contact you within 24 hours\n- We\'ll schedule a personalized tour of our showroom\n- You\'ll receive our latest inventory updates and special offers\n\nIn the meantime, feel free to browse our current inventory at {{website_url}}.\n\nBest regards,\n{{rep_name}}\n{{company_name}}',
         type: 'welcome',
         variables: ['first_name', 'company_name', 'website_url', 'rep_name'],
         isActive: true,
@@ -67,19 +54,7 @@ Best regards,
         id: '2',
         name: 'Follow-up After 3 Days',
         subject: 'Still looking for the perfect RV, {{first_name}}?',
-        body: `Hi {{first_name}},
-
-I wanted to follow up on your recent inquiry about our RV inventory. Have you had a chance to think about what type of RV would best suit your needs?
-
-Based on your interests, I'd love to show you:
-- {{suggested_models}}
-
-We also have some exciting financing options that might interest you. Would you like to schedule a call this week to discuss your options?
-
-You can reply to this email or call me directly at {{rep_phone}}.
-
-Best regards,
-{{rep_name}}`,
+        body: 'Hi {{first_name}},\n\nI wanted to follow up on your recent inquiry about our RV inventory. Have you had a chance to think about what type of RV would best suit your needs?\n\nBased on your interests, I\'d love to show you:\n- {{suggested_models}}\n\nWe also have some exciting financing options that might interest you. Would you like to schedule a call this week to discuss your options?\n\nYou can reply to this email or call me directly at {{rep_phone}}.\n\nBest regards,\n{{rep_name}}',
         type: 'follow_up',
         variables: ['first_name', 'suggested_models', 'rep_phone', 'rep_name'],
         isActive: true,
