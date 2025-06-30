@@ -53,29 +53,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const login = async (email: string, password: string) => {
     setIsLoading(true)
     try {
-      const mockUser: User = {
-        id: '1',
-        email,
-        name: 'Admin User',
-        role: UserRole.ADMIN,
-        tenantId: 'tenant-1',
-        permissions: [
-          { id: '1', name: 'All Access', resource: '*', action: '*' }
-        ],
-        createdAt: new Date(),
-        updatedAt: new Date()
+      // Simulate API call for authentication
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+
+      // Mock authentication logic
+      if (email === 'admin@renterinsight.com' && password === 'password') {
+        const mockUser: User = {
+          id: '1',
+          email,
+          name: 'Admin User',
+          role: UserRole.ADMIN,
+          tenantId: 'tenant-1',
+          permissions: [
+            { id: '1', name: 'All Access', resource: '*', action: '*' }
+          ],
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+        
+        setUser(mockUser)
+        saveToLocalStorage('auth_token', 'mock-token')
+        
+      } else {
+        throw new Error('Invalid credentials')
       }
-      
-      setUser(mockUser)
-      saveToLocalStorage('auth_token', 'mock-token')
-      
-      // Force a re-render by updating the loading state after setting the user
-      setIsLoading(false)
     } catch (error) {
+      console.error('Login error:', error);
       throw new Error('Login failed')
     } finally {
-      // We've already set isLoading to false in the try block
-      // This prevents the state update from happening after the component might unmount
+      setIsLoading(false)
     }
   }
 
