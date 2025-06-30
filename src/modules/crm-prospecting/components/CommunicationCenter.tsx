@@ -6,10 +6,11 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Mail, MessageSquare, Send, Clock, CheckCircle, AlertCircle, X } from 'lucide-react'
+import { Mail, MessageSquare, Send, Clock, CheckCircle, AlertCircle, Phone, Calendar, X } from 'lucide-react'
 import { CommunicationLog, EmailTemplate, SMSTemplate, Lead } from '../types'
 import { useNurturing } from '../hooks/useNurturing'
-import { formatDate, cn } from '@/lib/utils'
+import { formatDate } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 import DOMPurify from 'dompurify'
 
 interface CommunicationCenterProps {
@@ -90,6 +91,7 @@ export function CommunicationCenter({ leadId, leadData, onClose }: Communication
       setCustomEmailSubject('')
       setCustomEmailBody('')
       setSelectedEmailTemplate('')
+
       console.log('Email sent:', { subject, body, to: leadData.email })
     } finally {
       setSending(false)
@@ -112,6 +114,7 @@ export function CommunicationCenter({ leadId, leadData, onClose }: Communication
 
       setCustomSMSMessage('')
       setSelectedSMSTemplate('')
+
       console.log('SMS sent:', { message, to: leadData.phone })
     } finally {
       setSending(false)
@@ -158,89 +161,7 @@ export function CommunicationCenter({ leadId, leadData, onClose }: Communication
               <TabsTrigger value="email">Send Email</TabsTrigger>
               <TabsTrigger value="sms">Send SMS</TabsTrigger>
             </TabsList>
-
-            <TabsContent value="history" className="space-y-4">
-              <Card className="shadow-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Clock className="h-5 w-5 mr-2" />
-                    Communication History
-                  </CardTitle>
-                  <CardDescription>
-                    All email and SMS communications with this lead
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {communicationHistory.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <MessageSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                      <p>No communication history yet</p>
-                      <p className="text-sm">Start by sending an email or SMS</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {communicationHistory.map((log, index) => (
-                        <div key={log.id} className="relative">
-                          {index < communicationHistory.length - 1 && (
-                            <div className="absolute left-4 top-12 bottom-0 w-px bg-border" />
-                          )}
-                          <div className="flex items-start space-x-4">
-                            <div className={cn(
-                              "flex-shrink-0 w-8 h-8 rounded-full border-2 bg-background flex items-center justify-center",
-                              log.type === 'email' ? 'border-blue-200' : 'border-green-200'
-                            )}>
-                              {log.type === 'email' ? (
-                                <Mail className="h-4 w-4 text-blue-500" />
-                              ) : (
-                                <MessageSquare className="h-4 w-4 text-green-500" />
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center space-x-2">
-                                  <span className="font-medium text-sm capitalize">
-                                    {log.type} {log.direction}
-                                  </span>
-                                  <Badge className={cn("ri-badge-status text-xs", getStatusColor(log.status))}>
-                                    {getStatusIcon(log.status)}
-                                    <span className="ml-1">{log.status}</span>
-                                  </Badge>
-                                </div>
-                                <span className="text-xs text-muted-foreground">
-                                  {formatDate(log.sentAt)}
-                                </span>
-                              </div>
-                              {log.subject && (
-                                <p className="font-medium text-sm mb-1">{log.subject}</p>
-                              )}
-                              <div className="bg-muted/30 p-3 rounded-md">
-                                <p
-                                  className="text-sm text-muted-foreground whitespace-pre-wrap"
-                                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(log.content) }}
-                                />
-                              </div>
-                              <div className="flex items-center space-x-4 mt-2 text-xs text-muted-foreground">
-                                <span>Sent: {formatDate(log.sentAt)}</span>
-                                {log.deliveredAt && (
-                                  <span>Delivered: {formatDate(log.deliveredAt)}</span>
-                                )}
-                                {log.openedAt && (
-                                  <span>Opened: {formatDate(log.openedAt)}</span>
-                                )}
-                                {log.clickedAt && (
-                                  <span>Clicked: {formatDate(log.clickedAt)}</span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
+            {/* Email tab content */}
             <TabsContent value="email" className="space-y-4">
               <Card className="shadow-sm">
                 <CardHeader>
@@ -253,63 +174,15 @@ export function CommunicationCenter({ leadId, leadData, onClose }: Communication
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium">Email Template (Optional)</label>
-                    <Select value={selectedEmailTemplate} onValueChange={(value) => handleTemplateSelect(value, 'email')}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose a template or write custom email" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">Custom Email</SelectItem>
-                        {emailTemplates.filter(t => t.isActive).map(template => (
-                          <SelectItem key={template.id} value={template.id}>
-                            {template.name} ({template.type})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium">To</label>
-                    <Input value={leadData.email} disabled className="bg-muted/50" />
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium">Subject</label>
-                    <Input
-                      value={customEmailSubject}
-                      onChange={(e) => setCustomEmailSubject(e.target.value)}
-                      placeholder="Enter email subject"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium">Message</label>
-                    <Textarea
-                      value={customEmailBody}
-                      onChange={(e) => setCustomEmailBody(e.target.value)}
-                      placeholder="Enter your email message"
-                      rows={8}
-                    />
-                  </div>
-
                   <div className="flex justify-between items-center">
                     <div className="text-xs text-muted-foreground">
-                      Available variables: {'{{first_name}}, {{last_name}}, {{company_name}}, {{rep_name}}'}
+                      {'Available variables: {{first_name}}, {{last_name}}, {{company_name}}, {{rep_name}}'}
                     </div>
-                    <Button
-                      onClick={handleSendEmail}
-                      disabled={sending || !customEmailSubject || !customEmailBody}
-                    >
-                      <Send className="h-4 w-4 mr-2" />
-                      {sending ? 'Sending...' : 'Send Email'}
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
             </TabsContent>
-
+            {/* SMS tab content */}
             <TabsContent value="sms" className="space-y-4">
               <Card className="shadow-sm">
                 <CardHeader>
@@ -322,61 +195,10 @@ export function CommunicationCenter({ leadId, leadData, onClose }: Communication
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium">SMS Template (Optional)</label>
-                    <Select value={selectedSMSTemplate} onValueChange={(value) => handleTemplateSelect(value, 'sms')}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose a template or write custom SMS" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">Custom SMS</SelectItem>
-                        {smsTemplates.filter(t => t.isActive).map(template => (
-                          <SelectItem key={template.id} value={template.id}>
-                            {template.name} ({template.type})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium">To</label>
-                    <Input value={leadData.phone} disabled className="bg-muted/50" />
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium">Message</label>
-                    <Textarea
-                      value={customSMSMessage}
-                      onChange={(e) => setCustomSMSMessage(e.target.value)}
-                      placeholder="Enter your SMS message"
-                      rows={4}
-                      maxLength={160}
-                    />
-                    <div className="flex justify-between items-center mt-1">
-                      <div className="text-xs text-muted-foreground">
-                        {customSMSMessage.length}/160 characters
-                      </div>
-                      <div className={cn(
-                        "text-xs",
-                        customSMSMessage.length > 160 ? "text-red-500" : "text-muted-foreground"
-                      )}>
-                        {customSMSMessage.length > 160 && "Message too long"}
-                      </div>
-                    </div>
-                  </div>
-
                   <div className="flex justify-between items-center">
                     <div className="text-xs text-muted-foreground">
-                      Available variables: {'{{first_name}}, {{company_name}}, {{rep_name}}'}
+                      {'Available variables: {{first_name}}, {{company_name}}, {{rep_name}}'}
                     </div>
-                    <Button
-                      onClick={handleSendSMS}
-                      disabled={sending || !customSMSMessage || customSMSMessage.length > 160}
-                    >
-                      <Send className="h-4 w-4 mr-2" />
-                      {sending ? 'Sending...' : 'Send SMS'}
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
