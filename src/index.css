@@ -24,6 +24,11 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.5rem;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
   }
 
   .dark {
@@ -46,6 +51,11 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 94.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
   }
 }
 
@@ -54,6 +64,54 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Renter Insight specific styles */
+@layer components {
+  .ri-page-header {
+    @apply space-y-2 pb-6;
+  }
+  
+  .ri-page-title {
+    @apply text-3xl font-bold tracking-tight text-foreground;
+  }
+  
+  .ri-page-description {
+    @apply text-muted-foreground text-base;
+  }
+  
+  .ri-stats-grid {
+    @apply grid gap-4 md:grid-cols-2 lg:grid-cols-4;
+  }
+  
+  .ri-content-grid {
+    @apply grid gap-6 md:grid-cols-2;
+  }
+  
+  .ri-search-bar {
+    @apply relative flex-1;
+  }
+  
+  .ri-search-icon {
+    @apply absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground;
+  }
+  
+  .ri-search-input {
+    @apply pl-10;
+  }
+  
+  .ri-table-row {
+    @apply flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors;
+  }
+  
+  .ri-badge-status {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold;
+  }
+  
+  .ri-action-buttons {
+    @apply flex items-center space-x-2;
   }
 }

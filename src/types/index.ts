@@ -27,6 +27,21 @@ export interface TenantSettings {
   dateFormat: string
   businessHours: BusinessHours
   features: FeatureFlags
+  labelOverrides?: Record<string, string>
+  platformType?: string
+  emailProvider?: string
+  emailApiKey?: string
+  emailFromAddress?: string
+  emailFromName?: string
+  smsProvider?: string
+  smsApiKey?: string
+  smsFromNumber?: string
+  webhooks?: Array<{id: string, event: string, url: string, active: boolean}>
+  apiEnabled?: boolean
+  apiKey?: string
+  allowedOrigins?: string[]
+  emailTemplates?: Array<any>
+  smsTemplates?: Array<any>
 }
 
 export interface TenantBranding {
@@ -81,9 +96,12 @@ export interface Lead {
   email: string
   phone: string
   source: string
+  sourceId?: string
   status: LeadStatus
   assignedTo?: string
   notes: string
+  score?: number
+  lastActivity?: Date
   customFields: Record<string, any>
   createdAt: Date
   updatedAt: Date
@@ -329,7 +347,12 @@ export enum VehicleType {
   MOTORHOME = 'motorhome',
   TRAVEL_TRAILER = 'travel_trailer',
   FIFTH_WHEEL = 'fifth_wheel',
-  TOY_HAULER = 'toy_hauler'
+  TOY_HAULER = 'toy_hauler',
+  SINGLE_WIDE = 'single_wide',
+  DOUBLE_WIDE = 'double_wide',
+  TRIPLE_WIDE = 'triple_wide',
+  PARK_MODEL = 'park_model',
+  MODULAR_HOME = 'modular_home'
 }
 
 export enum VehicleStatus {

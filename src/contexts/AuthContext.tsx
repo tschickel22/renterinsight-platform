@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { User, UserRole } from '@/types'
+import { saveToLocalStorage, loadFromLocalStorage, removeFromLocalStorage } from '@/lib/utils'
 
 interface AuthContextType {
   user: User | null
@@ -30,7 +31,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     // Check for existing session
-    const token = localStorage.getItem('auth_token')
+    const token = loadFromLocalStorage('auth_token', null)
     if (token) {
       // Simulate user data - in real app, validate token with API
       setUser({
@@ -52,25 +53,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const login = async (email: string, password: string) => {
     setIsLoading(true)
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      const mockUser: User = {
-        id: '1',
-        email,
-        name: 'Admin User',
-        role: UserRole.ADMIN,
-        tenantId: 'tenant-1',
-        permissions: [
-          { id: '1', name: 'All Access', resource: '*', action: '*' }
-        ],
-        createdAt: new Date(),
-        updatedAt: new Date()
+      // Simulate API call for authentication
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+
+      // Mock authentication logic
+      if (email === 'admin@renterinsight.com' && password === 'password') {
+        const mockUser: User = {
+          id: '1',
+          email,
+          name: 'Admin User',
+          role: UserRole.ADMIN,
+          tenantId: 'tenant-1',
+          permissions: [
+            { id: '1', name: 'All Access', resource: '*', action: '*' }
+          ],
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+        
+        setUser(mockUser)
+        saveToLocalStorage('auth_token', 'mock-token')
+        
+      } else {
+        throw new Error('Invalid credentials')
       }
-      
-      setUser(mockUser)
-      localStorage.setItem('auth_token', 'mock-token')
     } catch (error) {
+      console.error('Login error:', error);
       throw new Error('Login failed')
     } finally {
       setIsLoading(false)
@@ -79,7 +87,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = () => {
     setUser(null)
-    localStorage.removeItem('auth_token')
+    removeFromLocalStorage('auth_token')
   }
 
   const hasPermission = (resource: string, action: string): boolean => {
