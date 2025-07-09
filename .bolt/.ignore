@@ -1,0 +1,65 @@
+# 🔒 Base ignore
+dist/
+node_modules/
+.git/
+supabase/
+
+# 🎨 Ignore build artifacts
+build/
+out/
+.next/
+.nuxt/
+.cache/
+
+# 📦 Ignore lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# 🎨 Ignore large CSS and JS bundles
+dist/assets/index-4d824b41.css
+dist/assets/index-493e33d7.js
+
+# 🗃 Ignore large data files
+*.csv
+*.json
+*.log
+*.sql
+
+# 🖼 Ignore media assets
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.svg
+*.mp4
+*.webm
+*.webp
+*.ico
+
+# 📄 Ignore specific large project files
+renter_insight_bolt_manifest.json
+renter_insight_openapi.yaml
+
+# 🧪 Ignore test files
+**/__tests__/
+**/__mocks__/
+**/test/
+**/tests/
+
+# 🚫 Ignore all other apps except reporting-suite
+apps/*
+!apps/reporting-suite/**
+
+# 🚫 Ignore all other modules except reporting-suite
+src/modules/*
+!src/modules/reporting-suite/**
+
+# 🧩 Ignore shared directories if not needed
+src/contexts/**
+src/types/**
+src/pages/**
+
+# 🧾 Optionally ignore static assets if not used
+public/**
+src/asse
