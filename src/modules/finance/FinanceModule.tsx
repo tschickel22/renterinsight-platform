@@ -18,6 +18,7 @@ import { NewLoanForm } from './components/NewLoanForm'
 import { LoanPaymentHistory } from './components/LoanPaymentHistory' // Import the new component
 import { Payment, PaymentMethod, PaymentStatus } from '@/types' 
 
+// Define interfaces
 interface Loan {
   id: string;
   customerId: string;
@@ -56,7 +57,7 @@ export const FinanceModule: React.FC = () => {
   const [showPaymentHistoryModal, setShowPaymentHistoryModal] = useState(false) 
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null) 
 
-  // Mock data for demonstration
+  // Safe mock data for demonstration
   const mockLoans: Loan[] = [
     {
       id: '1',
@@ -97,15 +98,19 @@ export const FinanceModule: React.FC = () => {
   }, [])
 
   const filteredLoans = loans.filter(loan => {
-    const matchesSearch = loan.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         loan.vehicleInfo.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesFilter = filterStatus === 'all' || loan.status === filterStatus
+    // Safe string comparisons with null checks
+    const matchesSearch = 
+      (loan?.customerName?.toLowerCase()?.includes(searchTerm.toLowerCase()) || false) ||
+      (loan?.vehicleInfo?.toLowerCase()?.includes(searchTerm.toLowerCase()) || false)
+    const matchesFilter = filterStatus === 'all' || loan?.status === filterStatus
     return matchesSearch && matchesFilter
   })
 
   const handleViewPaymentHistory = (loan: Loan) => { 
-    setSelectedLoan(loan);
-    setShowPaymentHistoryModal(true);
+    if (loan) {
+      setSelectedLoan(loan);
+      setShowPaymentHistoryModal(true);
+    }
   }
 
   const handleRecordPayment = async (paymentData: Partial<Payment>): Promise<void> => {
@@ -135,13 +140,21 @@ export const FinanceModule: React.FC = () => {
       };
 
       // Update the loans state with the new payment
-      setLoans(prevLoans => 
-        prevLoans.map(loan => 
-          loan.id === selectedLoan.id 
-            ? { ...loan, payments: [...loan.payments, newPayment] }
-            : loan
-        )
-      );
+      setLoans(prevLoans => {
+        if (!Array.isArray(prevLoans)) return [];
+        
+        return prevLoans.map(loan => {
+          if (loan?.id === selectedLoan?.id) {
+            return { 
+              ...loan, 
+              payments: Array.isArray(loan.payments) 
+                ? [...loan.payments, newPayment] 
+                : [newPayment] 
+            };
+          }
+          return loan;
+        });
+      });
 
       toast({
         title: "Payment Recorded",
@@ -207,40 +220,41 @@ export const FinanceModule: React.FC = () => {
           </div>
 
           <div className="grid gap-4">
-            {filteredLoans.map((loan) => (
-              <Card key={loan.id}>
+            {Array.isArray(filteredLoans) && filteredLoans.length > 0 ? (
+              filteredLoans.map((loan) => loan && (
+              <Card key={loan?.id || Math.random().toString()}>
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-2">
                       <CreditCard className="h-5 w-5" />
-                      {loan.customerName}
+                      {loan?.customerName || 'Unknown Customer'}
                     </CardTitle>
-                    <Badge variant={loan.status === 'active' ? 'default' : 'secondary'}>
-                      {loan.status}
+                    <Badge variant={loan?.status === 'active' ? 'default' : 'secondary'}>
+                      {loan?.status || 'Unknown'}
                     </Badge>
                   </div>
-                  <CardDescription>{loan.vehicleInfo}</CardDescription>
+                  <CardDescription>{loan?.vehicleInfo || 'No vehicle information'}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Loan Amount</p>
-                      <p className="text-lg font-semibold">{formatCurrency(loan.amount)}</p>
+                      <p className="text-lg font-semibold">{formatCurrency(loan?.amount || 0)}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Monthly Payment</p>
-                      <p className="text-lg font-semibold">{formatCurrency(loan.paymentAmount)}</p>
+                      <p className="text-lg font-semibold">{formatCurrency(loan?.paymentAmount || 0)}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Payments</p>
                       <div className="flex items-center gap-2">
-                        <p className="text-lg font-semibold">{loan.payments.length}</p>
+                        <p className="text-lg font-semibold">{Array.isArray(loan?.payments) ? loan.payments.length : 0}</p>
                         <Button 
                           variant="outline" 
                           size="sm"  
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleViewPaymentHistory(loan);
+                            if (loan) handleViewPaymentHistory(loan);
                           }}
                         >
                           View History
@@ -251,13 +265,17 @@ export const FinanceModule: React.FC = () => {
                       <p className="text-sm font-medium text-muted-foreground">Next Payment</p>
                       <p className="text-lg font-semibold flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
-                        {loan.nextPaymentDate.toLocaleDateString()}
+                        {loan?.nextPaymentDate ? loan.nextPaymentDate.toLocaleDateString() : 'Not scheduled'}
                       </p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            ))) : (
+              <div className="text-center p-8 border border-dashed rounded-lg">
+                <p className="text-muted-foreground">No loans found</p>
+              </div>
+            )}
           </div>
         </TabsContent>
 
@@ -267,7 +285,7 @@ export const FinanceModule: React.FC = () => {
 
         <TabsContent value="payments">
           <LoanPaymentHistory 
-            loan={filteredLoans.length > 0 ? filteredLoans[0] : {
+            loan={Array.isArray(filteredLoans) && filteredLoans.length > 0 ? filteredLoans[0] : {
               id: '0',
               customerId: '',
               customerName: '',
@@ -295,12 +313,12 @@ export const FinanceModule: React.FC = () => {
       </Tabs>
 
       {/* Payment History Modal */}
-      {showPaymentHistoryModal && selectedLoan && ( 
+      {showPaymentHistoryModal && selectedLoan && (
         <LoanPaymentHistory
           loan={selectedLoan}
           onClose={() => setShowPaymentHistoryModal(false)}
           onRecordPayment={handleRecordPayment}
-        /> 
+        />
       )}
 
       {showNewLoanForm && (
