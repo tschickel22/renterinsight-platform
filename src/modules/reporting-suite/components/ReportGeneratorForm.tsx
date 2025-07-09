@@ -108,7 +108,8 @@ export function ReportGeneratorForm({
   }, [initialReportConfig]);
 
   const handleExportPDF = () => {
-    if (!hasData || !reportData.length || !reportColumns.length) {
+    // Use optional chaining to safely access length
+    if (!hasData || !reportData?.length || !reportColumns?.length) {
       toast({
         title: 'No Data to Export',
         description: 'Generate a report first before exporting to PDF.',
@@ -146,6 +147,7 @@ export function ReportGeneratorForm({
           case 'currency':
             return typeof value === 'number' ? `$${value.toFixed(2)}` : value;
           case 'date':
+            // Ensure value is a Date object before calling toISOString
             return value instanceof Date ? value.toISOString().split('T')[0] : value;
           default:
             return value;
