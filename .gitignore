@@ -45,3 +45,11 @@ src/test-data/
 src/fixtures/
 *.spec.ts*
 *.test.ts*
+
+# ⚠️ DO NOT ignore these — needed for preview and compiling
+# (Ensure these folders exist and are accessible)
+# src/components/
+# src/hooks/
+# src/lib/
+# src/utils/
+# shared-core/
