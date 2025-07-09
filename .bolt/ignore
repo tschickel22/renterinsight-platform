@@ -1,1 +1,60 @@
-# Ignore large generated files
+# 🔒 Base ignore (keep clean context)
+dist/
+node_modules/
+.git/
+
+# 🎨 Ignore build artifacts
+build/
+out/
+.next/
+.nuxt/
+.cache/
+
+# 📦 Ignore lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# 📁 Ignore generated assets
+dist/assets/
+*.css
+*.js
+
+# 🗃 Ignore static/media/test data
+*.csv
+*.json
+*.log
+*.sql
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.svg
+*.mp4
+*.webm
+*.webp
+*.ico
+**/__tests__/
+**/__mocks__/
+**/test/
+**/tests/
+
+# 📁 Ignore API or schema docs
+renter_insight_bolt_manifest.json
+renter_insight_openapi.yaml
+
+# ⚙️ Ignore other apps and modules
+apps/*
+!apps/reporting-suite/**
+
+src/modules/*
+!src/modules/reporting-suite/**
+
+# ❗ Do NOT ignore types while fixing shared enums
+# src/types/** — keep this accessible
+
+# ✅ Optional: comment out these during enum fixes
+# src/contexts/**
+# src/pages/**
+# public/**
+# src/assets/**
