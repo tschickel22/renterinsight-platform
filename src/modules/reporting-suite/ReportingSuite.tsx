@@ -1,5 +1,5 @@
 // src/modules/reporting-suite/ReportingSuite.tsx
-import React, { useState, useRef, useEffect } from 'react' // Import useRef and useEffect
+import React, { useState, useRef, useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -197,7 +197,7 @@ function ReportingDashboard() {
             <div className="text-2xl font-bold text-blue-900">{reports.length}</div>
             <p className="text-xs text-blue-600 flex items-center mt-1">
               <TrendingUp className="h-3 w-3 mr-1" />
-              +5 units this month
+              All reports
             </p>
           </CardContent>
         </Card>
@@ -350,4 +350,3 @@ export default function ReportingSuite() {
     </Routes>
   )
 }
-
