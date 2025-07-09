@@ -17,7 +17,6 @@ interface ReportGeneratorFormProps {
   onGenerate: (reportConfig: ReportConfig) => void
   onExportCSV: () => void
   isGenerating: boolean
-  // Removed hasData prop
   reportData: any[] // Receive reportData
   reportColumns: any[] // Receive reportColumns
 }
@@ -41,7 +40,6 @@ export function ReportGeneratorForm({
   onGenerate,
   onExportCSV,
   isGenerating,
-  // Removed hasData from destructuring
   reportData, // Receive reportData
   reportColumns // Receive reportColumns
 }: ReportGeneratorFormProps) {
@@ -135,7 +133,6 @@ export function ReportGeneratorForm({
     }
 
     doc.setFontSize(12);
-    doc.text(reportConfig.name, 14, 30);
     doc.text(`Date Range: ${reportConfig.dateRange.startDate} to ${reportConfig.dateRange.endDate}`, 14, 38);
 
     // Prepare table headers and data
@@ -205,8 +202,7 @@ export function ReportGeneratorForm({
               Export PDF
             </Button>
           </div>
-        </div>
-      </CardHeader>
+        </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
