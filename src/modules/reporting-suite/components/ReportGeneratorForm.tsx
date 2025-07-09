@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label'
 import { BarChart3, Calendar, Filter, Download } from 'lucide-react'
 import { ReportType } from '@/types'
 import { useToast } from '@/hooks/use-toast'
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react' // Import React
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { jsPDF } from 'jspdf' // Import jsPDF
@@ -125,8 +125,6 @@ export function ReportGeneratorForm({
     if (tenant?.branding?.logo) {
       // You might need to adjust x, y, width, height based on your logo size and desired position
       // For a real logo, ensure it's a base64 string or a URL accessible by jsPDF
-      // For this example, we'll use a placeholder or assume it's a small image.
-      // If it's a URL, jsPDF might need to fetch it, which can be asynchronous.
       // For simplicity, assuming a small image or a placeholder.
       // If it's a complex image, consider converting it to a data URL (base64) beforehand.
       // doc.addImage(tenant.branding.logo, 'PNG', 170, 10, 30, 30); // Example: x, y, width, height
