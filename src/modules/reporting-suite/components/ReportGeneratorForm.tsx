@@ -48,8 +48,10 @@ export function ReportGeneratorForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('ReportGeneratorForm: handleSubmit called') // Debug log
     
     if (!reportConfig.name) {
+      console.log('ReportGeneratorForm: Validation error - report name is required') // Debug log
       toast({
         title: 'Validation Error',
         description: 'Report name is required',
@@ -58,6 +60,7 @@ export function ReportGeneratorForm({
       return
     }
 
+    console.log('ReportGeneratorForm: Calling onGenerate with config:', reportConfig) // Debug log
     onGenerate(reportConfig)
   }
 
