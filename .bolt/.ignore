@@ -53,6 +53,6 @@ renter_insight_openapi.yaml
 apps/*
 src/modules/*
 
-# ✅ Allow editing Quote Builder only
-!apps/quote-builder/**
-!src/modules/quote-builder/**
+# ✅ Allow editing Service Ops only
+!apps/service-ops/**
+!src/modules/service-ops/**
