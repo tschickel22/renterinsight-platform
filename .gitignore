@@ -21,7 +21,9 @@ supabase/config.toml
 Thumbs.db
 
 # Bolt AI-specific cache
-.bolt/
+# Ignore everything in .bolt except the ignore file
+.bolt/*
+!.bolt/ignore
 
 # IDE/editor junk
 .vscode/
