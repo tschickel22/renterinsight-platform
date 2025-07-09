@@ -13,12 +13,16 @@ import { useToast } from '@/hooks/use-toast'
 
 // Quote Detail Modal Component
 interface QuoteDetailModalProps {
-  quote: Quote
-  onClose: () => void
-  onEdit: (quote: Quote) => void
+  quote: Quote | null; // Allow null for safety
+  onClose: () => void;
+  onEdit: (quote: Quote) => void;
 }
 
 function QuoteDetailModal({ quote, onClose, onEdit }: QuoteDetailModalProps) {
+  if (!quote) {
+    return null; // Render nothing if quote is null
+  }
+
   const getStatusColor = (status: Quote['status']) => {
     switch (status) {
       case 'draft':
@@ -89,19 +93,23 @@ function QuoteDetailModal({ quote, onClose, onEdit }: QuoteDetailModalProps) {
           <div>
             <h3 className="text-lg font-semibold mb-4">Line Items</h3>
             <div className="space-y-3">
-              {quote.items.map((item, index) => (
-                <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex-1">
-                    <h4 className="font-medium">{item.description}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Quantity: {item.quantity} × {formatCurrency(item.unitPrice)}
-                    </p>
+              {Array.isArray(quote.items) && quote.items.length > 0 ? (
+                quote.items.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex-1">
+                      <h4 className="font-medium">{item.description}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Quantity: {item.quantity} × {formatCurrency(item.unitPrice)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold text-lg">{formatCurrency(item.total)}</div>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <div className="font-bold text-lg">{formatCurrency(item.total)}</div>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">No line items available.</p>
+              )}
             </div>
           </div>
 
@@ -141,14 +149,14 @@ function QuoteDetailModal({ quote, onClose, onEdit }: QuoteDetailModalProps) {
 export function QuotesList() {
   const {
     quotes,
-    loading,
+    // loading, // Not used in this component
     createQuote,
     updateQuote,
     deleteQuote,
     duplicateQuote,
     sendQuote,
-    acceptQuote,
-    rejectQuote
+    // acceptQuote, // Not used in this component
+    // rejectQuote // Not used in this component
   } = useQuoteManagement()
 
   const { toast } = useToast()
@@ -178,15 +186,15 @@ export function QuotesList() {
     }
   }
 
-  const filteredQuotes = quotes.filter(quote => {
+  const filteredQuotes = Array.isArray(quotes) ? quotes.filter(quote => {
     const matchesSearch = 
-      quote.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      quote.customerId.toLowerCase().includes(searchTerm.toLowerCase())
+      (quote.id?.toLowerCase()?.includes(searchTerm.toLowerCase()) || false) ||
+      (quote.customerId?.toLowerCase()?.includes(searchTerm.toLowerCase()) || false)
     
     const matchesStatus = statusFilter === 'all' || quote.status === statusFilter
 
     return matchesSearch && matchesStatus
-  })
+  }) : [];
 
   const handleCreateQuote = () => {
     setEditingQuote(null)
@@ -224,6 +232,7 @@ export function QuotesList() {
       setShowQuoteBuilder(false)
       setEditingQuote(null)
     } catch (error) {
+      console.error("Error saving quote:", error); // Meaningful error log
       toast({
         title: 'Error',
         description: 'Failed to save quote',
@@ -240,6 +249,7 @@ export function QuotesList() {
         description: 'Quote sent to customer',
       })
     } catch (error) {
+      console.error("Error sending quote:", error); // Meaningful error log
       toast({
         title: 'Error',
         description: 'Failed to send quote',
@@ -256,6 +266,7 @@ export function QuotesList() {
         description: 'Quote duplicated successfully',
       })
     } catch (error) {
+      console.error("Error duplicating quote:", error); // Meaningful error log
       toast({
         title: 'Error',
         description: 'Failed to duplicate quote',
@@ -273,6 +284,7 @@ export function QuotesList() {
           description: 'Quote deleted successfully',
         })
       } catch (error) {
+        console.error("Error deleting quote:", error); // Meaningful error log
         toast({
           title: 'Error',
           description: 'Failed to delete quote',
@@ -283,19 +295,19 @@ export function QuotesList() {
   }
 
   const stats = {
-    total: quotes.length,
-    draft: quotes.filter(q => q.status === 'draft').length,
-    sent: quotes.filter(q => q.status === 'sent').length,
-    accepted: quotes.filter(q => q.status === 'accepted').length,
-    totalValue: quotes.reduce((sum, q) => sum + q.total, 0),
-    acceptedValue: quotes.filter(q => q.status === 'accepted').reduce((sum, q) => sum + q.total, 0)
+    total: filteredQuotes.length,
+    draft: filteredQuotes.filter(q => q.status === 'draft').length,
+    sent: filteredQuotes.filter(q => q.status === 'sent').length,
+    accepted: filteredQuotes.filter(q => q.status === 'accepted').length,
+    totalValue: filteredQuotes.reduce((sum, q) => sum + (q.total || 0), 0),
+    acceptedValue: filteredQuotes.filter(q => q.status === 'accepted').reduce((sum, q) => sum + (q.total || 0), 0)
   }
 
   return (
     <div className="space-y-8">
       {/* Quote Builder Modal */}
       {showQuoteBuilder && (
-        <QuoteBuilderComponent
+        <QuoteBuilder
           quote={editingQuote}
           customerId={selectedCustomerId}
           onSave={handleSaveQuote}
@@ -339,7 +351,7 @@ export function QuotesList() {
             <FileText className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-900">{stats.total}</div>
+            <div className="text-2xl font-bold">{stats.total}</div>
             <p className="text-xs text-blue-600 flex items-center mt-1">
               <TrendingUp className="h-3 w-3 mr-1" />
               All quotes
@@ -352,7 +364,7 @@ export function QuotesList() {
             <FileText className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-900">{stats.sent}</div>
+            <div className="text-2xl font-bold">{stats.sent}</div>
             <p className="text-xs text-yellow-600 flex items-center mt-1">
               <TrendingUp className="h-3 w-3 mr-1" />
               Awaiting response
@@ -365,10 +377,10 @@ export function QuotesList() {
             <FileText className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-900">{stats.accepted}</div>
+            <div className="text-2xl font-bold">{stats.accepted}</div>
             <p className="text-xs text-green-600 flex items-center mt-1">
               <TrendingUp className="h-3 w-3 mr-1" />
-              {stats.total > 0 ? Math.round((stats.accepted / stats.total) * 100) : 0}% acceptance rate
+              {stats.total > 0 ? `${Math.round((stats.accepted / stats.total) * 100)}% acceptance rate` : 'N/A'}
             </p>
           </CardContent>
         </Card>
@@ -378,9 +390,7 @@ export function QuotesList() {
             <DollarSign className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-900">
-              {formatCurrency(stats.totalValue)}
-            </div>
+            <div className="text-2xl font-bold">{formatCurrency(stats.totalValue)}</div>
             <p className="text-xs text-purple-600 flex items-center mt-1">
               <DollarSign className="h-3 w-3 mr-1" />
               {formatCurrency(stats.acceptedValue)} accepted
@@ -430,95 +440,95 @@ export function QuotesList() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {filteredQuotes.map((quote) => (
-              <div key={quote.id} className="ri-table-row">
-                <div className="flex items-center space-x-4 flex-1">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="font-semibold text-foreground">Quote #{quote.id}</h3>
-                      <Badge className={cn("ri-badge-status", getStatusColor(quote.status))}>
-                        {quote.status.toUpperCase()}
-                      </Badge>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
-                      <div>
-                        <span className="font-medium">Customer:</span> {quote.customerId}
+            {Array.isArray(filteredQuotes) && filteredQuotes.length > 0 ? (
+              filteredQuotes.map((quote) => (
+                <div key={quote.id} className="ri-table-row">
+                  <div className="flex items-center space-x-4 flex-1">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3 mb-2">
+                        <h3 className="font-semibold text-foreground">Quote #{quote.id}</h3>
+                        <Badge className={cn("ri-badge-status", getStatusColor(quote.status))}>
+                          {quote.status.toUpperCase()}
+                        </Badge>
                       </div>
-                      <div>
-                        <span className="font-medium">Total:</span> 
-                        <span className="font-bold text-primary ml-1">{formatCurrency(quote.total)}</span>
+                      <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
+                        <div>
+                          <span className="font-medium">Customer:</span> {quote.customerId}
+                        </div>
+                        <div>
+                          <span className="font-medium">Total:</span> 
+                          <span className="ml-1 font-bold text-primary">{formatCurrency(quote.total)}</span>
+                        </div>
+                        <div>
+                          <span className="font-medium">Created:</span> {formatDate(quote.createdAt)}
+                        </div>
+                        <div>
+                          <span className="font-medium">Valid Until:</span> {formatDate(quote.validUntil)}
+                        </div>
                       </div>
-                      <div>
-                        <span className="font-medium">Created:</span> {formatDate(quote.createdAt)}
-                      </div>
-                      <div>
-                        <span className="font-medium">Valid Until:</span> {formatDate(quote.validUntil)}
-                      </div>
-                    </div>
-                    <div className="mt-2 bg-muted/30 p-2 rounded-md">
-                      <p className="text-sm text-muted-foreground">
-                        {quote.items.length} item(s)
-                      </p>
-                      {quote.notes && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          <span className="font-medium">Notes:</span> {quote.notes}
+                      <div className="mt-2 bg-muted/30 p-2 rounded-md">
+                        <p className="text-sm text-muted-foreground">
+                          {Array.isArray(quote.items) ? `${quote.items.length} item(s)` : 'No items'}
                         </p>
-                      )}
+                        {quote.notes && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            <span className="font-medium">Notes:</span> {quote.notes}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="ri-action-buttons">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="shadow-sm"
-                    onClick={() => handleViewQuote(quote)}
-                  >
-                    <Eye className="h-3 w-3 mr-1" />
-                    View
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="shadow-sm"
-                    onClick={() => handleEditQuote(quote)}
-                  >
-                    <Edit className="h-3 w-3 mr-1" />
-                    Edit
-                  </Button>
-                  {quote.status === 'draft' && (
+                  <div className="ri-action-buttons">
                     <Button 
                       variant="outline" 
                       size="sm" 
                       className="shadow-sm"
-                      onClick={() => handleSendQuote(quote.id)}
+                      onClick={() => handleViewQuote(quote)}
                     >
-                      <Send className="h-3 w-3 mr-1" />
-                      Send
+                      <Eye className="h-3 w-3 mr-1" />
+                      View
                     </Button>
-                  )}
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="shadow-sm"
-                    onClick={() => handleDuplicateQuote(quote.id)}
-                  >
-                    <Copy className="h-3 w-3 mr-1" />
-                    Copy
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="shadow-sm text-red-600 hover:text-red-700"
-                    onClick={() => handleDeleteQuote(quote.id)}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="shadow-sm"
+                      onClick={() => handleEditQuote(quote)}
+                    >
+                      <Edit className="h-3 w-3 mr-1" />
+                      Edit
+                    </Button>
+                    {quote.status === 'draft' && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="shadow-sm"
+                        onClick={() => handleSendQuote(quote.id)}
+                      >
+                        <Send className="h-3 w-3 mr-1" />
+                        Send
+                      </Button>
+                    )}
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="shadow-sm"
+                      onClick={() => handleDuplicateQuote(quote.id)}
+                    >
+                      <Copy className="h-3 w-3 mr-1" />
+                      Copy
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="shadow-sm text-red-600 hover:text-red-700"
+                      onClick={() => handleDeleteQuote(quote.id)}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            ))}
-
-            {filteredQuotes.length === 0 && (
+              ))
+            ) : (
               <div className="text-center py-12 text-muted-foreground">
                 <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
                 <p>No quotes found</p>
@@ -532,7 +542,7 @@ export function QuotesList() {
   )
 }
 
-export default function QuoteBuilder() {
+export default function QuoteBuilderPage() { // Renamed to avoid conflict with component
   return (
     <Routes>
       <Route path="/" element={<QuotesList />} />
