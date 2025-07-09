@@ -179,8 +179,7 @@ export function ReportGeneratorForm({
 
   return (
     <Card className="shadow-sm">
-      <CardHeader>
-        <div className="flex items-center justify-between">
+      <CardHeader className="flex items-center justify-between"> {/* Modified line */}
           <div>
             <CardTitle className="flex items-center">
               <BarChart3 className="h-5 w-5 mr-2 text-primary" />
@@ -383,4 +382,3 @@ export function ReportGeneratorForm({
     </Card>
   )
 }
-
