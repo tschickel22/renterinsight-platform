@@ -1,319 +1,227 @@
 import React, { useState } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { BarChart3, TrendingUp, DollarSign, Users, Package, Plus } from 'lucide-react'
-import { Report, ReportType } from '@/types'
-import { formatDate } from '@/lib/utils'
-import { cn } from '@/lib/utils'
-import { ReportGeneratorForm } from './components/ReportGeneratorForm'
-import { ReportDisplayTable } from './components/ReportDisplayTable'
-import { useReportGenerator } from './hooks/useReportGenerator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { DashboardReports } from './components/DashboardReports'
+import { BarChart3, FileText, PlusCircle } from 'lucide-react'
+import { ReportGeneratorForm, ReportConfig } from '@/modules/reporting-suite/components/ReportGeneratorForm'
+import { useReportGenerator } from '@/modules/reporting-suite/hooks/useReportGenerator'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { formatCurrency, formatDate } from '@/lib/utils'
 
-const mockReports: Report[] = [
-  {
-    id: '1',
-    name: 'Monthly Sales Report',
-    type: ReportType.SALES,
-    module: 'sales',
-    filters: [],
-    columns: [],
-    data: [],
-    generatedAt: new Date('2024-01-20'),
-    generatedBy: 'admin'
-  },
-  {
-    id: '2',
-    name: 'Inventory Valuation',
-    type: ReportType.INVENTORY,
-    module: 'inventory',
-    filters: [],
-    columns: [],
-    data: [],
-    generatedAt: new Date('2024-01-19'),
-    generatedBy: 'manager'
-  },
-  {
-    id: '3',
-    name: 'Service Revenue Analysis',
-    type: ReportType.SERVICE,
-    module: 'service',
-    filters: [],
-    columns: [],
-    data: [],
-    generatedAt: new Date('2024-01-18'),
-    generatedBy: 'admin'
-  }
-]
-
-const reportTemplates = [
-  {
-    id: 'sales-summary',
-    name: 'Sales Summary',
-    description: 'Overview of sales performance and metrics',
-    type: ReportType.SALES,
-    icon: DollarSign,
-    color: 'from-green-50 to-green-100/50'
-  },
-  {
-    id: 'inventory-report',
-    name: 'Inventory Report',
-    description: 'Current inventory levels and valuation',
-    type: ReportType.INVENTORY,
-    icon: Package,
-    color: 'from-blue-50 to-blue-100/50'
-  },
-  {
-    id: 'customer-analysis',
-    name: 'Customer Analysis',
-    description: 'Customer demographics and behavior insights',
-    type: ReportType.CUSTOM,
-    icon: Users,
-    color: 'from-purple-50 to-purple-100/50'
-  },
-  {
-    id: 'financial-overview',
-    name: 'Financial Overview',
-    description: 'Revenue, expenses, and profitability analysis',
-    type: ReportType.FINANCIAL,
-    icon: TrendingUp,
-    color: 'from-orange-50 to-orange-100/50'
-  }
-]
-
-function ReportingDashboard() {
-  const [reports, setReports] = useState<Report[]>(mockReports)
-  const { 
-    reportData, 
-    reportColumns, 
-    loading, 
-    currentReportConfig, 
-    generateReport, 
-    exportToCSV 
-  } = useReportGenerator()
-
+export default function ReportingSuite() {
   const [activeTab, setActiveTab] = useState('dashboard')
+  const { reportData, reportColumns, loading: isGenerating, generateReport, exportToCSV } = useReportGenerator()
 
-  const getTypeColor = (type: ReportType) => {
-    switch (type) {
-      case ReportType.SALES:
-        return 'bg-green-50 text-green-700 border-green-200'
-      case ReportType.INVENTORY:
-        return 'bg-blue-50 text-blue-700 border-blue-200'
-      case ReportType.SERVICE:
-        return 'bg-purple-50 text-purple-700 border-purple-200'
-      case ReportType.FINANCIAL:
-        return 'bg-orange-50 text-orange-700 border-orange-200'
-      case ReportType.CUSTOM:
-        return 'bg-gray-50 text-gray-700 border-gray-200'
-      default:
-        return 'bg-gray-50 text-gray-700 border-gray-200'
-    }
-  }
-  
-  const handleGenerateReport = (config: any) => {
-    // Check if the config is a template object (e.g., by checking for 'id' or 'description' property)
-    if (config && config.id && config.type) {
-      // This is a template, construct the full config for generateReport
-      const today = new Date();
-      const defaultStartDate = new Date(today.getFullYear(), today.getMonth(), 1); // First day of current month
-      const defaultEndDate = today; // Today's date
-
-      const fullConfig = {
-        reportType: config.type,
-        reportName: config.name,
-        startDate: defaultStartDate,
-        endDate: defaultEndDate,
-        // Add any other default filters or columns if necessary for templates
-        filters: [], // Assuming templates don't have specific filters initially
-        columns: [], // Assuming templates don't have specific columns initially
-      };
-      generateReport(fullConfig);
-    } else {
-      // This is likely from the ReportGeneratorForm, pass it as is
-      generateReport(config);
-    }
-  }
-  
-  const handleExportCSV = () => {
-    exportToCSV()
+  const handleGenerateReport = (config: ReportConfig) => {
+    console.log('ReportingSuite: handleGenerateReport called with config:', config) // Debug log
+    generateReport(config)
   }
 
   return (
-    <div className="space-y-8">
-      {/* Page Header */}
-      <div className="ri-page-header">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="ri-page-title">Reporting Suite</h1>
-            <p className="ri-page-description">
-              Generate insights and analytics for your dealership
-            </p>
-          </div>
-          <Button className="shadow-sm">
-            <Plus className="h-4 w-4 mr-2" />
-            Create Report
-          </Button>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="ri-page-header">
+          <h1 className="ri-page-title">Reporting Suite</h1>
+          <p className="ri-page-description">
+            Generate insights and analytics for your dealership
+          </p>
         </div>
+        <Button>
+          <PlusCircle className="h-4 w-4 mr-2" />
+          Create Report
+        </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="ri-stats-grid">
-        <Card className="shadow-sm border-0 bg-gradient-to-br from-blue-50 to-blue-100/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-blue-900">Total Reports</CardTitle>
-            <BarChart3 className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-900">{reports.length}</div>
-            <p className="text-xs text-blue-600 flex items-center mt-1">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              All reports
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm border-0 bg-gradient-to-br from-green-50 to-green-100/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-green-900">This Month</CardTitle>
-            <BarChart3 className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-900">
-              {reports.filter(r => r.generatedAt.getMonth() === new Date().getMonth()).length}
-            </div>
-            <p className="text-xs text-green-600 flex items-center mt-1">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              Generated this month
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm border-0 bg-gradient-to-br from-purple-50 to-purple-100/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-purple-900">Scheduled</CardTitle>
-            <BarChart3 className="h-4 w-4 text-purple-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-900">5</div>
-            <p className="text-xs text-purple-600 flex items-center mt-1">
-              <BarChart3 className="h-3 w-3 mr-1" />
-              Automated reports
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm border-0 bg-gradient-to-br from-orange-50 to-orange-100/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-orange-900">Templates</CardTitle>
-            <BarChart3 className="h-4 w-4 text-orange-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-900">{reportTemplates.length}</div>
-            <p className="text-xs text-orange-600 flex items-center mt-1">
-              <BarChart3 className="h-3 w-3 mr-1" />
-              Available templates
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Content Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList>
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="generator">Report Generator</TabsTrigger>
           <TabsTrigger value="saved">Saved Reports</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="dashboard">
-          <DashboardReports />
+        <TabsContent value="dashboard" className="space-y-6">
+          <div className="ri-stats-grid">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Reports</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">3</div>
+                <p className="text-xs text-muted-foreground">
+                  All reports
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">This Month</CardTitle>
+                <BarChart3 className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">0</div>
+                <p className="text-xs text-muted-foreground">
+                  Generated this month
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Scheduled</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">5</div>
+                <p className="text-xs text-muted-foreground">
+                  Automated reports
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Templates</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">4</div>
+                <p className="text-xs text-muted-foreground">
+                  Available templates
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
-        <TabsContent value="generator">
-          {/* Report Templates */}
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-xl">Report Templates</CardTitle>
-              <CardDescription>
-                Quick start templates for common reports
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {reportTemplates.map((template) => (
-                  <Card key={template.id} className={cn("overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer border-0 bg-gradient-to-br", template.color)}>
-                    <CardContent className="p-6">
-                      <div className="flex items-center space-x-3 mb-3">
-                        <template.icon className="h-8 w-8 text-primary" />
-                        <div>
-                          <h3 className="font-semibold text-foreground">{template.name}</h3>
-                          <Badge className={cn("ri-badge-status mt-1", getTypeColor(template.type))}>
-                            {template.type.toUpperCase()}
-                          </Badge>
-                        </div>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        {template.description}
-                      </p>
-                      <Button size="sm" className="w-full shadow-sm" onClick={() => handleGenerateReport(template)}>
-                        Generate Report
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="generator" className="space-y-6">
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">Report Templates</h3>
+            <p className="text-muted-foreground">Quick start templates for common reports</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card className="flex flex-col items-center text-center p-4">
+                <FileText className="h-8 w-8 text-primary mb-2" />
+                <CardTitle className="text-lg">Sales</CardTitle>
+                <CardDescription className="text-sm mb-4">Overview of sales performance and metrics</CardDescription>
+                <Button onClick={() => handleGenerateReport({
+                  type: ReportType.SALES,
+                  name: 'Sales Report',
+                  dateRange: {
+                    startDate: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
+                    endDate: new Date().toISOString().split('T')[0]
+                  },
+                  filters: {}
+                })}>Generate Report</Button>
+              </Card>
+              <Card className="flex flex-col items-center text-center p-4">
+                <FileText className="h-8 w-8 text-primary mb-2" />
+                <CardTitle className="text-lg">Inventory</CardTitle>
+                <CardDescription className="text-sm mb-4">Current inventory levels and valuation</CardDescription>
+                <Button onClick={() => handleGenerateReport({
+                  type: ReportType.INVENTORY,
+                  name: 'Inventory Report',
+                  dateRange: {
+                    startDate: '', // Not applicable for inventory, but required by type
+                    endDate: ''
+                  },
+                  filters: {}
+                })}>Generate Report</Button>
+              </Card>
+              <Card className="flex flex-col items-center text-center p-4">
+                <FileText className="h-8 w-8 text-primary mb-2" />
+                <CardTitle className="text-lg">Customer</CardTitle>
+                <CardDescription className="text-sm mb-4">Demographics and behavior insights</CardDescription>
+                <Button onClick={() => handleGenerateReport({
+                  type: ReportType.CUSTOM, // Assuming CUSTOM for customer reports
+                  name: 'Customer Report',
+                  dateRange: {
+                    startDate: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
+                    endDate: new Date().toISOString().split('T')[0]
+                  },
+                  filters: {}
+                })}>Generate Report</Button>
+              </Card>
+              <Card className="flex flex-col items-center text-center p-4">
+                <FileText className="h-8 w-8 text-primary mb-2" />
+                <CardTitle className="text-lg">Financial</CardTitle>
+                <CardDescription className="text-sm mb-4">Revenue, expenses, and profitability analysis</CardDescription>
+                <Button onClick={() => handleGenerateReport({
+                  type: ReportType.FINANCIAL,
+                  name: 'Financial Report',
+                  dateRange: {
+                    startDate: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
+                    endDate: new Date().toISOString().split('T')[0]
+                  },
+                  filters: {}
+                })}>Generate Report</Button>
+              </Card>
+            </div>
+          </div>
 
-          {/* Report Generator Form */}
-          <ReportGeneratorForm 
+          <ReportGeneratorForm
             onGenerate={handleGenerateReport}
-            onExportCSV={handleExportCSV}
-            isGenerating={loading}
+            onExportCSV={exportToCSV}
+            isGenerating={isGenerating}
             hasData={reportData.length > 0}
           />
 
-          {/* Report Display Table */}
-          {reportData.length > 0 && currentReportConfig && (
-            <ReportDisplayTable
-              reportType={currentReportConfig.type}
-              reportName={currentReportConfig.name}
-              data={reportData}
-              columns={reportColumns}
-              onExportCSV={handleExportCSV}
-            />
+          {isGenerating && (
+            <div className="flex items-center justify-center p-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+              <p className="ml-4 text-lg text-muted-foreground">Generating report...</p>
+            </div>
           )}
-        </TabsContent>
 
-        <TabsContent value="saved">
-          {/* Previously Generated Reports */}
-          {reports.length > 0 && (
+          {!isGenerating && reportData.length > 0 && (
             <Card className="shadow-sm">
               <CardHeader>
-                <CardTitle className="text-xl">Saved Reports</CardTitle>
-                <CardDescription>
-                  Previously generated reports
-                </CardDescription>
+                <CardTitle>Generated Report</CardTitle>
+                <CardDescription>Displaying results for your custom report.</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>Select a report template above to generate a new report</p>
-                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      {reportColumns.map((col) => (
+                        <TableHead key={col.key}>{col.label}</TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {reportData.map((row, index) => (
+                      <TableRow key={index}>
+                        {reportColumns.map((col) => (
+                          <TableCell key={col.key}>
+                            {col.type === 'currency'
+                              ? formatCurrency(row[col.key])
+                              : col.type === 'date'
+                                ? formatDate(row[col.key])
+                                : row[col.key]}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </CardContent>
             </Card>
           )}
+
+          {!isGenerating && reportData.length === 0 && (
+            <div className="text-center text-muted-foreground p-8">
+              <p>No report data to display. Generate a report using the form above.</p>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="saved" className="space-y-6">
+          <h3 className="text-xl font-semibold">Saved Reports</h3>
+          <p className="text-muted-foreground">Manage your previously saved reports.</p>
+          <Card>
+            <CardContent className="p-6">
+              <p className="text-muted-foreground">No saved reports yet.</p>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
-  )
-}
-
-export default function ReportingSuite() {
-  return (
-    <Routes>
-      <Route path="/" element={<ReportingDashboard />} />
-      <Route path="/*" element={<ReportingDashboard />} />
-    </Routes>
   )
 }
