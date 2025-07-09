@@ -16,6 +16,7 @@ import { PaymentHistory } from './components/PaymentHistory'
 import { LoanSettings } from './components/LoanSettings'
 import { NewLoanForm } from './components/NewLoanForm'
 import { LoanPaymentHistory } from './components/LoanPaymentHistory' // Import the new component
+import { Payment } from '@/types'
 
 interface Loan {
   id: string;
@@ -180,7 +181,27 @@ export const FinanceModule: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="payments">
-          <LoanPaymentHistory />
+          <LoanPaymentHistory 
+            loan={filteredLoans.length > 0 ? filteredLoans[0] : {
+              id: '0',
+              customerId: '',
+              customerName: '',
+              vehicleId: '',
+              vehicleInfo: '',
+              amount: 0,
+              downPayment: 0,
+              term: 0,
+              rate: 0,
+              paymentAmount: 0,
+              startDate: new Date(),
+              status: '',
+              remainingBalance: 0,
+              nextPaymentDate: new Date(),
+              createdAt: new Date(),
+              payments: []
+            }}
+            onClose={() => {}}
+          />
         </TabsContent>
 
         <TabsContent value="settings">
@@ -191,7 +212,7 @@ export const FinanceModule: React.FC = () => {
       {showNewLoanForm && (
         <NewLoanForm
           onClose={() => setShowNewLoanForm(false)}
-          onSubmit={(loanData) => {
+          onSave={async (loanData) => {
             // Handle loan creation
             toast({
               title: "Loan Created",
@@ -199,6 +220,7 @@ export const FinanceModule: React.FC = () => {
             })
             setShowNewLoanForm(false)
           }}
+          onAddNewCustomer={() => {}}
         />
       )}
     </div>

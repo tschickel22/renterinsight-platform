@@ -10,7 +10,7 @@ import { formatCurrency, formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { Payment, PaymentStatus, PaymentMethod } from '@/types'
 import { useToast } from '@/hooks/use-toast'
-import Papa from 'papaparse'
+import { useEffect } from 'react'
 
 interface LoanPaymentHistoryProps {
   loan: any // Using 'any' for now, but ideally a Loan type
@@ -20,11 +20,18 @@ interface LoanPaymentHistoryProps {
 
 export function LoanPaymentHistory({ loan, onClose, onRecordPayment }: LoanPaymentHistoryProps) {
   const { toast } = useToast()
-  const [payments, setPayments] = useState<Payment[]>(loan.payments || []) // Use loan's payments
+  const [payments, setPayments] = useState<Payment[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [methodFilter, setMethodFilter] = useState('all')
   const [dateFilter, setDateFilter] = useState('all')
+
+  // Initialize payments safely from loan prop
+  useEffect(() => {
+    if (loan && Array.isArray(loan.payments)) {
+      setPayments(loan.payments);
+    }
+  }, [loan]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -95,9 +102,9 @@ export function LoanPaymentHistory({ loan, onClose, onRecordPayment }: LoanPayme
   }
 
   // Filter payments based on search term and filters
-  const filteredPayments = payments.filter(payment => {
-    const matchesSearch =
-      payment.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredPayments = Array.isArray(payments) ? payments.filter(payment => {
+      (payment.invoiceId && payment.invoiceId.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (payment.id && payment.id.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (payment.transactionId && payment.transactionId.toLowerCase().includes(searchTerm.toLowerCase()))
 
     const matchesStatus = statusFilter === 'all' || payment.status === statusFilter
@@ -105,7 +112,7 @@ export function LoanPaymentHistory({ loan, onClose, onRecordPayment }: LoanPayme
 
     let matchesDate = true
     const now = new Date()
-    const paymentDate = payment.processedDate
+    const paymentDate = payment.processedDate || new Date()
 
     if (dateFilter === 'today') {
       matchesDate = paymentDate.toDateString() === now.toDateString()
@@ -122,47 +129,72 @@ export function LoanPaymentHistory({ loan, onClose, onRecordPayment }: LoanPayme
     }
 
     return matchesSearch && matchesStatus && matchesMethod && matchesDate
-  })
+  }) : []
 
   const handleExport = () => {
     // Create CSV content
-    const headers = ["ID", "Loan ID", "Amount", "Method", "Status", "Transaction ID", "Date", "Notes"]
-    const csvContent = [
-      headers.join(","),
-      ...filteredPayments.map(payment => [
-        payment.id,
-        payment.invoiceId, // Using invoiceId as loanId for now
-        payment.amount.toFixed(2),
-        payment.method,
-        payment.status,
-        payment.transactionId || '',
-        payment.processedDate.toISOString().split('T')[0],
-        payment.notes || ''
-      ].join(","))
-    ].join("\n")
-
-    // Create download link
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', `loan_${loan.id}_payment_history.csv`)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-
-    toast({
-      title: 'Export Successful',
-      description: 'Payment history exported to CSV',
-    })
+    try {
+      if (!Array.isArray(filteredPayments) || filteredPayments.length === 0) {
+        toast({
+          title: 'Export Failed',
+          description: 'No payment data to export',
+          variant: 'destructive'
+        });
+        return;
+      }
+      
+      const headers = ["ID", "Invoice ID", "Amount", "Method", "Status", "Transaction ID", "Date", "Notes"];
+      const csvContent = [
+        headers.join(","),
+        ...filteredPayments.map(payment => [
+          payment.id || '',
+          payment.invoiceId || '',
+          (payment.amount || 0).toFixed(2),
+          payment.method || '',
+          payment.status || '',
+          payment.transactionId || '',
+          payment.processedDate ? payment.processedDate.toISOString().split('T')[0] : '',
+          payment.notes || ''
+        ].join(","))
+      ].join("\n");
+      
+      // Create download link
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `loan_${loan?.id || 'unknown'}_payment_history.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({
+        title: 'Export Successful',
+        description: 'Payment history exported to CSV',
+      });
+    } catch (error) {
+      console.error('Error exporting payment history:', error);
+      toast({
+        title: 'Export Failed',
+        description: 'An error occurred while exporting data',
+        variant: 'destructive'
+      });
+    }
   }
 
   const handleRecordNewPayment = async () => {
-    if (!onRecordPayment) return;
+    if (!onRecordPayment || !loan?.id) {
+      toast({
+        title: "Error",
+        description: "Cannot record payment at this time",
+        variant: "destructive"
+      });
+      return;
+    }
 
     // Mock data for a new payment
     const newPayment: Partial<Payment> = {
-      invoiceId: loan.id, // Using loan ID as invoice ID for simplicity
+      invoiceId: loan.id,
       amount: 100, // Example amount
       method: PaymentMethod.CASH,
       status: PaymentStatus.COMPLETED,
@@ -173,9 +205,14 @@ export function LoanPaymentHistory({ loan, onClose, onRecordPayment }: LoanPayme
 
     try {
       await onRecordPayment(newPayment);
-      setPayments(prev => [...prev, { ...newPayment, id: Math.random().toString(36).substr(2, 9) } as Payment]);
+      // Safely update payments array
+      setPayments(prev => Array.isArray(prev) ? 
+        [...prev, { ...newPayment, id: Math.random().toString(36).substr(2, 9) } as Payment] : 
+        [{ ...newPayment, id: Math.random().toString(36).substr(2, 9) } as Payment]
+      );
       toast({ title: "Payment Recorded", description: "New payment added to history." });
     } catch (error) {
+      console.error("Failed to record payment:", error);
       toast({ title: "Error", description: "Failed to record payment.", variant: "destructive" });
     }
   };
@@ -183,19 +220,22 @@ export function LoanPaymentHistory({ loan, onClose, onRecordPayment }: LoanPayme
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Payment History for Loan #{loan.id}</CardTitle>
-              <CardDescription>
-                Customer: {loan.customerName} | Vehicle: {loan.vehicleInfo}
-              </CardDescription>
+        {loan && (
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Payment History for Loan #{loan.id || 'Unknown'}</CardTitle>
+                <CardDescription>
+                  {loan.customerName ? `Customer: ${loan.customerName}` : 'No customer information'} 
+                  {loan.vehicleInfo ? ` | Vehicle: ${loan.vehicleInfo}` : ''}
+                </CardDescription>
+              </div>
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                <X className="h-4 w-4" />
+              </Button>
             </div>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardHeader>
+          </CardHeader>
+        )}
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <div className="relative flex-1">
@@ -251,65 +291,79 @@ export function LoanPaymentHistory({ loan, onClose, onRecordPayment }: LoanPayme
           </div>
 
           <div className="flex justify-end space-x-2 mb-4">
-            <Button variant="outline" size="sm" onClick={handleExport}>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleExport}
+              disabled={!Array.isArray(filteredPayments) || filteredPayments.length === 0}
+            >
               <Download className="h-4 w-4 mr-2" />
               Export
             </Button>
-            <Button variant="outline" size="sm" onClick={handleRecordNewPayment}>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleRecordNewPayment}
+              disabled={!onRecordPayment || !loan?.id}
+            >
               <CreditCard className="h-4 w-4 mr-2" />
               Record Payment
             </Button>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-muted/50">
-                  <th className="p-3 text-left font-medium text-muted-foreground">Amount</th>
-                  <th className="p-3 text-left font-medium text-muted-foreground">Method</th>
-                  <th className="p-3 text-left font-medium text-muted-foreground">Status</th>
-                  <th className="p-3 text-left font-medium text-muted-foreground">Date</th>
-                  <th className="p-3 text-left font-medium text-muted-foreground">Transaction ID</th>
-                  <th className="p-3 text-left font-medium text-muted-foreground">Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredPayments.map((payment) => (
-                  <tr key={payment.id} className="border-b hover:bg-muted/10">
-                    <td className="p-3 font-medium">{formatCurrency(payment.amount)}</td>
-                    <td className="p-3">
-                      <div className="flex items-center space-x-1">
-                        {getMethodIcon(payment.method)}
-                        <span>{getMethodLabel(payment.method)}</span>
-                      </div>
-                    </td>
-                    <td className="p-3">
-                      <Badge className={cn("flex items-center space-x-1", getStatusColor(payment.status))}>
-                        {getStatusIcon(payment.status)}
-                        <span>{payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}</span>
-                      </Badge>
-                    </td>
-                    <td className="p-3">{formatDate(payment.processedDate)}</td>
-                    <td className="p-3">
-                      <span className="font-mono text-xs">
-                        {payment.transactionId ? payment.transactionId : '-'}
-                      </span>
-                    </td>
-                    <td className="p-3 text-sm text-muted-foreground">
-                      {payment.notes || '-'}
-                    </td>
+            {Array.isArray(filteredPayments) && filteredPayments.length > 0 ? (
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-muted/50">
+                    <th className="p-3 text-left font-medium text-muted-foreground">Amount</th>
+                    <th className="p-3 text-left font-medium text-muted-foreground">Method</th>
+                    <th className="p-3 text-left font-medium text-muted-foreground">Status</th>
+                    <th className="p-3 text-left font-medium text-muted-foreground">Date</th>
+                    <th className="p-3 text-left font-medium text-muted-foreground">Transaction ID</th>
+                    <th className="p-3 text-left font-medium text-muted-foreground">Notes</th>
                   </tr>
-                ))}
-                {filteredPayments.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="p-8 text-center text-muted-foreground">
-                      <CreditCard className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>No payments found matching your filters</p>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filteredPayments.map((payment) => (
+                    <tr key={payment.id} className="border-b hover:bg-muted/10">
+                      <td className="p-3 font-medium">{formatCurrency(payment.amount || 0)}</td>
+                      <td className="p-3">
+                        <div className="flex items-center space-x-1">
+                          {getMethodIcon(payment.method || '')}
+                          <span>{getMethodLabel(payment.method || '')}</span>
+                        </div>
+                      </td>
+                      <td className="p-3">
+                        <Badge className={cn("flex items-center space-x-1", getStatusColor(payment.status || ''))}>
+                          {getStatusIcon(payment.status || '')}
+                          <span>{payment.status ? payment.status.charAt(0).toUpperCase() + payment.status.slice(1) : 'Unknown'}</span>
+                        </Badge>
+                      </td>
+                      <td className="p-3">{payment.processedDate ? formatDate(payment.processedDate) : '-'}</td>
+                      <td className="p-3">
+                        <span className="font-mono text-xs">
+                          {payment.transactionId ? payment.transactionId : '-'}
+                        </span>
+                      </td>
+                      <td className="p-3 text-sm text-muted-foreground">
+                        {payment.notes || '-'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="p-8 text-center text-muted-foreground border border-dashed rounded-lg">
+                <CreditCard className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No payments found</p>
+                <p className="text-sm mt-2">
+                  {searchTerm || statusFilter !== 'all' || methodFilter !== 'all' || dateFilter !== 'all' 
+                    ? 'Try adjusting your search filters' 
+                    : 'Record a payment to get started'}
+                </p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
