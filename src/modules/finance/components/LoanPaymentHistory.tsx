@@ -316,3 +316,4 @@ export function LoanPaymentHistory({ loan, onClose, onRecordPayment }: LoanPayme
     </div>
   )
 }
+
