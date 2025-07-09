@@ -53,6 +53,6 @@ renter_insight_openapi.yaml
 apps/*
 src/modules/*
 
-# ✅ Allow editing Service Ops only
-!apps/service-ops/**
-!src/modules/service-ops/**
+# ✅ Allow editing Invoice Payments only
+!apps/invoice-payments/**
+!src/modules/invoice-payments/**
