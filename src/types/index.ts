@@ -206,6 +206,24 @@ export interface Delivery {
   updatedAt: Date
 }
 
+// Agreement Types
+export interface Agreement {
+  id: string
+  customerId: string
+  vehicleId: string
+  type: AgreementType
+  status: AgreementStatus
+  terms: string
+  signedDate?: Date
+  effectiveDate: Date
+  expirationDate?: Date
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type AgreementStatus = 'draft' | 'pending' | 'active' | 'completed' | 'cancelled' | 'expired'
+export type AgreementType = 'purchase' | 'lease' | 'rental' | 'service' | 'warranty' | 'financing'
+
 // Commission Types
 export interface Commission {
   id: string
@@ -213,11 +231,13 @@ export interface Commission {
   dealId: string
   amount: number
   rate: number
-  status: 'pending' | 'approved' | 'paid'
+  status: CommissionStatus
   paidDate?: Date
   createdAt: Date
   updatedAt: Date
 }
+
+export type CommissionStatus = 'pending' | 'approved' | 'paid' | 'voided' | 'disputed'
 
 // Common utility types
 export interface ApiResponse<T> {
