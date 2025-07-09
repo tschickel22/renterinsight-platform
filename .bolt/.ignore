@@ -49,4 +49,10 @@ renter_insight_openapi.yaml
 **/test/
 **/tests/
 
-# 🔒 Ignore all other apps except reporti
+# 🚫 Ignore all apps and modules by default
+apps/*
+src/modules/*
+
+# ✅ Allow editing Quote Builder only
+!apps/quote-builder/**
+!src/modules/quote-builder/**
