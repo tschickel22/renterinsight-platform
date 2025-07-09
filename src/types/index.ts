@@ -60,6 +60,9 @@ export interface Deal {
   updatedAt: Date
 }
 
+// Vehicle Status enum/type
+export type VehicleStatus = 'available' | 'sold' | 'reserved' | 'service'
+
 // Inventory Types
 export interface Vehicle {
   id: string
@@ -68,7 +71,7 @@ export interface Vehicle {
   model: string
   year: number
   type: 'rv' | 'motorhome' | 'trailer' | 'fifth-wheel'
-  status: 'available' | 'sold' | 'reserved' | 'service'
+  status: VehicleStatus
   price: number
   location: string
   features: string[]
