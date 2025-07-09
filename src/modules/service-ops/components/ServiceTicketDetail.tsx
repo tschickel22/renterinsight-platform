@@ -491,4 +491,3 @@ export function ServiceTicketDetail({ ticket, onClose, onEdit }: ServiceTicketDe
     </div>
   )
 }
-
