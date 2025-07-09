@@ -236,7 +236,7 @@ function ReportingDashboard() {
                       <p className="text-sm text-muted-foreground mb-4">
                         {template.description}
                       </p>
-                      <Button size="sm" className="w-full shadow-sm">
+                      <Button size="sm" className="w-full shadow-sm" onClick={() => handleGenerateReport(template)}>
                         Generate Report
                       </Button>
                     </CardContent>
