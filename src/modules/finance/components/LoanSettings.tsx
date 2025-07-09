@@ -352,7 +352,7 @@ export function LoanSettings() {
                   rows={6}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  You can use variables like {{customer_name}}, {{loan_amount}}, {{interest_rate}}, etc.
+                  You can use variables like &#123;&#123;customer_name&#125;&#125;, &#123;&#123;loan_amount&#125;&#125;, &#123;&#123;interest_rate&#125;&#125;, etc.
                 </p>
               </div>
               
@@ -429,4 +429,3 @@ export function LoanSettings() {
     </div>
   )
 }
-
