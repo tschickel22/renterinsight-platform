@@ -387,3 +387,4 @@ export function ReportGeneratorForm({
     </Card>
   )
 }
+
