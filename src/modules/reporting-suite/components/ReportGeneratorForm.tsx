@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast'
 import { useEffect } from 'react'
 
 interface ReportGeneratorFormProps {
+  initialReportConfig?: ReportConfig | null
   onGenerate: (reportConfig: ReportConfig) => void
   onExportCSV: () => void
   isGenerating: boolean
@@ -31,6 +32,7 @@ export interface ReportConfig {
 }
 
 export function ReportGeneratorForm({ 
+  initialReportConfig,
   onGenerate, 
   onExportCSV, 
   isGenerating,
@@ -86,6 +88,16 @@ export function ReportGeneratorForm({
       name
     }))
   }
+
+  // Update form when initialReportConfig changes
+  useEffect(() => {
+    if (initialReportConfig) {
+      setReportConfig(initialReportConfig);
+      
+      // If we're receiving a new config, we don't need to auto-generate
+      // as the parent component will handle that
+    }
+  }, [initialReportConfig]);
 
   return (
     <Card className="shadow-sm">
