@@ -300,5 +300,46 @@ export interface FilterOption {
   value: any
 }
 
+// Custom Field Types
+export interface CustomField {
+  id: string
+  name: string
+  type: CustomFieldType
+  required: boolean
+  options?: string[]
+  defaultValue?: any
+  createdAt: Date
+  updatedAt: Date
+}
+
+export enum CustomFieldType {
+  TEXT = 'text',
+  NUMBER = 'number',
+  DATE = 'date',
+  SELECT = 'select',
+  MULTISELECT = 'multiselect',
+  BOOLEAN = 'boolean',
+  TEXTAREA = 'textarea'
+}
+
+// Lead Status enum
+export enum LeadStatus {
+  NEW = 'new',
+  CONTACTED = 'contacted',
+  QUALIFIED = 'qualified',
+  PROPOSAL = 'proposal',
+  NEGOTIATION = 'negotiation',
+  CLOSED_WON = 'closed-won',
+  CLOSED_LOST = 'closed-lost'
+}
+
+// Delivery Status enum
+export enum DeliveryStatus {
+  SCHEDULED = 'scheduled',
+  IN_TRANSIT = 'in-transit',
+  DELIVERED = 'delivered',
+  CANCELLED = 'cancelled'
+}
+
 // Re-export VehicleStatus from its dedicated file
 export type { VehicleStatus } from './vehicle'
