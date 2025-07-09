@@ -1,3 +1,4 @@
+// src/modules/service-ops/components/ServiceTicketDetail.tsx
 import React, { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -90,8 +91,8 @@ export function ServiceTicketDetail({ ticket, onClose, onEdit }: ServiceTicketDe
   }
 
   const calculateTotals = () => {
-    const partsTotal = ticket.parts.reduce((sum, part) => sum + part.total, 0)
-    const laborTotal = ticket.labor.reduce((sum, labor) => sum + labor.total, 0)
+    const partsTotal = Array.isArray(ticket.parts) ? ticket.parts.reduce((sum, part) => sum + (part.total || 0), 0) : 0
+    const laborTotal = Array.isArray(ticket.labor) ? ticket.labor.reduce((sum, labor) => sum + (labor.total || 0), 0) : 0
     return {
       partsTotal,
       laborTotal,
@@ -104,125 +105,144 @@ export function ServiceTicketDetail({ ticket, onClose, onEdit }: ServiceTicketDe
   const handlePrintPDF = () => {
     try {
       const doc = new jsPDF()
-      
-      // Add Company Logo and Name to Header
-      if (tenant?.branding?.logo) {
-        const img = new Image();
-        img.src = tenant.branding.logo;
-        img.onload = () => {
-          doc.addImage(img, 'PNG', 10, 10, 30, 15); // Adjust position and size as needed
-          if (tenant?.name) {
-            doc.setFontSize(16);
-            doc.text(tenant.name, 45, 20); // Adjust position
-          }
-          generateContent();
-        };
-        img.onerror = () => {
-          // Fallback if logo fails to load
-          if (tenant?.name) {
-            doc.setFontSize(16);
-            doc.text(tenant.name, 20, 20);
-          }
-          generateContent();
-        };
-      } else if (tenant?.name) {
-        doc.setFontSize(16);
-        doc.text(tenant.name, 20, 20);
-        generateContent();
-      } else {
-        generateContent();
-      }
+      let startY = 20; // Initial Y position for content after header
 
+      // Define generateContent function
       const generateContent = () => {
+        // Add Company Name (if no logo or logo failed)
+        if (!tenant?.branding?.logo && tenant?.name) {
+          doc.setFontSize(16);
+          doc.text(tenant.name, 20, startY);
+          startY += 10; // Move Y down after company name
+        }
+
         doc.setFontSize(20)
-        doc.text('Service Ticket', 105, 40, { align: 'center' }) // Adjusted Y position
+        doc.text('Service Ticket', 105, startY + 20, { align: 'center' }) // Adjusted Y position
+        startY += 40; // Move Y down after main title
         
         doc.setFontSize(12)
-        doc.text(`Ticket #: ${ticket.id}`, 20, 55) // Adjusted Y position
-        doc.text(`Date: ${formatDate(ticket.createdAt)}`, 20, 65)
-        doc.text(`Customer: ${ticket.customerId}`, 20, 75)
-        doc.text(`Status: ${ticket.status.replace('_', ' ')}`, 20, 85)
+        doc.text(`Ticket #: ${ticket.id || 'N/A'}`, 20, startY) // Adjusted Y position
+        startY += 10;
+        doc.text(`Date: ${formatDate(ticket.createdAt)}`, 20, startY)
+        startY += 10;
+        doc.text(`Customer: ${ticket.customerId || 'N/A'}`, 20, startY)
+        startY += 10;
+        doc.text(`Status: ${ticket.status?.replace('_', ' ')?.toUpperCase() || 'N/A'}`, 20, startY)
+        startY += 15; // Extra space before next section
         
         // Add service details
         doc.setFontSize(16)
-        doc.text('Service Details', 20, 100)
+        doc.text('Service Details', 20, startY)
+        startY += 10;
         
         doc.setFontSize(12)
-        doc.text(`Title: ${ticket.title}`, 20, 110)
+        doc.text(`Title: ${ticket.title || 'N/A'}`, 20, startY)
+        startY += 10;
         
         // Description (with word wrap)
-        const splitDescription = doc.splitTextToSize(ticket.description, 170)
-        doc.text(splitDescription, 20, 120)
+        const splitDescription = doc.splitTextToSize(ticket.description || '', 170)
+        doc.text(splitDescription, 20, startY)
+        startY += (splitDescription.length * 7) + 15; // Adjust Y based on lines of description + extra space
         
         // Parts table
-        let currentY = 145; // Starting Y for parts table
-        if (ticket.parts.length > 0) {
+        if (Array.isArray(ticket.parts) && ticket.parts.length > 0) {
           doc.setFontSize(16)
-          doc.text('Parts', 20, currentY)
+          doc.text('Parts', 20, startY)
+          startY += 5;
           
           // @ts-ignore
           doc.autoTable({
-            startY: currentY + 5,
+            startY: startY,
             head: [['Part Number', 'Description', 'Quantity', 'Unit Cost', 'Total']],
             body: ticket.parts.map(part => [
-              part.partNumber,
-              part.description,
-              part.quantity,
-              formatCurrency(part.unitCost),
-              formatCurrency(part.total)
+              part.partNumber || '',
+              part.description || '',
+              part.quantity || 0,
+              formatCurrency(part.unitCost || 0),
+              formatCurrency(part.total || 0)
             ]),
             foot: [['', '', '', 'Parts Total:', formatCurrency(totals.partsTotal)]],
+            theme: 'striped',
+            headStyles: { fillColor: [66, 139, 202] }
           })
           // @ts-ignore
-          currentY = doc.lastAutoTable.finalY;
+          startY = doc.lastAutoTable.finalY + 15; // Update Y after table + space
         }
         
         // Labor table
-        if (ticket.labor.length > 0) {
-          currentY += 15; // Space between tables
+        if (Array.isArray(ticket.labor) && ticket.labor.length > 0) {
           doc.setFontSize(16)
-          doc.text('Labor', 20, currentY)
+          doc.text('Labor', 20, startY)
+          startY += 5;
           
           // @ts-ignore
           doc.autoTable({
-            startY: currentY + 5,
+            startY: startY,
             head: [['Description', 'Hours', 'Rate', 'Total']],
             body: ticket.labor.map(labor => [
-              labor.description,
-              labor.hours,
-              formatCurrency(labor.rate),
-              formatCurrency(labor.total)
+              labor.description || '',
+              labor.hours || 0,
+              formatCurrency(labor.rate || 0),
+              formatCurrency(labor.total || 0)
             ]),
             foot: [['', '', 'Labor Total:', formatCurrency(totals.laborTotal)]],
+            theme: 'striped',
+            headStyles: { fillColor: [66, 139, 202] }
           })
           // @ts-ignore
-          currentY = doc.lastAutoTable.finalY;
+          startY = doc.lastAutoTable.finalY + 10; // Update Y after table + space
         }
         
         // Grand total
-        currentY += 10; // Space after last table
         doc.setFontSize(14)
-        doc.text(`Grand Total: ${formatCurrency(totals.grandTotal)}`, 150, currentY, { align: 'right' })
+        doc.text(`Grand Total: ${formatCurrency(totals.grandTotal)}`, 150, startY, { align: 'right' })
+        startY += 15;
         
         // Notes
         if (ticket.notes) {
-          currentY += 15; // Space after grand total
           doc.setFontSize(16)
-          doc.text('Notes', 20, currentY)
+          doc.text('Notes', 20, startY)
+          startY += 10;
           
           doc.setFontSize(12)
           const splitNotes = doc.splitTextToSize(ticket.notes, 170)
-          doc.text(splitNotes, 20, currentY + 10)
+          doc.text(splitNotes, 20, startY)
+          startY += (splitNotes.length * 7) + 10; // Adjust Y based on lines of notes + space
         }
         
         // Save the PDF
-        doc.save(`service-ticket-${ticket.id}.pdf`)
+        doc.save(`service-ticket-${ticket.id || 'N/A'}.pdf`)
         
         toast({
           title: 'PDF Generated',
           description: 'Service ticket PDF has been downloaded',
         })
       };
+
+      // Logo loading and content generation logic
+      if (tenant?.branding?.logo) {
+        const img = new Image();
+        img.src = tenant.branding.logo;
+        img.onload = () => {
+          doc.addImage(img, 'PNG', 10, 10, 30, 15);
+          if (tenant?.name) {
+            doc.setFontSize(16);
+            doc.text(tenant.name, 45, 20);
+          }
+          generateContent();
+        };
+        img.onerror = () => {
+          // If logo fails to load, proceed without it
+          if (tenant?.name) {
+            doc.setFontSize(16);
+            doc.text(tenant.name, 20, 20);
+          }
+          generateContent();
+        };
+      } else {
+        // If no logo is configured, directly generate content
+        generateContent();
+      }
     } catch (error) {
       console.error('Error generating PDF:', error)
       toast({
@@ -267,10 +287,10 @@ export function ServiceTicketDetail({ ticket, onClose, onEdit }: ServiceTicketDe
               {/* Ticket Header */}
               <div className="flex flex-wrap items-center gap-2">
                 <Badge className={cn("ri-badge-status", getStatusColor(ticket.status))}>
-                  {ticket.status.replace('_', ' ').toUpperCase()}
+                  {ticket.status?.replace('_', ' ')?.toUpperCase() || 'N/A'}
                 </Badge>
                 <Badge className={cn("ri-badge-status", getPriorityColor(ticket.priority))}>
-                  {ticket.priority.toUpperCase()} PRIORITY
+                  {ticket.priority?.toUpperCase() || 'N/A'} PRIORITY
                 </Badge>
                 {ticket.customFields?.warrantyStatus && (
                   <Badge className={cn("ri-badge-status", getWarrantyStatusColor(ticket.customFields.warrantyStatus))}>
@@ -288,7 +308,7 @@ export function ServiceTicketDetail({ ticket, onClose, onEdit }: ServiceTicketDe
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Customer</label>
-                  <p className="font-medium">{ticket.customerId}</p>
+                  <p className="font-medium">{ticket.customerId || 'N/A'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Vehicle</label>
@@ -316,7 +336,7 @@ export function ServiceTicketDetail({ ticket, onClose, onEdit }: ServiceTicketDe
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Description</label>
                 <div className="mt-1 p-3 bg-muted/30 rounded-md">
-                  <p className="whitespace-pre-wrap">{ticket.description}</p>
+                  <p className="whitespace-pre-wrap">{ticket.description || 'N/A'}</p>
                 </div>
               </div>
 
@@ -341,18 +361,18 @@ export function ServiceTicketDetail({ ticket, onClose, onEdit }: ServiceTicketDe
               {/* Parts */}
               <div>
                 <h3 className="text-lg font-semibold mb-3">Parts</h3>
-                {ticket.parts.length > 0 ? (
+                {Array.isArray(ticket.parts) && ticket.parts.length > 0 ? (
                   <div className="space-y-3">
                     {ticket.parts.map((part) => (
                       <div key={part.id} className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="flex-1">
-                          <div className="font-medium">{part.description}</div>
+                          <div className="font-medium">{part.description || 'N/A'}</div>
                           <p className="text-sm text-muted-foreground">
-                            Quantity: {part.quantity} × {formatCurrency(part.unitCost)}
+                            Quantity: {part.quantity || 0} × {formatCurrency(part.unitCost || 0)}
                           </p>
                         </div>
                         <div className="font-bold">
-                          {formatCurrency(part.total)}
+                          {formatCurrency(part.total || 0)}
                         </div>
                       </div>
                     ))}
@@ -370,18 +390,18 @@ export function ServiceTicketDetail({ ticket, onClose, onEdit }: ServiceTicketDe
               {/* Labor */}
               <div>
                 <h3 className="text-lg font-semibold mb-3">Labor</h3>
-                {ticket.labor.length > 0 ? (
+                {Array.isArray(ticket.labor) && ticket.labor.length > 0 ? (
                   <div className="space-y-3">
                     {ticket.labor.map((labor) => (
                       <div key={labor.id} className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="flex-1">
-                          <div className="font-medium">{labor.description}</div>
+                          <div className="font-medium">{labor.description || 'N/A'}</div>
                           <p className="text-sm text-muted-foreground">
-                            {labor.hours} hours × {formatCurrency(labor.rate)}/hr
+                            {labor.hours || 0} hours × {formatCurrency(labor.rate || 0)}/hr
                           </p>
                         </div>
                         <div className="font-bold">
-                          {formatCurrency(labor.total)}
+                          {formatCurrency(labor.total || 0)}
                         </div>
                       </div>
                     ))}
@@ -449,7 +469,7 @@ export function ServiceTicketDetail({ ticket, onClose, onEdit }: ServiceTicketDe
           </Tabs>
 
           {/* Actions */}
-          <div className="flex justify-end space-x-3 pt-6 border-t">
+          <div className="flex justify-end space-x-3 pt-6 border-t mt-6">
             <Button variant="outline" onClick={onClose}>
               Close
             </Button>
