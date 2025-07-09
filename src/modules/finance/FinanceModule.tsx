@@ -1,19 +1,19 @@
 import React, { useState } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DollarSign, Calculator, CreditCard, FileText, Plus, Search, Filter, TrendingUp, Clock, Calendar } from 'lucide-react'
+import { NewLeadForm } from '@/modules/crm-prospecting/components/NewLeadForm'
+import { formatCurrency } from '@/lib/utils'
+import { useToast } from '@/hooks/use-toast'
+import { useInventoryManagement } from '@/modules/inventory-management/hooks/useInventoryManagement'
 import { LoanCalculator } from './components/LoanCalculator'
 import { PaymentHistory } from './components/PaymentHistory'
 import { LoanSettings } from './components/LoanSettings'
 import { NewLoanForm } from './components/NewLoanForm'
-import { NewLeadForm } from '@/modules/crm-prospecting/components/NewLeadForm'
-import { formatCurrency } from '@/lib/utils'
-import { useToast } from '@/hooks/use-toast'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useInventoryManagement } from '@/modules/inventory-management/hooks/useInventoryManagement'
+import { LoanPaymentHistory } from './components/LoanPaymentHistory' // Import the new component
 
 interface Loan {
   id: string;
@@ -80,12 +80,16 @@ function FinanceDashboard() {
   const [searchTerm, setSearchTerm] = useState('')
   const { toast } = useToast()
 
+  // New state variables for payment history
+  const [showLoanPaymentHistory, setShowLoanPaymentHistory] = useState(false)
+  const [selectedLoanForPayments, setSelectedLoanForPayments] = useState<Loan | null>(null)
+
   const handleCreateLoan = () => {
     setPreselectedCustomerId(null)
     setShowNewLoanForm(true)
   }
 
-  const handleNewCustomerSuccess = (newCustomer: any) => {
+  const handleNewLeadSuccess = (newCustomer: any) => {
     toast({
       title: 'Customer Added',
       description: `${newCustomer.firstName} ${newCustomer.lastName} has been added.`,
@@ -123,7 +127,7 @@ function FinanceDashboard() {
       {showLeadModal && (
         <NewLeadForm
           onClose={() => setShowLeadModal(false)}
-          onSuccess={handleNewCustomerSuccess}
+          onSuccess={handleNewLeadSuccess}
         />
       )}
       {showNewLoanForm && (
@@ -137,8 +141,18 @@ function FinanceDashboard() {
           }}
         />
       )}
-      {/* ... (rest of UI like stats, cards, tabs, etc.) */}
-      
+
+      {/* Loan Payment History Modal */}
+      {showLoanPaymentHistory && selectedLoanForPayments && (
+        <LoanPaymentHistory
+          loan={selectedLoanForPayments}
+          onClose={() => {
+            setShowLoanPaymentHistory(false)
+            setSelectedLoanForPayments(null)
+          }}
+        />
+      )}
+
       {/* Page Header */}
       <div className="ri-page-header">
         <div className="flex items-center justify-between">
@@ -264,11 +278,16 @@ function FinanceDashboard() {
                   </div>
                 </div>
                 <div className="ri-action-buttons">
-                  <Button variant="outline" size="sm" className="shadow-sm" onClick={() => setShowCalculator(true)}>
-                    <Calculator className="h-3 w-3 mr-1" />
-                    Calculator
-                  </Button>
-                  <Button variant="outline" size="sm" className="shadow-sm">
+                  {/* Removed Calculator button */}
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="shadow-sm"
+                    onClick={() => {
+                      setSelectedLoanForPayments(loan)
+                      setShowLoanPaymentHistory(true)
+                    }}
+                  >
                     <CreditCard className="h-3 w-3 mr-1" />
                     Payments
                   </Button>
@@ -298,3 +317,4 @@ export default function FinanceModule() {
     </Routes>
   )
 }
+
