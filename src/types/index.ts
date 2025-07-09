@@ -67,12 +67,13 @@ export interface Vehicle {
   make: string
   model: string
   year: number
-  type: 'rv' | 'motorhome' | 'trailer' | 'fifth-wheel'
+  type: VehicleType
   status: VehicleStatus
   price: number
   location: string
   features: string[]
   images: string[]
+  customFields: Record<string, any>
   createdAt: Date
   updatedAt: Date
 }
@@ -342,7 +343,7 @@ export enum DeliveryStatus {
 }
 
 // Re-export VehicleStatus from its dedicated file
-// Vehicle Status enum
+export { VehicleStatus, VehicleType } from './vehicle'
 export enum VehicleStatus {
   AVAILABLE = 'available',
   SOLD = 'sold',
