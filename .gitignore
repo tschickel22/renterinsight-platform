@@ -1,10 +1,7 @@
 # Node modules (never commit these)
 node_modules/
 
-# Build outputs
-dist/
-public/
-*.log
+
 
 # Environment secrets
 .env
@@ -15,23 +12,3 @@ supabase/.temp/
 supabase/migrations/
 supabase/seed.sql
 supabase/config.toml
-
-# OS/system files
-.DS_Store
-Thumbs.db
-
-# Bolt AI-specific cache
-# Ignore everything in .bolt except the ignore file
-.bolt/*
-!.bolt/ignore
-
-# IDE/editor junk
-.vscode/
-.idea/
-
-# Optional: test data
-src/__mocks__/
-src/test-data/
-src/fixtures/
-*.test.ts*
-*.spec.ts*
