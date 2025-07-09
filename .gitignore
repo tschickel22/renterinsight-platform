@@ -1,2 +1,13 @@
 node_modules/
 .env
+apps/agreement-vault/
+apps/client-portal/
+apps/commission-engine/
+apps/company-settings/
+apps/crm-prospecting/
+apps/delivery-tracker/
+apps/inventory-management/
+apps/invoice-payments/
+apps/platform-admin/
+apps/quote-builder/
+apps/service-ops/
