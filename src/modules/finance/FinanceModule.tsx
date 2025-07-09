@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import { Routes, Route } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -73,6 +72,7 @@ const mockLoans: Loan[] = [
 function FinanceDashboard() {
   const [loans, setLoans] = useState<Loan[]>(mockLoans)
   const [showCalculator, setShowCalculator] = useState(false)
+  const [selectedLoanForCalculator, setSelectedLoanForCalculator] = useState<Loan | null>(null)
   const [showNewLoanForm, setShowNewLoanForm] = useState(false)
   const [preselectedCustomerId, setPreselectedCustomerId] = useState<string | null>(null)
   const [showLeadModal, setShowLeadModal] = useState(false)
@@ -137,7 +137,23 @@ function FinanceDashboard() {
           }}
         />
       )}
-      {/* ... (rest of UI like stats, cards, tabs, etc.) */}
+      {showCalculator && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <LoanCalculator
+            initialValues={selectedLoanForCalculator ? {
+              loanAmount: selectedLoanForCalculator.amount,
+              downPayment: selectedLoanForCalculator.downPayment,
+              interestRate: selectedLoanForCalculator.rate,
+              loanTerm: selectedLoanForCalculator.term
+            } : undefined}
+            onSave={() => {}} // No save action needed from this context
+            onClose={() => {
+              setShowCalculator(false)
+              setSelectedLoanForCalculator(null)
+            }}
+          />
+        </div>
+      )}
       
       {/* Page Header */}
       <div className="ri-page-header">
@@ -264,7 +280,15 @@ function FinanceDashboard() {
                   </div>
                 </div>
                 <div className="ri-action-buttons">
-                  <Button variant="outline" size="sm" className="shadow-sm" onClick={() => setShowCalculator(true)}>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="shadow-sm" 
+                    onClick={() => {
+                      setSelectedLoanForCalculator(loan)
+                      setShowCalculator(true)
+                    }}
+                  >
                     <Calculator className="h-3 w-3 mr-1" />
                     Calculator
                   </Button>
