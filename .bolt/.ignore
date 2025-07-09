@@ -4,7 +4,7 @@ node_modules/
 .git/
 supabase/
 
-# 🎨 Ignore build artifacts
+# 🏗 Ignore build artifacts
 build/
 out/
 .next/
@@ -17,8 +17,10 @@ yarn.lock
 pnpm-lock.yaml
 
 # 🎨 Ignore large CSS and JS bundles
-dist/assets/index-4d824b41.css
-dist/assets/index-493e33d7.js
+dist/assets/index-*.css
+dist/assets/index-*.js
+*.css
+*.js
 
 # 🗃 Ignore large data files
 *.csv
@@ -26,7 +28,7 @@ dist/assets/index-493e33d7.js
 *.log
 *.sql
 
-# 🖼 Ignore media assets
+# 🖼 Ignore media files
 *.jpg
 *.jpeg
 *.png
@@ -37,7 +39,7 @@ dist/assets/index-493e33d7.js
 *.webp
 *.ico
 
-# 📄 Ignore specific large project files
+# ⚠️ Ignore Supabase API/docs
 renter_insight_bolt_manifest.json
 renter_insight_openapi.yaml
 
@@ -47,19 +49,4 @@ renter_insight_openapi.yaml
 **/test/
 **/tests/
 
-# 🚫 Ignore all other apps except reporting-suite
-apps/*
-!apps/reporting-suite/**
-
-# 🚫 Ignore all other modules except reporting-suite
-src/modules/*
-!src/modules/reporting-suite/**
-
-# 🧩 Ignore shared directories if not needed
-src/contexts/**
-src/types/**
-src/pages/**
-
-# 🧾 Optionally ignore static assets if not used
-public/**
-src/asse
+# 🔒 Ignore all other apps except reporti
