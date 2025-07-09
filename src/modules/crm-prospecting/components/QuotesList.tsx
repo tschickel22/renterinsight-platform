@@ -50,7 +50,7 @@ function QuoteDetailModal({ quote, onClose, onEdit }: QuoteDetailModalProps) {
               </CardDescription>
             </div>
             <div className="flex items-center space-x-2">
-              <Button onClick={() => onEdit(quote)} size="sm">
+              <Button onClick={() => { onClose(); onEdit(quote); }} size="sm">
                 <Edit className="h-4 w-4 mr-2" />
                 Edit Quote
               </Button>
@@ -96,19 +96,9 @@ function QuoteDetailModal({ quote, onClose, onEdit }: QuoteDetailModalProps) {
                     <p className="text-sm text-muted-foreground">
                       Quantity: {item.quantity} × {formatCurrency(item.unitPrice)}
                     </p>
-                    {item.isBundle && (
-                      <Badge className="mt-1 bg-purple-50 text-purple-700 border-purple-200">
-                        Bundle
-                      </Badge>
-                    )}
                   </div>
                   <div className="text-right">
                     <div className="font-bold text-lg">{formatCurrency(item.total)}</div>
-                    {item.discount > 0 && (
-                      <div className="text-sm text-green-600">
-                        -{item.discountType === 'percentage' ? `${item.discount}%` : formatCurrency(item.discount)} discount
-                      </div>
-                    )}
                   </div>
                 </div>
               ))}
@@ -122,12 +112,6 @@ function QuoteDetailModal({ quote, onClose, onEdit }: QuoteDetailModalProps) {
                 <span>Subtotal:</span>
                 <span>{formatCurrency(quote.subtotal)}</span>
               </div>
-              {quote.totalDiscount > 0 && (
-                <div className="flex justify-between text-green-600">
-                  <span>Total Discount:</span>
-                  <span>-{formatCurrency(quote.totalDiscount)}</span>
-                </div>
-              )}
               <div className="flex justify-between">
                 <span>Tax:</span>
                 <span>{formatCurrency(quote.tax)}</span>
@@ -145,16 +129,6 @@ function QuoteDetailModal({ quote, onClose, onEdit }: QuoteDetailModalProps) {
               <label className="text-sm font-medium text-muted-foreground">Notes</label>
               <div className="mt-1 p-3 bg-muted/30 rounded-md">
                 <p className="text-sm">{quote.notes}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Terms */}
-          {quote.terms && (
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">Terms & Conditions</label>
-              <div className="mt-1 p-3 bg-muted/30 rounded-md">
-                <p className="text-sm whitespace-pre-wrap">{quote.terms}</p>
               </div>
             </div>
           )}
@@ -321,7 +295,7 @@ export function QuotesList() {
     <div className="space-y-8">
       {/* Quote Builder Modal */}
       {showQuoteBuilder && (
-        <QuoteBuilder
+        <QuoteBuilderComponent
           quote={editingQuote}
           customerId={selectedCustomerId}
           onSave={handleSaveQuote}
@@ -380,7 +354,7 @@ export function QuotesList() {
           <CardContent>
             <div className="text-2xl font-bold text-yellow-900">{stats.sent}</div>
             <p className="text-xs text-yellow-600 flex items-center mt-1">
-              <Calendar className="h-3 w-3 mr-1" />
+              <TrendingUp className="h-3 w-3 mr-1" />
               Awaiting response
             </p>
           </CardContent>
@@ -465,11 +439,6 @@ export function QuotesList() {
                       <Badge className={cn("ri-badge-status", getStatusColor(quote.status))}>
                         {quote.status.toUpperCase()}
                       </Badge>
-                      {quote.items.some(item => item.isBundle) && (
-                        <Badge className="bg-purple-50 text-purple-700 border-purple-200">
-                          Bundle
-                        </Badge>
-                      )}
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
                       <div>
@@ -489,11 +458,6 @@ export function QuotesList() {
                     <div className="mt-2 bg-muted/30 p-2 rounded-md">
                       <p className="text-sm text-muted-foreground">
                         {quote.items.length} item(s)
-                        {quote.totalDiscount > 0 && (
-                          <span className="text-green-600 ml-2">
-                            • {formatCurrency(quote.totalDiscount)} discount applied
-                          </span>
-                        )}
                       </p>
                       {quote.notes && (
                         <p className="text-sm text-muted-foreground mt-1">
@@ -565,5 +529,14 @@ export function QuotesList() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function QuoteBuilder() {
+  return (
+    <Routes>
+      <Route path="/" element={<QuotesList />} />
+      <Route path="/*" element={<QuotesList />} />
+    </Routes>
   )
 }
