@@ -121,10 +121,19 @@ export function CommissionForm({ commission, salesReps, deals, rules, onSave, on
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!formData.salesPersonId || !formData.dealId) {
+    if (!formData.salesPersonId) {
       toast({
         title: 'Validation Error',
-        description: 'Sales rep and deal are required',
+        description: 'Sales rep is required',
+        variant: 'destructive'
+      })
+      return
+    }
+    
+    if (!formData.dealId) {
+      toast({
+        title: 'Validation Error',
+        description: 'Deal is required',
         variant: 'destructive'
       })
       return
@@ -201,7 +210,7 @@ export function CommissionForm({ commission, salesReps, deals, rules, onSave, on
                     <SelectTrigger>
                       <SelectValue placeholder="Select sales rep" />
                     </SelectTrigger>
-                    <SelectContent className="z-50">
+                    <SelectContent className="max-h-60 overflow-y-auto">
                       {salesReps.map(rep => (
                         <SelectItem key={rep.id} value={rep.id}>
                           {rep.name}
@@ -220,7 +229,7 @@ export function CommissionForm({ commission, salesReps, deals, rules, onSave, on
                     <SelectTrigger>
                       <SelectValue placeholder="Select deal" />
                     </SelectTrigger>
-                    <SelectContent className="z-50">
+                    <SelectContent className="max-h-60 overflow-y-auto">
                       {deals.map(deal => (
                         <SelectItem key={deal.id} value={deal.id}>
                           {deal.name} - {formatCurrency(deal.value)}

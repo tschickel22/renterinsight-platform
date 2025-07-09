@@ -17,7 +17,7 @@ export function useCommissionManagement() {
     // Load existing commissions from localStorage or use mock data
     const savedCommissions = loadFromLocalStorage('renter-insight-commissions', [
       {
-        id: '1',
+        id: 'comm-001',
         salesPersonId: 'sales-001',
         dealId: 'deal-001',
         type: CommissionType.PERCENTAGE,
@@ -31,7 +31,7 @@ export function useCommissionManagement() {
         updatedAt: new Date('2024-01-20')
       },
       {
-        id: '2',
+        id: 'comm-002',
         salesPersonId: 'sales-002',
         dealId: 'deal-002',
         type: CommissionType.FLAT,
@@ -41,15 +41,55 @@ export function useCommissionManagement() {
         notes: 'Flat commission for service contract',
         customFields: {},
         createdAt: new Date('2024-01-15'),
-        updatedAt: new Date('2024-01-15')
+        updatedAt: new Date('2024-01-15'),
+      },
+      {
+        id: 'comm-003',
+        salesPersonId: 'sales-001',
+        dealId: 'deal-003',
+        type: CommissionType.PERCENTAGE,
+        rate: 0.04,
+        amount: 1000,
+        status: CommissionStatus.PAID,
+        paidDate: new Date('2024-01-25'),
+        notes: 'Commission for toy hauler sale',
+        customFields: {},
+        createdAt: new Date('2024-01-22'),
+        updatedAt: new Date('2024-01-25')
+      },
+      {
+        id: 'comm-004',
+        salesPersonId: 'sales-003',
+        dealId: 'deal-004',
+        type: CommissionType.TIERED,
+        rate: 0.07,
+        amount: 7000,
+        status: CommissionStatus.APPROVED,
+        notes: 'Tiered commission for luxury motorhome',
+        customFields: {},
+        createdAt: new Date('2024-01-18'),
+        updatedAt: new Date('2024-01-20')
+      },
+      {
+        id: 'comm-005',
+        salesPersonId: 'sales-002',
+        dealId: 'deal-005',
+        type: CommissionType.PERCENTAGE,
+        rate: 0.05,
+        amount: 3250,
+        status: CommissionStatus.PENDING,
+        notes: 'Pending approval for fifth wheel sale',
+        customFields: {},
+        createdAt: new Date('2024-01-26'),
+        updatedAt: new Date('2024-01-26')
       }
     ])
 
     // Load existing rules from localStorage or use mock data
     const savedRules = loadFromLocalStorage('renter-insight-commission-rules', [
       {
-        id: '1',
-        name: 'Standard Sales Commission',
+        id: 'payment-001',
+        invoiceId: 'invoice-001',
         type: 'percentage',
         rate: 0.05,
         isActive: true,
@@ -83,8 +123,8 @@ export function useCommissionManagement() {
     // Load existing audit trail from localStorage or use mock data
     const savedAuditTrail = loadFromLocalStorage('renter-insight-commission-audit', [
       {
-        id: '1',
-        commissionId: '1',
+        id: 'audit-001',
+        commissionId: 'comm-001',
         userId: 'user-001',
         userName: 'Admin User',
         action: 'created',
@@ -99,8 +139,8 @@ export function useCommissionManagement() {
         timestamp: new Date('2024-01-18')
       },
       {
-        id: '2',
-        commissionId: '1',
+        id: 'audit-002',
+        commissionId: 'comm-001',
         userId: 'user-001',
         userName: 'Admin User',
         action: 'approved',
@@ -108,6 +148,49 @@ export function useCommissionManagement() {
         newValue: { status: CommissionStatus.APPROVED },
         notes: 'Approved after deal verification',
         timestamp: new Date('2024-01-19')
+      },
+      {
+        id: 'audit-003',
+        commissionId: 'comm-001',
+        userId: 'user-001',
+        userName: 'Admin User',
+        action: 'paid',
+        previousValue: { status: CommissionStatus.APPROVED },
+        newValue: { status: CommissionStatus.PAID },
+        notes: 'Payment processed via direct deposit',
+        timestamp: new Date('2024-01-20')
+      },
+      {
+        id: 'audit-004',
+        commissionId: 'comm-003',
+        userId: 'user-001',
+        userName: 'Admin User',
+        action: 'created',
+        newValue: {
+          salesPersonId: 'sales-001',
+          dealId: 'deal-003',
+          type: CommissionType.PERCENTAGE,
+          rate: 0.04,
+          amount: 1000,
+          status: CommissionStatus.PENDING
+        },
+        timestamp: new Date('2024-01-22')
+      },
+      {
+        id: 'audit-005',
+        commissionId: 'comm-004',
+        userId: 'user-001',
+        userName: 'Admin User',
+        action: 'created',
+        newValue: {
+          salesPersonId: 'sales-003',
+          dealId: 'deal-004',
+          type: CommissionType.TIERED,
+          rate: 0.07,
+          amount: 7000,
+          status: CommissionStatus.PENDING
+        },
+        timestamp: new Date('2024-01-18')
       }
     ])
 
