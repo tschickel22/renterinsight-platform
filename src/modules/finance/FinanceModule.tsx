@@ -16,7 +16,7 @@ import { PaymentHistory } from './components/PaymentHistory'
 import { LoanSettings } from './components/LoanSettings'
 import { NewLoanForm } from './components/NewLoanForm'
 import { LoanPaymentHistory } from './components/LoanPaymentHistory' // Import the new component
-import { Payment, PaymentMethod, PaymentStatus } from '@/types'
+import { Payment, PaymentMethod, PaymentStatus } from '@/types' 
 
 interface Loan {
   id: string;
@@ -55,6 +55,7 @@ export const FinanceModule: React.FC = () => {
   const [showNewLoanForm, setShowNewLoanForm] = useState(false)
   const [showPaymentHistoryModal, setShowPaymentHistoryModal] = useState(false)
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null)
+  const [isRecordingPayment, setIsRecordingPayment] = useState(false)
 
   // Mock data for demonstration
   const mockLoans: Loan[] = [
@@ -111,13 +112,14 @@ export const FinanceModule: React.FC = () => {
   const handleRecordPayment = async (paymentData: Partial<Payment>): Promise<void> => {
     if (!selectedLoan) {
       toast({
-        title: "Error",
-        description: "No loan selected",
-        variant: "destructive"
+        title: "Error", 
+        description: "No loan selected", 
+        variant: "destructive" 
       });
       return;
     }
 
+    setIsRecordingPayment(true);
     try {
       // Create a new payment
       const newPayment: Payment = {
@@ -147,7 +149,7 @@ export const FinanceModule: React.FC = () => {
         title: "Payment Recorded",
         description: `Payment of ${formatCurrency(newPayment.amount)} has been recorded.`
       });
-
+      
       return Promise.resolve();
     } catch (error) {
       console.error("Error recording payment:", error);
@@ -155,8 +157,10 @@ export const FinanceModule: React.FC = () => {
         title: "Error",
         description: "Failed to record payment",
         variant: "destructive"
-      });
+      }); 
       return Promise.reject(error);
+    } finally {
+      setIsRecordingPayment(false);
     }
   }
 
@@ -298,7 +302,10 @@ export const FinanceModule: React.FC = () => {
       {showPaymentHistoryModal && selectedLoan && (
         <LoanPaymentHistory
           loan={selectedLoan}
-          onClose={() => setShowPaymentHistoryModal(false)}
+          onClose={() => {
+            setShowPaymentHistoryModal(false);
+            setSelectedLoan(null);
+          }}
           onRecordPayment={handleRecordPayment}
         />
       )}
