@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -24,19 +24,70 @@ export function CommissionReportGenerator({
   onExportCSV
 }: CommissionReportGeneratorProps) {
   const { toast } = useToast()
-  const [filters, setFilters] = useState<CommissionReportFilters>({
-    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-    endDate: new Date(),
-    salesPersonId: '',
-    status: '',
-    type: ''
-  })
   const [showFilters, setShowFilters] = useState(false)
   const [report, setReport] = useState<{ commissions: Commission[], summary: CommissionReportSummary } | null>(null)
   const [groupBy, setGroupBy] = useState<'none' | 'salesPerson' | 'status' | 'type'>('none')
 
+  // Date range states
+  const [startDate, setStartDate] = useState<string>(new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0])
+  const [endDate, setEndDate] = useState<string>(new Date().toISOString().split('T')[0])
+  const [dateRangePreset, setDateRangePreset] = useState<string>('this_month')
+
+  useEffect(() => {
+    const today = new Date()
+    let newStartDate = new Date()
+    let newEndDate = new Date()
+
+    switch (dateRangePreset) {
+      case 'last_week':
+        newStartDate.setDate(today.getDate() - today.getDay() - 7)
+        newEndDate.setDate(today.getDate() - today.getDay() - 1)
+        break
+      case 'last_month':
+        newStartDate.setMonth(today.getMonth() - 1)
+        newStartDate.setDate(1)
+        newEndDate.setDate(0) // Last day of previous month
+        break
+      case 'last_year':
+        newStartDate.setFullYear(today.getFullYear() - 1)
+        newStartDate.setMonth(0)
+        newStartDate.setDate(1)
+        newEndDate.setFullYear(today.getFullYear() - 1)
+        newEndDate.setMonth(11)
+        newEndDate.setDate(31)
+        break
+      case 'ytd':
+        newStartDate.setMonth(0)
+        newStartDate.setDate(1)
+        newEndDate = today
+        break
+      case 'this_month':
+        newStartDate.setDate(1)
+        newEndDate = today
+        break
+      case 'custom':
+        // Do nothing, use existing startDate and endDate
+        return
+      default:
+        // Default to this month
+        newStartDate.setDate(1)
+        newEndDate = today
+        break
+    }
+
+    setStartDate(newStartDate.toISOString().split('T')[0])
+    setEndDate(newEndDate.toISOString().split('T')[0])
+  }, [dateRangePreset])
+
   const handleGenerateReport = () => {
     try {
+      const filters: CommissionReportFilters = {
+        startDate: startDate ? new Date(startDate) : undefined,
+        endDate: endDate ? new Date(endDate) : undefined,
+        salesPersonId: (document.getElementById('salesPersonId') as HTMLSelectElement)?.value || undefined,
+        status: (document.getElementById('status') as HTMLSelectElement)?.value || undefined,
+        type: (document.getElementById('type') as HTMLSelectElement)?.value || undefined,
+      }
       const result = onGenerateReport(filters)
       setReport(result)
       
@@ -184,17 +235,36 @@ export function CommissionReportGenerator({
         <CardContent>
           {showFilters && (
             <div className="space-y-4 mb-6 p-4 bg-muted/30 rounded-lg">
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-3">
+                <div>
+                  <Label htmlFor="dateRangePreset">Date Range Preset</Label>
+                  <Select
+                    value={dateRangePreset}
+                    onValueChange={setDateRangePreset}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a preset" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="custom">Custom</SelectItem>
+                      <SelectItem value="last_week">Last Week</SelectItem>
+                      <SelectItem value="last_month">Last Month</SelectItem>
+                      <SelectItem value="last_year">Last Year</SelectItem>
+                      <SelectItem value="ytd">Year to Date</SelectItem>
+                      <SelectItem value="this_month">This Month</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div>
                   <Label htmlFor="startDate">Start Date</Label>
                   <Input
                     id="startDate"
                     type="date"
-                    value={filters.startDate ? new Date(filters.startDate).toISOString().split('T')[0] : ''}
-                    onChange={(e) => setFilters(prev => ({ 
-                      ...prev, 
-                      startDate: e.target.value ? new Date(e.target.value) : undefined 
-                    }))}
+                    value={startDate}
+                    onChange={(e) => {
+                      setStartDate(e.target.value)
+                      setDateRangePreset('custom')
+                    }}
                   />
                 </div>
                 
@@ -203,11 +273,11 @@ export function CommissionReportGenerator({
                   <Input
                     id="endDate"
                     type="date"
-                    value={filters.endDate ? new Date(filters.endDate).toISOString().split('T')[0] : ''}
-                    onChange={(e) => setFilters(prev => ({ 
-                      ...prev, 
-                      endDate: e.target.value ? new Date(e.target.value) : undefined 
-                    }))}
+                    value={endDate}
+                    onChange={(e) => {
+                      setEndDate(e.target.value)
+                      setDateRangePreset('custom')
+                    }}
                   />
                 </div>
               </div>
