@@ -46,4 +46,21 @@ renter_insight_openapi.yaml
 **/__tests__/
 **/__mocks__/
 **/test/
-**/tests/
+**/tests
+
+# Ignore all other apps except reporting-suite
+apps/*
+!apps/reporting-suite/**
+
+# Ignore all modules except reporting-suite
+src/modules/*
+!src/modules/reporting-suite/**
+
+# Ignore shared contexts, types, pages if not needed
+src/contexts/**
+src/types/**
+src/pages/**
+
+# Optionally ignore static assets, if not used in reporting
+public/**
+src/assets/**
