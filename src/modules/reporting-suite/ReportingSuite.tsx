@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react' // Import useRef
 import { Routes, Route } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -87,7 +87,7 @@ const reportTemplates = [
 ]
 
 function ReportingDashboard() {
-  const [reports, setReports] = useState<Report[]>(mockReports) // Re-added reports state
+  const [reports, setReports] = useState<Report[]>(mockReports)
   const { 
     reportData, 
     reportColumns, 
@@ -99,6 +99,7 @@ function ReportingDashboard() {
 
   const [activeTab, setActiveTab] = useState('dashboard')
   const [reportConfigForForm, setReportConfigForForm] = useState<any>(null)
+  const reportGeneratorRef = useRef<HTMLDivElement>(null); // Create a ref for the report generator section
 
   const getTypeColor = (type: ReportType) => {
     switch (type) {
@@ -154,6 +155,11 @@ function ReportingDashboard() {
     setActiveTab('generator'); // Switch to the Report Generator tab
     setReportConfigForForm(null); // Reset the form to create a new report
     console.log('Create Report button clicked!'); // Log to confirm execution
+    
+    // Scroll to the report generator section
+    if (reportGeneratorRef.current) {
+      reportGeneratorRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   return (
@@ -285,13 +291,15 @@ function ReportingDashboard() {
           </Card>
 
           {/* Report Generator Form */}
-          <ReportGeneratorForm 
-            onGenerate={handleGenerateReport}
-            onExportCSV={handleExportCSV}
-            isGenerating={loading}
-            hasData={reportData.length > 0}
-            initialReportConfig={reportConfigForForm}
-          />
+          <div ref={reportGeneratorRef}> {/* Assign the ref here */}
+            <ReportGeneratorForm 
+              onGenerate={handleGenerateReport}
+              onExportCSV={handleExportCSV}
+              isGenerating={loading}
+              hasData={reportData.length > 0}
+              initialReportConfig={reportConfigForForm}
+            />
+          </div>
 
           {/* Report Display Table */}
           {reportData.length > 0 && currentReportConfig && (
