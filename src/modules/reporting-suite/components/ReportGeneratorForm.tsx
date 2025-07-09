@@ -1,4 +1,3 @@
-// src/modules/reporting-suite/components/ReportGeneratorForm.tsx
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
@@ -8,18 +7,17 @@ import { useToast } from '@/hooks/use-toast'
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { jsPDF } from 'jspdf' // Import jsPDF
-import 'jspdf-autotable' // Import jspdf-autotable
-import { useTenant } from '@/contexts/TenantContext' // Import useTenant
+import { jsPDF } from 'jspdf'
+import 'jspdf-autotable'
+import { useTenant } from '@/contexts/TenantContext'
 
 interface ReportGeneratorFormProps {
   initialReportConfig?: ReportConfig | null
   onGenerate: (reportConfig: ReportConfig) => void
   onExportCSV: () => void
   isGenerating: boolean
-  // Removed hasData prop
-  reportData: any[] // Receive reportData
-  reportColumns: any[] // Receive reportColumns
+  reportData: any[]
+  reportColumns: any[]
 }
 
 export interface ReportConfig {
@@ -41,12 +39,11 @@ export function ReportGeneratorForm({
   onGenerate,
   onExportCSV,
   isGenerating,
-  // Removed hasData from destructuring
-  reportData, // Receive reportData
-  reportColumns // Receive reportColumns
+  reportData,
+  reportColumns
 }: ReportGeneratorFormProps) {
   const { toast } = useToast()
-  const { tenant } = useTenant() // Use the useTenant hook
+  const { tenant } = useTenant()
   const [reportConfig, setReportConfig] = useState<ReportConfig>({
     type: ReportType.SALES,
     name: 'Sales Report',
@@ -99,7 +96,6 @@ export function ReportGeneratorForm({
     }))
   }
 
-  // Update form when initialReportConfig changes
   useEffect(() => {
     if (initialReportConfig) {
       console.log('ReportGeneratorForm useEffect triggered with initialReportConfig:', initialReportConfig);
@@ -108,7 +104,6 @@ export function ReportGeneratorForm({
   }, [initialReportConfig]);
 
   const handleExportPDF = () => {
-    // Directly check reportData and reportColumns length
     if (!reportData?.length || !reportColumns?.length) {
       toast({
         title: 'No Data to Export',
@@ -120,25 +115,18 @@ export function ReportGeneratorForm({
 
     const doc = new jsPDF();
 
-    // Add header with company name and logo
     doc.setFontSize(18);
     doc.text(tenant?.name || 'Renter Insight CRM/DMS', 14, 22);
 
     if (tenant?.branding?.logo) {
-      // You might need to adjust x, y, width, height based on your logo size and desired position
-      // For a real logo, ensure it's a base64 string or a URL accessible by jsPDF
       // For this example, we'll use a placeholder or assume it's a small image.
       // If it's a URL, jsPDF might need to fetch it, which can be asynchronous.
-      // For simplicity, assuming a small image or a placeholder.
-      // If it's a complex image, consider converting it to a data URL (base64) beforehand.
-      // doc.addImage(tenant.branding.logo, 'PNG', 170, 10, 30, 30); // Example: x, y, width, height
     }
 
     doc.setFontSize(12);
     doc.text(reportConfig.name, 14, 30);
     doc.text(`Date Range: ${reportConfig.dateRange.startDate} to ${reportConfig.dateRange.endDate}`, 14, 38);
 
-    // Prepare table headers and data
     const headers = reportColumns.map(col => col.label);
     const data = reportData.map(row =>
       reportColumns.map(col => {
@@ -147,7 +135,6 @@ export function ReportGeneratorForm({
           case 'currency':
             return typeof value === 'number' ? `$${value.toFixed(2)}` : value;
           case 'date':
-            // Ensure value is a Date object before calling toISOString
             return value instanceof Date ? value.toISOString().split('T')[0] : value;
           default:
             return value;
@@ -155,7 +142,6 @@ export function ReportGeneratorForm({
       })
     );
 
-    // Add table
     (doc as any).autoTable({
       startY: 50,
       head: [headers],
@@ -164,7 +150,6 @@ export function ReportGeneratorForm({
       headStyles: { fillColor: [66, 139, 202] },
       styles: { fontSize: 8, cellPadding: 2 },
       columnStyles: {
-        // Example: align currency columns right
         ...reportColumns.reduce((acc, col, index) => {
           if (col.type === 'currency') {
             acc[index] = { halign: 'right' };
@@ -200,13 +185,12 @@ export function ReportGeneratorForm({
               <Download className="h-4 w-4 mr-2" />
               Export CSV
             </Button>
-            <Button variant="outline" size="sm" onClick={handleExportPDF}> {/* New PDF Export Button */}
+            <Button variant="outline" size="sm" onClick={handleExportPDF}>
               <Download className="h-4 w-4 mr-2" />
               Export PDF
             </Button>
           </div>
-        </div>
-      </CardHeader>
+        </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
@@ -363,7 +347,7 @@ export function ReportGeneratorForm({
               More Filters
             </Button>
             <div className="flex space-x-2">
-              {reportData?.length > 0 && ( // Check reportData length directly
+              {reportData?.length > 0 && (
                 <Button type="button" variant="outline" onClick={onExportCSV}>
                   <Download className="h-4 w-4 mr-2" />
                   Export CSV
@@ -389,4 +373,3 @@ export function ReportGeneratorForm({
     </Card>
   )
 }
-
