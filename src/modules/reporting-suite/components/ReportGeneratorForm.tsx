@@ -3,10 +3,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Label } from '@/components/ui/label'
+import { Label } from '@/components/ui/label' 
 import { BarChart3, Calendar, Filter, Download } from 'lucide-react'
 import { ReportType } from '@/types'
 import { useToast } from '@/hooks/use-toast'
+import { useEffect } from 'react'
 
 interface ReportGeneratorFormProps {
   onGenerate: (reportConfig: ReportConfig) => void

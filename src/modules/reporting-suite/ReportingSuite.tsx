@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { BarChart3, TrendingUp, DollarSign, Users, Package, Plus } from 'lucide-react'
 import { Report, ReportType } from '@/types'
-import { formatDate } from '@/lib/utils'
+import { formatCurrency, formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { ReportGeneratorForm } from './components/ReportGeneratorForm'
-import { ReportDisplayTable } from './components/ReportDisplayTable'
+import { ReportDisplayTable } from './components/ReportDisplayTable' 
 import { useReportGenerator } from './hooks/useReportGenerator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DashboardReports } from './components/DashboardReports'
@@ -96,6 +96,7 @@ function ReportingDashboard() {
   } = useReportGenerator()
 
   const [activeTab, setActiveTab] = useState('dashboard')
+  const [reportConfigForForm, setReportConfigForForm] = useState<any>(null)
 
   const getTypeColor = (type: ReportType) => {
     switch (type) {
@@ -120,6 +121,28 @@ function ReportingDashboard() {
   
   const handleExportCSV = () => {
     exportToCSV()
+  }
+  
+  const handleGenerateTemplateReport = (template: any) => {
+    // Create a report config based on the template
+    const config = {
+      type: template.type,
+      name: template.name,
+      dateRange: {
+        startDate: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
+        endDate: new Date().toISOString().split('T')[0]
+      },
+      filters: {}
+    }
+    
+    // Set the config for the form
+    setReportConfigForForm(config)
+    
+    // Switch to the generator tab
+    setActiveTab('generator')
+    
+    // Generate the report
+    generateReport(config)
   }
 
   return (
@@ -236,7 +259,11 @@ function ReportingDashboard() {
                       <p className="text-sm text-muted-foreground mb-4">
                         {template.description}
                       </p>
-                      <Button size="sm" className="w-full shadow-sm">
+                      <Button 
+                        size="sm" 
+                        className="w-full shadow-sm"
+                        onClick={() => handleGenerateTemplateReport(template)}
+                      >
                         Generate Report
                       </Button>
                     </CardContent>
@@ -252,6 +279,7 @@ function ReportingDashboard() {
             onExportCSV={handleExportCSV}
             isGenerating={loading}
             hasData={reportData.length > 0}
+            initialReportConfig={reportConfigForForm}
           />
 
           {/* Report Display Table */}
