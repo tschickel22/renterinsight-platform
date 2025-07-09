@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Routes, Route } from 'react-router-dom' // Re-added import
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -85,7 +86,7 @@ function FinanceDashboard() {
     setShowNewLoanForm(true)
   }
 
-  const handleNewCustomerSuccess = (newCustomer: any) => {
+  const handleNewCustomerSuccess = (newCustomer: Lead) => {
     toast({
       title: 'Customer Added',
       description: `${newCustomer.firstName} ${newCustomer.lastName} has been added.`,
