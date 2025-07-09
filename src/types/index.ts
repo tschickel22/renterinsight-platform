@@ -343,11 +343,4 @@ export enum DeliveryStatus {
 }
 
 // Re-export VehicleStatus from its dedicated file
-export { VehicleStatus, VehicleType } from './vehicle'
-export enum VehicleStatus {
-  AVAILABLE = 'available',
-  SOLD = 'sold',
-  RESERVED = 'reserved',
-  SERVICE = 'service',
-  DELIVERED = 'delivered'
-}
+export type { VehicleStatus, VehicleType } from './vehicle'
