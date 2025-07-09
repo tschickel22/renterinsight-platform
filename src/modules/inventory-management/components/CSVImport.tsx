@@ -1,228 +1,204 @@
 import React, { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Label } from '@/components/ui/label'
-import { X, Upload, Check, AlertTriangle, FileText } from 'lucide-react'
-import { Vehicle } from '@/types'
-import { VehicleStatus, VehicleType } from '@/types/vehicle'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { X, Edit, Wrench, DollarSign, Calendar, Clock, User, Printer, Download, FileText } from 'lucide-react'
+import { ServiceTicket } from '@/types'
+import { ServiceStatus, Priority } from '@/types'
+import { formatCurrency, formatDate } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
-import Papa from 'papaparse'
+import { jsPDF } from 'jspdf'
+import 'jspdf-autotable'
 
-interface CSVImportProps {
-  onImport: (vehicles: Partial<Vehicle>[]) => Promise<void>
-  onCancel: () => void
+interface ServiceTicketDetailProps {
+  ticket: ServiceTicket
+  onClose: () => void
+  onEdit: (ticket: ServiceTicket) => void
 }
 
-export function CSVImport({ onImport, onCancel }: CSVImportProps) {
+export function ServiceTicketDetail({ ticket, onClose, onEdit }: ServiceTicketDetailProps) {
   const { toast } = useToast()
-  const [file, setFile] = useState<File | null>(null)
-  const [parsedData, setParsedData] = useState<any[]>([])
-  const [mappings, setMappings] = useState<Record<string, string>>({})
-  const [loading, setLoading] = useState(false)
-  const [step, setStep] = useState<'upload' | 'map' | 'preview'>('upload')
-  const [selectedRows, setSelectedRows] = useState<number[]>([])
-  
-  const requiredFields = ['vin', 'make', 'model', 'year', 'price', 'cost']
-  const vehicleFields = [
-    { key: 'vin', label: 'VIN' },
-    { key: 'make', label: 'Make' },
-    { key: 'model', label: 'Model' },
-    { key: 'year', label: 'Year' },
-    { key: 'type', label: 'Type' },
-    { key: 'status', label: 'Status' },
-    { key: 'price', label: 'Price' },
-    { key: 'cost', label: 'Cost' },
-    { key: 'location', label: 'Location' },
-    { key: 'features', label: 'Features' },
-    { key: 'exteriorColor', label: 'Exterior Color' },
-    { key: 'interiorColor', label: 'Interior Color' },
-    { key: 'length', label: 'Length' },
-    { key: 'weight', label: 'Weight' },
-    { key: 'sleeps', label: 'Sleeps' },
-    { key: 'slideouts', label: 'Slideouts' },
-    { key: 'fuelType', label: 'Fuel Type' },
-    { key: 'mileage', label: 'Mileage' },
-    { key: 'condition', label: 'Condition' }
-  ]
+  const [activeTab, setActiveTab] = useState('details')
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0]
-    if (selectedFile) {
-      setFile(selectedFile)
-      
-      Papa.parse(selectedFile, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (results) => {
-          setParsedData(results.data)
-          
-          // Auto-map columns if headers match
-          if (results.meta.fields) {
-            const autoMappings: Record<string, string> = {}
-            
-            results.meta.fields.forEach(field => {
-              const normalizedField = field.toLowerCase().replace(/[^a-z0-9]/g, '')
-              
-              vehicleFields.forEach(vField => {
-                const normalizedVField = vField.key.toLowerCase()
-                if (normalizedField === normalizedVField || 
-                    normalizedField === vField.label.toLowerCase().replace(/[^a-z0-9]/g, '')) {
-                  autoMappings[field] = vField.key
-                }
-              })
-            })
-            
-            setMappings(autoMappings)
-          }
-          
-          setStep('map')
-        },
-        error: (error) => {
-          toast({
-            title: 'Error Parsing CSV',
-            description: error.message,
-            variant: 'destructive'
-          })
-        }
-      })
+  const getStatusColor = (status: ServiceStatus) => {
+    switch (status) {
+      case 'open':
+        return 'bg-blue-50 text-blue-700 border-blue-200'
+      case 'in_progress':
+      case 'in_progress':
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200'
+      case 'waiting_parts':
+        return 'bg-orange-50 text-orange-700 border-orange-200'
+      case 'completed':
+        return 'bg-green-50 text-green-700 border-green-200'
+      case 'cancelled':
+        return 'bg-red-50 text-red-700 border-red-200'
+      default:
+        return 'bg-gray-50 text-gray-700 border-gray-200'
     }
   }
 
-  const handleMappingChange = (csvField: string, vehicleField: string) => {
-    setMappings(prev => ({
-      ...prev,
-      [csvField]: vehicleField
-    }))
-  }
-
-  const handlePreview = () => {
-    // Check if all required fields are mapped
-    const mappedRequiredFields = requiredFields.filter(field => 
-      Object.values(mappings).includes(field)
-    )
-    
-    if (mappedRequiredFields.length < requiredFields.length) {
-      toast({
-        title: 'Missing Required Fields',
-        description: `Please map all required fields: ${requiredFields.join(', ')}`,
-        variant: 'destructive'
-      })
-      return
-    }
-    
-    setStep('preview')
-    // Select all rows by default
-    setSelectedRows(parsedData.map((_, index) => index))
-  }
-
-  const toggleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedRows(parsedData.map((_, index) => index))
-    } else {
-      setSelectedRows([])
+  const getPriorityColor = (priority: Priority) => {
+    switch (priority) {
+      case 'low':
+        return 'bg-green-50 text-green-700 border-green-200'
+      case 'medium':
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200'
+      case 'high':
+        return 'bg-orange-50 text-orange-700 border-orange-200'
+      case 'urgent':
+        return 'bg-red-50 text-red-700 border-red-200'
+      default:
+        return 'bg-gray-50 text-gray-700 border-gray-200'
     }
   }
 
-  const toggleSelectRow = (rowIndex: number) => {
-    if (selectedRows.includes(rowIndex)) {
-      setSelectedRows(selectedRows.filter(i => i !== rowIndex))
-    } else {
-      setSelectedRows([...selectedRows, rowIndex])
+  const getWarrantyStatusLabel = (status: string) => {
+    switch (status) {
+      case 'covered':
+        return 'Covered by Warranty'
+      case 'partial':
+        return 'Partially Covered'
+      case 'not_covered':
+        return 'Not Covered'
+      case 'extended':
+        return 'Extended Warranty'
+      case 'expired':
+        return 'Warranty Expired'
+      default:
+        return 'Unknown'
     }
   }
 
-  const handleImport = async () => {
-    if (selectedRows.length === 0) {
-      toast({
-        title: 'No Rows Selected',
-        description: 'Please select at least one row to import',
-        variant: 'destructive'
-      })
-      return
+  const getWarrantyStatusColor = (status: string) => {
+    switch (status) {
+      case 'covered':
+        return 'bg-green-50 text-green-700 border-green-200'
+      case 'partial':
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200'
+      case 'not_covered':
+        return 'bg-red-50 text-red-700 border-red-200'
+      case 'extended':
+        return 'bg-blue-50 text-blue-700 border-blue-200'
+      case 'expired':
+        return 'bg-orange-50 text-orange-700 border-orange-200'
+      default:
+        return 'bg-gray-50 text-gray-700 border-gray-200'
     }
-    
-    setLoading(true)
+  }
+
+  const calculateTotals = () => {
+    const partsTotal = ticket.parts.reduce((sum, part) => sum + part.total, 0)
+    const laborTotal = ticket.labor.reduce((sum, labor) => sum + labor.total, 0)
+    return {
+      partsTotal,
+      laborTotal,
+      grandTotal: partsTotal + laborTotal
+    }
+  }
+
+  const totals = calculateTotals()
+
+  const handlePrintPDF = () => {
     try {
-      const vehiclesToImport = selectedRows.map(rowIndex => {
-        const row = parsedData[rowIndex]
-        const vehicle: Partial<Vehicle> = {
-          images: [],
-          features: [],
-          customFields: {}
-        }
-        
-        // Map fields according to user mappings
-        Object.entries(mappings).forEach(([csvField, vehicleField]) => {
-          const value = row[csvField]
-          
-          if (vehicleField === 'features') {
-            // Handle features as comma-separated list
-            vehicle.features = value ? value.split(',').map((f: string) => f.trim()) : []
-          } else if (vehicleField === 'year' || vehicleField === 'price' || vehicleField === 'cost') {
-            // Handle numeric fields
-            vehicle[vehicleField as keyof Vehicle] = parseFloat(value) || 0
-          } else if (vehicleField === 'type') {
-            // Handle enum fields
-            vehicle.type = validateVehicleType(value)
-          } else if (vehicleField === 'status') {
-            // Handle enum fields
-            vehicle.status = validateVehicleStatus(value)
-          } else if (['exteriorColor', 'interiorColor', 'length', 'weight', 'sleeps', 
-                      'slideouts', 'fuelType', 'mileage', 'condition'].includes(vehicleField)) {
-            // Handle custom fields
-            vehicle.customFields = {
-              ...vehicle.customFields,
-              [vehicleField]: value
-            }
-          } else {
-            // Handle standard fields
-            (vehicle as any)[vehicleField] = value
-          }
-        })
-        
-        return vehicle
-      })
+      const doc = new jsPDF()
       
-      await onImport(vehiclesToImport)
+      // Add header
+      doc.setFontSize(20)
+      doc.text('Service Ticket', 105, 15, { align: 'center' })
+      
+      doc.setFontSize(12)
+      doc.text(`Ticket #: ${ticket.id}`, 20, 30)
+      doc.text(`Date: ${formatDate(ticket.createdAt)}`, 20, 40)
+      doc.text(`Customer: ${ticket.customerId}`, 20, 50)
+      doc.text(`Status: ${ticket.status.replace('_', ' ')}`, 20, 60)
+      
+      // Add service details
+      doc.setFontSize(16)
+      doc.text('Service Details', 20, 75)
+      
+      doc.setFontSize(12)
+      doc.text(`Title: ${ticket.title}`, 20, 85)
+      
+      // Description (with word wrap)
+      const splitDescription = doc.splitTextToSize(ticket.description, 170)
+      doc.text(splitDescription, 20, 95)
+      
+      // Parts table
+      if (ticket.parts.length > 0) {
+        doc.setFontSize(16)
+        doc.text('Parts', 20, 120)
+        
+        // @ts-ignore
+        doc.autoTable({
+          startY: 125,
+          head: [['Part Number', 'Description', 'Quantity', 'Unit Cost', 'Total']],
+          body: ticket.parts.map(part => [
+            part.partNumber,
+            part.description,
+            part.quantity,
+            formatCurrency(part.unitCost),
+            formatCurrency(part.total)
+          ]),
+          foot: [['', '', '', 'Parts Total:', formatCurrency(totals.partsTotal)]],
+        })
+      }
+      
+      // Labor table
+      if (ticket.labor.length > 0) {
+        // @ts-ignore
+        const finalY = doc.lastAutoTable.finalY || 125
+        
+        doc.setFontSize(16)
+        doc.text('Labor', 20, finalY + 15)
+        
+        // @ts-ignore
+        doc.autoTable({
+          startY: finalY + 20,
+          head: [['Description', 'Hours', 'Rate', 'Total']],
+          body: ticket.labor.map(labor => [
+            labor.description,
+            labor.hours,
+            formatCurrency(labor.rate),
+            formatCurrency(labor.total)
+          ]),
+          foot: [['', '', 'Labor Total:', formatCurrency(totals.laborTotal)]],
+        })
+      }
+      
+      // Grand total
+      // @ts-ignore
+      const finalY = doc.lastAutoTable.finalY || 125
+      doc.setFontSize(14)
+      doc.text(`Grand Total: ${formatCurrency(totals.grandTotal)}`, 150, finalY + 20, { align: 'right' })
+      
+      // Notes
+      if (ticket.notes) {
+        doc.setFontSize(16)
+        doc.text('Notes', 20, finalY + 35)
+        
+        doc.setFontSize(12)
+        const splitNotes = doc.splitTextToSize(ticket.notes, 170)
+        doc.text(splitNotes, 20, finalY + 45)
+      }
+      
+      // Save the PDF
+      doc.save(`service-ticket-${ticket.id}.pdf`)
       
       toast({
-        title: 'Import Successful',
-        description: `Imported ${vehiclesToImport.length} vehicles`,
+        title: 'PDF Generated',
+        description: 'Service ticket PDF has been downloaded',
       })
     } catch (error) {
+      console.error('Error generating PDF:', error)
       toast({
-        title: 'Import Failed',
-        description: 'There was an error importing the vehicles',
+        title: 'Error',
+        description: 'Failed to generate PDF',
         variant: 'destructive'
       })
-    } finally {
-      setLoading(false)
     }
-  }
-
-  const validateVehicleType = (value: string): VehicleType => {
-    const normalizedValue = value.toLowerCase().replace(/[^a-z0-9]/g, '')
-    
-    if (normalizedValue.includes('motorhome')) return 'motorhome'
-    if (normalizedValue.includes('travel') && normalizedValue.includes('trailer')) return 'trailer'
-    if (normalizedValue.includes('fifth') && normalizedValue.includes('wheel')) return 'fifth-wheel'
-    if (normalizedValue.includes('toy') && normalizedValue.includes('hauler')) return 'toy_hauler'
-    
-    return 'rv'
-  }
-
-  const validateVehicleStatus = (value: string): VehicleStatus => {
-    const normalizedValue = value.toLowerCase().replace(/[^a-z0-9]/g, '')
-    
-    if (normalizedValue.includes('reserved')) return 'reserved'
-    if (normalizedValue.includes('sold')) return 'sold'
-    if (normalizedValue.includes('service')) return 'service'
-    if (normalizedValue.includes('delivered')) return 'delivered'
-    
-    return 'available'
   }
 
   return (
@@ -231,178 +207,234 @@ export function CSVImport({ onImport, onCancel }: CSVImportProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Import Inventory from CSV</CardTitle>
+              <CardTitle className="text-xl">{ticket.title}</CardTitle>
               <CardDescription>
-                {step === 'upload' && 'Upload a CSV file with your inventory data'}
-                {step === 'map' && 'Map CSV columns to vehicle fields'}
-                {step === 'preview' && 'Preview and select vehicles to import'}
+                Service Ticket #{ticket.id}
               </CardDescription>
             </div>
-            <Button variant="ghost" size="sm" onClick={onCancel}>
-              <X className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center space-x-2">
+              <Button onClick={() => onEdit(ticket)} size="sm">
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Ticket
+              </Button>
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
-          {step === 'upload' && (
-            <div className="space-y-6">
-              <div className="border-2 border-dashed rounded-lg p-6 text-center">
-                <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground mb-4">
-                  Upload a CSV file with your inventory data
-                </p>
-                <Input
-                  type="file"
-                  accept=".csv"
-                  onChange={handleFileChange}
-                  className="max-w-sm mx-auto"
-                />
-              </div>
-              
-              <div className="bg-muted/30 p-4 rounded-lg">
-                <h3 className="font-medium mb-2">CSV Format Guidelines</h3>
-                <ul className="text-sm space-y-1 text-muted-foreground">
-                  <li>• File should be in CSV format</li>
-                  <li>• First row should contain column headers</li>
-                  <li>• Required fields: VIN, Make, Model, Year, Price, Cost</li>
-                  <li>• Features should be comma-separated within quotes</li>
-                </ul>
-              </div>
-              
-              <div className="flex justify-end">
-                <Button variant="outline" onClick={onCancel}>
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          )}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="details">Details</TabsTrigger>
+              <TabsTrigger value="parts-labor">Parts & Labor</TabsTrigger>
+              <TabsTrigger value="notes">Notes</TabsTrigger>
+            </TabsList>
 
-          {step === 'map' && (
-            <div className="space-y-6">
-              <div className="bg-muted/30 p-4 rounded-lg">
-                <h3 className="font-medium mb-2 flex items-center">
-                  <FileText className="h-4 w-4 mr-2" />
-                  {file?.name}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {parsedData.length} rows found
-                </p>
-              </div>
-              
-              <div className="space-y-4">
-                <h3 className="font-medium">Map CSV Columns to Vehicle Fields</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Required fields are marked with *
-                </p>
-                
-                <div className="space-y-3 max-h-96 overflow-y-auto p-2">
-                  {file && parsedData.length > 0 && Object.keys(parsedData[0]).map((csvField) => (
-                    <div key={csvField} className="flex items-center space-x-4">
-                      <div className="w-1/3 font-medium truncate">{csvField}</div>
-                      <div className="w-2/3">
-                        <select
-                          value={mappings[csvField] || ''}
-                          onChange={(e) => handleMappingChange(csvField, e.target.value)}
-                          className="w-full p-2 border rounded-md"
-                        >
-                          <option value="">-- Skip this field --</option>
-                          {vehicleFields.map((field) => (
-                            <option key={field.key} value={field.key}>
-                              {field.label} {requiredFields.includes(field.key) ? '*' : ''}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="flex justify-end space-x-3">
-                <Button variant="outline" onClick={onCancel}>
-                  Cancel
-                </Button>
-                <Button onClick={handlePreview}>
-                  Preview Data
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {step === 'preview' && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    checked={selectedRows.length === parsedData.length}
-                    onCheckedChange={toggleSelectAll}
-                  />
-                  <Label>Select All ({parsedData.length} vehicles)</Label>
-                </div>
-                <Badge>
-                  {selectedRows.length} selected
+            <TabsContent value="details" className="space-y-6">
+              {/* Ticket Header */}
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className={cn("ri-badge-status", getStatusColor(ticket.status))}>
+                  {ticket.status.replace('_', ' ').toUpperCase()}
                 </Badge>
+                <Badge className={cn("ri-badge-status", getPriorityColor(ticket.priority))}>
+                  {ticket.priority.toUpperCase()} PRIORITY
+                </Badge>
+                {ticket.customFields?.warrantyStatus && (
+                  <Badge className={cn("ri-badge-status", getWarrantyStatusColor(ticket.customFields.warrantyStatus))}>
+                    {getWarrantyStatusLabel(ticket.customFields.warrantyStatus)}
+                  </Badge>
+                )}
+                {ticket.customFields?.customerAuthorization && (
+                  <Badge className="bg-green-50 text-green-700 border-green-200">
+                    AUTHORIZED
+                  </Badge>
+                )}
               </div>
-              
-              <div className="border rounded-md overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-muted/50">
-                      <tr>
-                        <th className="p-2 text-left"></th>
-                        {Object.entries(mappings)
-                          .filter(([_, vehicleField]) => vehicleField)
-                          .map(([csvField, vehicleField]) => (
-                            <th key={csvField} className="p-2 text-left text-sm">
-                              {vehicleField}
-                              {requiredFields.includes(vehicleField) && <span className="text-red-500">*</span>}
-                            </th>
-                          ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {parsedData.map((row, rowIndex) => (
-                        <tr key={rowIndex} className="border-t hover:bg-muted/10">
-                          <td className="p-2">
-                            <Checkbox 
-                              checked={selectedRows.includes(rowIndex)}
-                              onCheckedChange={() => toggleSelectRow(rowIndex)}
-                            />
-                          </td>
-                          {Object.entries(mappings)
-                            .filter(([_, vehicleField]) => vehicleField)
-                            .map(([csvField, _]) => (
-                              <td key={csvField} className="p-2 text-sm">
-                                {row[csvField] || <span className="text-muted-foreground italic">Empty</span>}
-                              </td>
-                            ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+
+              {/* Ticket Information */}
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Customer</label>
+                  <p className="font-medium">{ticket.customerId}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Vehicle</label>
+                  <p className="font-medium">{ticket.vehicleId || 'No Vehicle'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Assigned To</label>
+                  <p className="font-medium">{ticket.assignedTo || 'Unassigned'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Created</label>
+                  <p className="font-medium">{formatDate(ticket.createdAt)}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Scheduled Date</label>
+                  <p className="font-medium">{ticket.scheduledDate ? formatDate(ticket.scheduledDate) : 'Not scheduled'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Estimated Completion</label>
+                  <p className="font-medium">{ticket.customFields?.estimatedCompletionDate || 'Not specified'}</p>
                 </div>
               </div>
-              
-              <div className="flex justify-end space-x-3">
-                <Button variant="outline" onClick={() => setStep('map')}>
-                  Back to Mapping
-                </Button>
-                <Button onClick={handleImport} disabled={loading}>
-                  {loading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Importing...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-4 w-4 mr-2" />
-                      Import {selectedRows.length} Vehicles
-                    </>
-                  )}
-                </Button>
+
+              {/* Description */}
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Description</label>
+                <div className="mt-1 p-3 bg-muted/30 rounded-md">
+                  <p className="whitespace-pre-wrap">{ticket.description}</p>
+                </div>
               </div>
-            </div>
-          )}
+
+              {/* Customer Portal Access */}
+              <div className="p-3 bg-blue-50 rounded-md">
+                <div className="flex items-center space-x-2">
+                  <User className="h-4 w-4 text-blue-600" />
+                  <span className="font-medium text-blue-700">Customer Portal Access:</span>
+                  <span className="text-blue-700">
+                    {ticket.customFields?.customerPortalAccess !== false ? 'Enabled' : 'Disabled'}
+                  </span>
+                </div>
+                <p className="text-sm text-blue-600 mt-1">
+                  {ticket.customFields?.customerPortalAccess !== false 
+                    ? 'Customer can view this ticket in the portal' 
+                    : 'Customer cannot view this ticket in the portal'}
+                </p>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="parts-labor" className="space-y-6">
+              {/* Parts */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Parts</h3>
+                {ticket.parts.length > 0 ? (
+                  <div className="space-y-3">
+                    {ticket.parts.map((part) => (
+                      <div key={part.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-medium">{part.description}</span>
+                            <Badge variant="outline">
+                              {part.partNumber}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            Quantity: {part.quantity} × {formatCurrency(part.unitCost)}
+                          </p>
+                        </div>
+                        <div className="font-bold">
+                          {formatCurrency(part.total)}
+                        </div>
+                      </div>
+                    ))}
+                    <div className="flex justify-end p-2">
+                      <span className="font-medium">Parts Total: {formatCurrency(totals.partsTotal)}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground border-2 border-dashed rounded-lg">
+                    <p>No parts added to this service ticket</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Labor */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Labor</h3>
+                {ticket.labor.length > 0 ? (
+                  <div className="space-y-3">
+                    {ticket.labor.map((labor) => (
+                      <div key={labor.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex-1">
+                          <div className="font-medium">{labor.description}</div>
+                          <p className="text-sm text-muted-foreground">
+                            {labor.hours} hours × {formatCurrency(labor.rate)}/hr
+                          </p>
+                        </div>
+                        <div className="font-bold">
+                          {formatCurrency(labor.total)}
+                        </div>
+                      </div>
+                    ))}
+                    <div className="flex justify-end p-2">
+                      <span className="font-medium">Labor Total: {formatCurrency(totals.laborTotal)}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground border-2 border-dashed rounded-lg">
+                    <p>No labor added to this service ticket</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Totals */}
+              <Card className="bg-muted/30">
+                <CardContent className="pt-6">
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span>Parts Total:</span>
+                      <span>{formatCurrency(totals.partsTotal)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Labor Total:</span>
+                      <span>{formatCurrency(totals.laborTotal)}</span>
+                    </div>
+                    <div className="flex justify-between text-lg font-bold border-t pt-2">
+                      <span>Grand Total:</span>
+                      <span>{formatCurrency(totals.grandTotal)}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="notes" className="space-y-6">
+              {/* Customer Notes */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Customer Notes</h3>
+                {ticket.notes ? (
+                  <div className="p-3 bg-muted/30 rounded-md">
+                    <p className="whitespace-pre-wrap">{ticket.notes}</p>
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground border-2 border-dashed rounded-lg">
+                    <p>No customer notes for this service ticket</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Technician Notes */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Technician Notes</h3>
+                {ticket.customFields?.technicianNotes ? (
+                  <div className="p-3 bg-yellow-50 rounded-md">
+                    <p className="whitespace-pre-wrap text-yellow-800">{ticket.customFields.technicianNotes}</p>
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground border-2 border-dashed rounded-lg">
+                    <p>No technician notes for this service ticket</p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          {/* Actions */}
+          <div className="flex justify-end space-x-3 pt-6 border-t mt-6">
+            <Button variant="outline" onClick={onClose}>
+              Close
+            </Button>
+            <Button variant="outline" onClick={handlePrintPDF}>
+              <Printer className="h-4 w-4 mr-2" />
+              Print PDF
+            </Button>
+            <Button onClick={() => onEdit(ticket)}>
+              <Edit className="h-4 w-4 mr-2" />
+              Edit Ticket
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
