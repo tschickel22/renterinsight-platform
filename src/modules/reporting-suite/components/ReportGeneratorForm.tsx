@@ -92,6 +92,7 @@ export function ReportGeneratorForm({
   // Update form when initialReportConfig changes
   useEffect(() => {
     if (initialReportConfig) {
+      console.log('ReportGeneratorForm useEffect triggered with initialReportConfig:', initialReportConfig);
       setReportConfig(initialReportConfig);
       
       // If we're receiving a new config, we don't need to auto-generate

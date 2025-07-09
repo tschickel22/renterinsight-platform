@@ -135,6 +135,8 @@ function ReportingDashboard() {
       filters: {}
     }
     
+    console.log('handleGenerateTemplateReport called with config:', config);
+    
     // Set the config for the form
     setReportConfigForForm(config)
     
