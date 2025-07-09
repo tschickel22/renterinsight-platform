@@ -43,18 +43,22 @@ dist/assets/
 renter_insight_bolt_manifest.json
 renter_insight_openapi.yaml
 
-# ⚙️ Ignore other apps and modules
+# ⚙️ Ignore unrelated apps and modules
 apps/*
 !apps/reporting-suite/**
 
 src/modules/*
+# 👇 Allow only inventory-management and reporting-suite
+!src/modules/inventory-management/**
 !src/modules/reporting-suite/**
 
-# ❗ Do NOT ignore types while fixing shared enums
-# src/types/** — keep this accessible
+# ✅ Allow shared enums, types, and hooks
+!src/types/**
+!src/hooks/**
+!src/lib/**
 
-# ✅ Optional: comment out these during enum fixes
-# src/contexts/**
-# src/pages/**
-# public/**
-# src/assets/**
+# 🚫 Optional: still ignore these for token savings, re-enable if needed
+src/contexts/**
+src/pages/**
+public/**
+src/assets/**
