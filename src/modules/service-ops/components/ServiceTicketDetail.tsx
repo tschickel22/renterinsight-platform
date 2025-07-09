@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
 import { jsPDF } from 'jspdf'
 import 'jspdf-autotable'
+import { useTenant } from '@/contexts/TenantContext' // Import useTenant
 
 interface ServiceTicketDetailProps {
   ticket: ServiceTicket
@@ -19,6 +20,7 @@ interface ServiceTicketDetailProps {
 
 export function ServiceTicketDetail({ ticket, onClose, onEdit }: ServiceTicketDetailProps) {
   const { toast } = useToast()
+  const { tenant } = useTenant() // Get tenant information
   const [activeTab, setActiveTab] = useState('details')
 
   const getStatusColor = (status: ServiceStatus) => {
@@ -103,92 +105,124 @@ export function ServiceTicketDetail({ ticket, onClose, onEdit }: ServiceTicketDe
     try {
       const doc = new jsPDF()
       
-      // Add header
-      doc.setFontSize(20)
-      doc.text('Service Ticket', 105, 15, { align: 'center' })
-      
-      doc.setFontSize(12)
-      doc.text(`Ticket #: ${ticket.id}`, 20, 30)
-      doc.text(`Date: ${formatDate(ticket.createdAt)}`, 20, 40)
-      doc.text(`Customer: ${ticket.customerId}`, 20, 50)
-      doc.text(`Status: ${ticket.status.replace('_', ' ')}`, 20, 60)
-      
-      // Add service details
-      doc.setFontSize(16)
-      doc.text('Service Details', 20, 75)
-      
-      doc.setFontSize(12)
-      doc.text(`Title: ${ticket.title}`, 20, 85)
-      
-      // Description (with word wrap)
-      const splitDescription = doc.splitTextToSize(ticket.description, 170)
-      doc.text(splitDescription, 20, 95)
-      
-      // Parts table
-      if (ticket.parts.length > 0) {
-        doc.setFontSize(16)
-        doc.text('Parts', 20, 120)
-        
-        // @ts-ignore
-        doc.autoTable({
-          startY: 125,
-          head: [['Part Number', 'Description', 'Quantity', 'Unit Cost', 'Total']],
-          body: ticket.parts.map(part => [
-            part.partNumber,
-            part.description,
-            part.quantity,
-            formatCurrency(part.unitCost),
-            formatCurrency(part.total)
-          ]),
-          foot: [['', '', '', 'Parts Total:', formatCurrency(totals.partsTotal)]],
-        })
+      // Add Company Logo and Name to Header
+      if (tenant?.branding?.logo) {
+        const img = new Image();
+        img.src = tenant.branding.logo;
+        img.onload = () => {
+          doc.addImage(img, 'PNG', 10, 10, 30, 15); // Adjust position and size as needed
+          if (tenant?.name) {
+            doc.setFontSize(16);
+            doc.text(tenant.name, 45, 20); // Adjust position
+          }
+          generateContent();
+        };
+        img.onerror = () => {
+          // Fallback if logo fails to load
+          if (tenant?.name) {
+            doc.setFontSize(16);
+            doc.text(tenant.name, 20, 20);
+          }
+          generateContent();
+        };
+      } else if (tenant?.name) {
+        doc.setFontSize(16);
+        doc.text(tenant.name, 20, 20);
+        generateContent();
+      } else {
+        generateContent();
       }
-      
-      // Labor table
-      if (ticket.labor.length > 0) {
-        // @ts-ignore
-        const finalY = doc.lastAutoTable.finalY || 125
-        
-        doc.setFontSize(16)
-        doc.text('Labor', 20, finalY + 15)
-        
-        // @ts-ignore
-        doc.autoTable({
-          startY: finalY + 20,
-          head: [['Description', 'Hours', 'Rate', 'Total']],
-          body: ticket.labor.map(labor => [
-            labor.description,
-            labor.hours,
-            formatCurrency(labor.rate),
-            formatCurrency(labor.total)
-          ]),
-          foot: [['', '', 'Labor Total:', formatCurrency(totals.laborTotal)]],
-        })
-      }
-      
-      // Grand total
-      // @ts-ignore
-      const finalY = doc.lastAutoTable.finalY || 125
-      doc.setFontSize(14)
-      doc.text(`Grand Total: ${formatCurrency(totals.grandTotal)}`, 150, finalY + 20, { align: 'right' })
-      
-      // Notes
-      if (ticket.notes) {
-        doc.setFontSize(16)
-        doc.text('Notes', 20, finalY + 35)
+
+      const generateContent = () => {
+        doc.setFontSize(20)
+        doc.text('Service Ticket', 105, 40, { align: 'center' }) // Adjusted Y position
         
         doc.setFontSize(12)
-        const splitNotes = doc.splitTextToSize(ticket.notes, 170)
-        doc.text(splitNotes, 20, finalY + 45)
-      }
-      
-      // Save the PDF
-      doc.save(`service-ticket-${ticket.id}.pdf`)
-      
-      toast({
-        title: 'PDF Generated',
-        description: 'Service ticket PDF has been downloaded',
-      })
+        doc.text(`Ticket #: ${ticket.id}`, 20, 55) // Adjusted Y position
+        doc.text(`Date: ${formatDate(ticket.createdAt)}`, 20, 65)
+        doc.text(`Customer: ${ticket.customerId}`, 20, 75)
+        doc.text(`Status: ${ticket.status.replace('_', ' ')}`, 20, 85)
+        
+        // Add service details
+        doc.setFontSize(16)
+        doc.text('Service Details', 20, 100)
+        
+        doc.setFontSize(12)
+        doc.text(`Title: ${ticket.title}`, 20, 110)
+        
+        // Description (with word wrap)
+        const splitDescription = doc.splitTextToSize(ticket.description, 170)
+        doc.text(splitDescription, 20, 120)
+        
+        // Parts table
+        let currentY = 145; // Starting Y for parts table
+        if (ticket.parts.length > 0) {
+          doc.setFontSize(16)
+          doc.text('Parts', 20, currentY)
+          
+          // @ts-ignore
+          doc.autoTable({
+            startY: currentY + 5,
+            head: [['Part Number', 'Description', 'Quantity', 'Unit Cost', 'Total']],
+            body: ticket.parts.map(part => [
+              part.partNumber,
+              part.description,
+              part.quantity,
+              formatCurrency(part.unitCost),
+              formatCurrency(part.total)
+            ]),
+            foot: [['', '', '', 'Parts Total:', formatCurrency(totals.partsTotal)]],
+          })
+          // @ts-ignore
+          currentY = doc.lastAutoTable.finalY;
+        }
+        
+        // Labor table
+        if (ticket.labor.length > 0) {
+          currentY += 15; // Space between tables
+          doc.setFontSize(16)
+          doc.text('Labor', 20, currentY)
+          
+          // @ts-ignore
+          doc.autoTable({
+            startY: currentY + 5,
+            head: [['Description', 'Hours', 'Rate', 'Total']],
+            body: ticket.labor.map(labor => [
+              labor.description,
+              labor.hours,
+              formatCurrency(labor.rate),
+              formatCurrency(labor.total)
+            ]),
+            foot: [['', '', 'Labor Total:', formatCurrency(totals.laborTotal)]],
+          })
+          // @ts-ignore
+          currentY = doc.lastAutoTable.finalY;
+        }
+        
+        // Grand total
+        currentY += 10; // Space after last table
+        doc.setFontSize(14)
+        doc.text(`Grand Total: ${formatCurrency(totals.grandTotal)}`, 150, currentY, { align: 'right' })
+        
+        // Notes
+        if (ticket.notes) {
+          currentY += 15; // Space after grand total
+          doc.setFontSize(16)
+          doc.text('Notes', 20, currentY)
+          
+          doc.setFontSize(12)
+          const splitNotes = doc.splitTextToSize(ticket.notes, 170)
+          doc.text(splitNotes, 20, currentY + 10)
+        }
+        
+        // Save the PDF
+        doc.save(`service-ticket-${ticket.id}.pdf`)
+        
+        toast({
+          title: 'PDF Generated',
+          description: 'Service ticket PDF has been downloaded',
+        })
+      };
     } catch (error) {
       console.error('Error generating PDF:', error)
       toast({
@@ -312,12 +346,7 @@ export function ServiceTicketDetail({ ticket, onClose, onEdit }: ServiceTicketDe
                     {ticket.parts.map((part) => (
                       <div key={part.id} className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="flex-1">
-                          <div className="flex items-center space-x-2">
-                            <span className="font-medium">{part.description}</span>
-                            <Badge variant="outline">
-                              {part.partNumber}
-                            </Badge>
-                          </div>
+                          <div className="font-medium">{part.description}</div>
                           <p className="text-sm text-muted-foreground">
                             Quantity: {part.quantity} × {formatCurrency(part.unitCost)}
                           </p>
@@ -420,7 +449,7 @@ export function ServiceTicketDetail({ ticket, onClose, onEdit }: ServiceTicketDe
           </Tabs>
 
           {/* Actions */}
-          <div className="flex justify-end space-x-3 pt-6 border-t mt-6">
+          <div className="flex justify-end space-x-3 pt-6 border-t">
             <Button variant="outline" onClick={onClose}>
               Close
             </Button>
