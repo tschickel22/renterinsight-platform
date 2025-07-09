@@ -1,5 +1,4 @@
-node_modules/
-.env
+# ✅ Ignore unused apps/modules while focusing on one
 apps/agreement-vault/
 apps/client-portal/
 apps/commission-engine/
@@ -12,32 +11,37 @@ apps/platform-admin/
 apps/quote-builder/
 apps/service-ops/
 
-# Backend and migrations
+# ✅ Backend and migrations (not needed for preview/build)
 supabase/
 supabase_discarded_migrations/
 *.sql
 
-# Assets and static
+# ✅ Node modules and dependencies (always ignore)
+node_modules/
+
+# ✅ Environment files (keep secrets secure)
+.env
+.env.*
+
+# ✅ Build artifacts and static assets
 dist/
 public/
 *.png
 *.jpg
 *.pdf
 
-# Documentation and configs
+# ✅ Documentation and config files
 docs/
 README.md
 CHANGELOG.md
 LICENSE
-.env
-.env.*
 tsconfig.json
 tailwind.config.js
 vite.config.ts
 
-# Shared and utilities
-shared-core/
-src/components/
-src/hooks/
-src/lib/
-src/utils/
+# ✅ Test, fixture, and mock data — keep UI code intact
+src/__mocks__/
+src/test-data/
+src/fixtures/
+*.spec.ts*
+*.test.ts*
