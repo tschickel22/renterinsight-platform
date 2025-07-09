@@ -16,7 +16,7 @@ import { PaymentHistory } from './components/PaymentHistory'
 import { LoanSettings } from './components/LoanSettings'
 import { NewLoanForm } from './components/NewLoanForm'
 import { LoanPaymentHistory } from './components/LoanPaymentHistory' // Import the new component
-import { Payment } from '@/types'
+import { Payment, PaymentMethod, PaymentStatus } from '@/types'
 
 interface Loan {
   id: string;
@@ -53,6 +53,8 @@ export const FinanceModule: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
   const [showNewLoanForm, setShowNewLoanForm] = useState(false)
+  const [showPaymentHistoryModal, setShowPaymentHistoryModal] = useState(false)
+  const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null)
 
   // Mock data for demonstration
   const mockLoans: Loan[] = [
@@ -72,7 +74,21 @@ export const FinanceModule: React.FC = () => {
       remainingBalance: 22000,
       nextPaymentDate: new Date('2024-02-15'),
       createdAt: new Date('2024-01-10'),
-      payments: []
+      payments: [
+        {
+          id: 'payment-1',
+          invoiceId: '1',
+          amount: 372.86,
+          method: PaymentMethod.CREDIT_CARD,
+          status: PaymentStatus.COMPLETED,
+          processedDate: new Date('2024-01-15'),
+          notes: 'Initial payment',
+          transactionId: 'txn_123456',
+          customFields: {},
+          createdAt: new Date('2024-01-15'),
+          updatedAt: new Date('2024-01-15')
+        }
+      ]
     }
   ]
 
@@ -86,6 +102,63 @@ export const FinanceModule: React.FC = () => {
     const matchesFilter = filterStatus === 'all' || loan.status === filterStatus
     return matchesSearch && matchesFilter
   })
+
+  const handleViewPaymentHistory = (loan: Loan) => {
+    setSelectedLoan(loan);
+    setShowPaymentHistoryModal(true);
+  }
+
+  const handleRecordPayment = async (paymentData: Partial<Payment>): Promise<void> => {
+    if (!selectedLoan) {
+      toast({
+        title: "Error",
+        description: "No loan selected",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Create a new payment
+      const newPayment: Payment = {
+        id: `payment-${Math.random().toString(36).substring(2, 9)}`,
+        invoiceId: selectedLoan.id,
+        amount: paymentData.amount || 0,
+        method: paymentData.method || PaymentMethod.CASH,
+        status: paymentData.status || PaymentStatus.COMPLETED,
+        processedDate: paymentData.processedDate || new Date(),
+        notes: paymentData.notes || '',
+        transactionId: paymentData.transactionId || `txn_${Math.random().toString(36).substring(2, 9)}`,
+        customFields: {},
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      // Update the loans state with the new payment
+      setLoans(prevLoans => 
+        prevLoans.map(loan => 
+          loan.id === selectedLoan.id 
+            ? { ...loan, payments: [...loan.payments, newPayment] }
+            : loan
+        )
+      );
+
+      toast({
+        title: "Payment Recorded",
+        description: `Payment of ${formatCurrency(newPayment.amount)} has been recorded.`
+      });
+
+      return Promise.resolve();
+    } catch (error) {
+      console.error("Error recording payment:", error);
+      toast({
+        title: "Error",
+        description: "Failed to record payment",
+        variant: "destructive"
+      });
+      return Promise.reject(error);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -159,8 +232,20 @@ export const FinanceModule: React.FC = () => {
                       <p className="text-lg font-semibold">{formatCurrency(loan.paymentAmount)}</p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Remaining Balance</p>
-                      <p className="text-lg font-semibold">{formatCurrency(loan.remainingBalance)}</p>
+                      <p className="text-sm font-medium text-muted-foreground">Payments</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-lg font-semibold">{loan.payments.length}</p>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewPaymentHistory(loan);
+                          }}
+                        >
+                          View History
+                        </Button>
+                      </div>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Next Payment</p>
@@ -208,6 +293,15 @@ export const FinanceModule: React.FC = () => {
           <LoanSettings />
         </TabsContent>
       </Tabs>
+
+      {/* Payment History Modal */}
+      {showPaymentHistoryModal && selectedLoan && (
+        <LoanPaymentHistory
+          loan={selectedLoan}
+          onClose={() => setShowPaymentHistoryModal(false)}
+          onRecordPayment={handleRecordPayment}
+        />
+      )}
 
       {showNewLoanForm && (
         <NewLoanForm
