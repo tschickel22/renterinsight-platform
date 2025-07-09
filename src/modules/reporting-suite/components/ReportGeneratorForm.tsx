@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label'
 import { BarChart3, Calendar, Filter, Download } from 'lucide-react'
 import { ReportType } from '@/types'
 import { useToast } from '@/hooks/use-toast'
-import React, { useEffect, useState } from 'react' // Import React
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { jsPDF } from 'jspdf' // Import jsPDF
@@ -17,6 +17,7 @@ interface ReportGeneratorFormProps {
   onGenerate: (reportConfig: ReportConfig) => void
   onExportCSV: () => void
   isGenerating: boolean
+  // Removed hasData prop
   reportData: any[] // Receive reportData
   reportColumns: any[] // Receive reportColumns
 }
@@ -40,6 +41,7 @@ export function ReportGeneratorForm({
   onGenerate,
   onExportCSV,
   isGenerating,
+  // Removed hasData from destructuring
   reportData, // Receive reportData
   reportColumns // Receive reportColumns
 }: ReportGeneratorFormProps) {
@@ -125,12 +127,15 @@ export function ReportGeneratorForm({
     if (tenant?.branding?.logo) {
       // You might need to adjust x, y, width, height based on your logo size and desired position
       // For a real logo, ensure it's a base64 string or a URL accessible by jsPDF
+      // For this example, we'll use a placeholder or assume it's a small image.
+      // If it's a URL, jsPDF might need to fetch it, which can be asynchronous.
       // For simplicity, assuming a small image or a placeholder.
       // If it's a complex image, consider converting it to a data URL (base64) beforehand.
       // doc.addImage(tenant.branding.logo, 'PNG', 170, 10, 30, 30); // Example: x, y, width, height
     }
 
     doc.setFontSize(12);
+    doc.text(reportConfig.name, 14, 30);
     doc.text(`Date Range: ${reportConfig.dateRange.startDate} to ${reportConfig.dateRange.endDate}`, 14, 38);
 
     // Prepare table headers and data
@@ -179,7 +184,8 @@ export function ReportGeneratorForm({
 
   return (
     <Card className="shadow-sm">
-      <CardHeader className="flex items-center justify-between"> {/* Modified line */}
+      <CardHeader>
+        <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center">
               <BarChart3 className="h-5 w-5 mr-2 text-primary" />
@@ -199,7 +205,8 @@ export function ReportGeneratorForm({
               Export PDF
             </Button>
           </div>
-        </CardHeader>
+        </div>
+      </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
@@ -382,3 +389,4 @@ export function ReportGeneratorForm({
     </Card>
   )
 }
+
