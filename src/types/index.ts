@@ -60,9 +60,6 @@ export interface Deal {
   updatedAt: Date
 }
 
-// Vehicle Status enum/type
-export type VehicleStatus = 'available' | 'sold' | 'reserved' | 'service'
-
 // Inventory Types
 export interface Vehicle {
   id: string
@@ -271,3 +268,6 @@ export interface FilterOption {
   operator: string
   value: any
 }
+
+// Re-export VehicleStatus from its dedicated file
+export type { VehicleStatus } from './vehicle'
