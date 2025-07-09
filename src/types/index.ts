@@ -1,3 +1,5 @@
+import type { VehicleStatus, VehicleType } from './vehicle'
+
 // Core entity types
 export interface User {
   id: string
