@@ -371,18 +371,19 @@ export function useCommissionManagement() {
     commissions: Commission[],
     summary: CommissionReportSummary
   } => {
-    let filteredCommissions = [...commissions]
+    // Create a copy of commissions to work with
+    let filteredCommissions = [...commissions];
 
     // Apply filters
     if (filters.startDate) {
       filteredCommissions = filteredCommissions.filter(c => 
-        new Date(c.createdAt) >= new Date(filters.startDate!)
+        new Date(c.createdAt) >= new Date(filters.startDate)
       )
     }
 
     if (filters.endDate) {
       filteredCommissions = filteredCommissions.filter(c => 
-        new Date(c.createdAt) <= new Date(filters.endDate!)
+        new Date(c.createdAt) <= new Date(filters.endDate)
       )
     }
 
@@ -407,20 +408,20 @@ export function useCommissionManagement() {
     // Calculate summary
     const summary: CommissionReportSummary = {
       totalCommissions: filteredCommissions.length,
-      totalAmount: filteredCommissions.reduce((sum, c) => sum + c.amount, 0),
+      totalAmount: filteredCommissions.reduce((sum, c) => sum + (c.amount || 0), 0),
       pendingAmount: filteredCommissions.filter(c => c.status === CommissionStatus.PENDING)
-        .reduce((sum, c) => sum + c.amount, 0),
+        .reduce((sum, c) => sum + (c.amount || 0), 0),
       approvedAmount: filteredCommissions.filter(c => c.status === CommissionStatus.APPROVED)
-        .reduce((sum, c) => sum + c.amount, 0),
+        .reduce((sum, c) => sum + (c.amount || 0), 0),
       paidAmount: filteredCommissions.filter(c => c.status === CommissionStatus.PAID)
-        .reduce((sum, c) => sum + c.amount, 0),
+        .reduce((sum, c) => sum + (c.amount || 0), 0),
       byType: {
         flat: filteredCommissions.filter(c => c.type === CommissionType.FLAT)
-          .reduce((sum, c) => sum + c.amount, 0),
+          .reduce((sum, c) => sum + (c.amount || 0), 0),
         percentage: filteredCommissions.filter(c => c.type === CommissionType.PERCENTAGE)
-          .reduce((sum, c) => sum + c.amount, 0),
+          .reduce((sum, c) => sum + (c.amount || 0), 0),
         tiered: filteredCommissions.filter(c => c.type === CommissionType.TIERED)
-          .reduce((sum, c) => sum + c.amount, 0)
+          .reduce((sum, c) => sum + (c.amount || 0), 0)
       }
     }
 
@@ -433,15 +434,15 @@ export function useCommissionManagement() {
   const exportCommissionsToCSV = (commissions: Commission[]) => {
     const headers = [
       'ID', 
-      'Sales Person', 
+      'Sales Person ID', 
       'Deal ID', 
       'Type', 
       'Rate', 
       'Amount', 
       'Status', 
-      'Paid Date', 
+      'Paid Date',
+      'Created Date',
       'Notes', 
-      'Created At'
     ]
 
     const rows = commissions.map(c => [
@@ -449,12 +450,12 @@ export function useCommissionManagement() {
       c.salesPersonId,
       c.dealId,
       c.type,
-      c.rate,
-      c.amount,
+      c.rate || 0,
+      c.amount || 0,
       c.status,
-      c.paidDate ? c.paidDate.toISOString() : '',
+      c.paidDate ? new Date(c.paidDate).toISOString().split('T')[0] : '',
+      new Date(c.createdAt).toISOString().split('T')[0],
       c.notes,
-      c.createdAt.toISOString()
     ])
 
     return [headers, ...rows]
