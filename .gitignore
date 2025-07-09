@@ -11,3 +11,33 @@ apps/invoice-payments/
 apps/platform-admin/
 apps/quote-builder/
 apps/service-ops/
+
+# Backend and migrations
+supabase/
+supabase_discarded_migrations/
+*.sql
+
+# Assets and static
+dist/
+public/
+*.png
+*.jpg
+*.pdf
+
+# Documentation and configs
+docs/
+README.md
+CHANGELOG.md
+LICENSE
+.env
+.env.*
+tsconfig.json
+tailwind.config.js
+vite.config.ts
+
+# Shared and utilities
+shared-core/
+src/components/
+src/hooks/
+src/lib/
+src/utils/
