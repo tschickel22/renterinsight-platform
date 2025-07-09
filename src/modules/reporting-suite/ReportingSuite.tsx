@@ -11,7 +11,7 @@ import { Report, ReportType } from '@/types'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { ReportGeneratorForm } from './components/ReportGeneratorForm'
-import { ReportDisplayTable } from './components/ReportDisplayTable' 
+import { ReportDisplayTable } from './components/ReportDisplayTable'
 import { useReportGenerator } from './hooks/useReportGenerator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DashboardReports } from './components/DashboardReports'
@@ -89,13 +89,13 @@ const reportTemplates = [
 
 function ReportingDashboard() {
   const [reports, setReports] = useState<Report[]>(mockReports)
-  const { 
-    reportData, 
-    reportColumns, 
-    loading, 
-    currentReportConfig, 
-    generateReport, 
-    exportToCSV 
+  const {
+    reportData,
+    reportColumns,
+    loading,
+    currentReportConfig,
+    generateReport,
+    exportToCSV
   } = useReportGenerator()
 
   const [activeTab, setActiveTab] = useState('dashboard')
@@ -119,15 +119,15 @@ function ReportingDashboard() {
         return 'bg-gray-50 text-gray-700 border-gray-200'
     }
   }
-  
+
   const handleGenerateReport = (config: any) => {
     generateReport(config)
   }
-  
+
   const handleExportCSV = () => {
     exportToCSV()
   }
-  
+
   const handleGenerateTemplateReport = (template: any) => {
     // Create a report config based on the template
     const config = {
@@ -139,15 +139,15 @@ function ReportingDashboard() {
       },
       filters: {}
     }
-    
+
     console.log('handleGenerateTemplateReport called with config:', config);
-    
+
     // Set the config for the form
     setReportConfigForForm(config)
-    
+
     // Switch to the generator tab
     setActiveTab('generator')
-    
+
     // Generate the report
     generateReport(config)
   }
@@ -282,8 +282,8 @@ function ReportingDashboard() {
                       <p className="text-sm text-muted-foreground mb-4">
                         {template.description}
                       </p>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         className="w-full shadow-sm"
                         onClick={() => handleGenerateTemplateReport(template)}
                       >
@@ -298,11 +298,12 @@ function ReportingDashboard() {
 
           {/* Report Generator Form */}
           <div ref={reportGeneratorRef}> {/* Assign the ref here */}
-            <ReportGeneratorForm 
+            <ReportGeneratorForm
               onGenerate={handleGenerateReport}
               onExportCSV={handleExportCSV}
               isGenerating={loading}
-              hasData={reportData.length > 0}
+              reportData={reportData} // Pass reportData directly
+              reportColumns={reportColumns} // Pass reportColumns directly
               initialReportConfig={reportConfigForForm}
             />
           </div>
@@ -350,3 +351,4 @@ export default function ReportingSuite() {
     </Routes>
   )
 }
+
