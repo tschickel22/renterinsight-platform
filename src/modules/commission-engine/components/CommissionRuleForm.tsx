@@ -48,7 +48,7 @@ export function CommissionRuleForm({ rule, onSave, onCancel }: CommissionRuleFor
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!name) {
+    if (!name.trim()) {
       toast({
         title: 'Validation Error',
         description: 'Rule name is required',
@@ -185,7 +185,7 @@ export function CommissionRuleForm({ rule, onSave, onCancel }: CommissionRuleFor
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-60 overflow-y-auto">
                     <SelectItem value="flat">Flat Amount</SelectItem>
                     <SelectItem value="percentage">Percentage</SelectItem>
                     <SelectItem value="tiered">Tiered Percentage</SelectItem>
