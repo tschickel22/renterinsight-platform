@@ -1,39 +1,204 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { X, Edit, Package, DollarSign, Calendar, Truck, Wrench, FileText, Image as ImageIcon, Video } from 'lucide-react'
-import { Vehicle, VehicleStatus, VehicleType } from '@/types'
-import { formatCurrency } from '@/lib/utils'
+import { X, Edit, Wrench, DollarSign, Calendar, Clock, User, Printer, Download, FileText } from 'lucide-react'
+import { ServiceTicket } from '@/types'
+import { ServiceStatus, Priority } from '@/types'
+import { formatCurrency, formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
+import { useToast } from '@/hooks/use-toast'
+import { jsPDF } from 'jspdf'
+import 'jspdf-autotable'
 
-interface VehicleDetailProps {
-  vehicle: Vehicle
+interface ServiceTicketDetailProps {
+  ticket: ServiceTicket
   onClose: () => void
-  onEdit: (vehicle: Vehicle) => void
+  onEdit: (ticket: ServiceTicket) => void
 }
 
-export function VehicleDetail({ vehicle, onClose, onEdit }: VehicleDetailProps) {
-  const getStatusColor = (status: VehicleStatus) => {
+export function ServiceTicketDetail({ ticket, onClose, onEdit }: ServiceTicketDetailProps) {
+  const { toast } = useToast()
+  const [activeTab, setActiveTab] = useState('details')
+
+  const getStatusColor = (status: ServiceStatus) => {
     switch (status) {
-      case VehicleStatus.AVAILABLE:
-        return 'bg-green-50 text-green-700 border-green-200'
-      case VehicleStatus.RESERVED:
-        return 'bg-yellow-50 text-yellow-700 border-yellow-200'
-      case VehicleStatus.SOLD:
+      case 'open':
         return 'bg-blue-50 text-blue-700 border-blue-200'
-      case VehicleStatus.SERVICE:
+      case 'in_progress':
+      case 'in_progress':
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200'
+      case 'waiting_parts':
         return 'bg-orange-50 text-orange-700 border-orange-200'
-      case VehicleStatus.DELIVERED:
-        return 'bg-purple-50 text-purple-700 border-purple-200'
+      case 'completed':
+        return 'bg-green-50 text-green-700 border-green-200'
+      case 'cancelled':
+        return 'bg-red-50 text-red-700 border-red-200'
       default:
         return 'bg-gray-50 text-gray-700 border-gray-200'
     }
   }
 
-  const getTypeLabel = (type: VehicleType) => {
-    return type.replace('_', ' ').toUpperCase()
+  const getPriorityColor = (priority: Priority) => {
+    switch (priority) {
+      case 'low':
+        return 'bg-green-50 text-green-700 border-green-200'
+      case 'medium':
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200'
+      case 'high':
+        return 'bg-orange-50 text-orange-700 border-orange-200'
+      case 'urgent':
+        return 'bg-red-50 text-red-700 border-red-200'
+      default:
+        return 'bg-gray-50 text-gray-700 border-gray-200'
+    }
+  }
+
+  const getWarrantyStatusLabel = (status: string) => {
+    switch (status) {
+      case 'covered':
+        return 'Covered by Warranty'
+      case 'partial':
+        return 'Partially Covered'
+      case 'not_covered':
+        return 'Not Covered'
+      case 'extended':
+        return 'Extended Warranty'
+      case 'expired':
+        return 'Warranty Expired'
+      default:
+        return 'Unknown'
+    }
+  }
+
+  const getWarrantyStatusColor = (status: string) => {
+    switch (status) {
+      case 'covered':
+        return 'bg-green-50 text-green-700 border-green-200'
+      case 'partial':
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200'
+      case 'not_covered':
+        return 'bg-red-50 text-red-700 border-red-200'
+      case 'extended':
+        return 'bg-blue-50 text-blue-700 border-blue-200'
+      case 'expired':
+        return 'bg-orange-50 text-orange-700 border-orange-200'
+      default:
+        return 'bg-gray-50 text-gray-700 border-gray-200'
+    }
+  }
+
+  const calculateTotals = () => {
+    const partsTotal = ticket.parts.reduce((sum, part) => sum + part.total, 0)
+    const laborTotal = ticket.labor.reduce((sum, labor) => sum + labor.total, 0)
+    return {
+      partsTotal,
+      laborTotal,
+      grandTotal: partsTotal + laborTotal
+    }
+  }
+
+  const totals = calculateTotals()
+
+  const handlePrintPDF = () => {
+    try {
+      const doc = new jsPDF()
+      
+      // Add header
+      doc.setFontSize(20)
+      doc.text('Service Ticket', 105, 15, { align: 'center' })
+      
+      doc.setFontSize(12)
+      doc.text(`Ticket #: ${ticket.id}`, 20, 30)
+      doc.text(`Date: ${formatDate(ticket.createdAt)}`, 20, 40)
+      doc.text(`Customer: ${ticket.customerId}`, 20, 50)
+      doc.text(`Status: ${ticket.status.replace('_', ' ')}`, 20, 60)
+      
+      // Add service details
+      doc.setFontSize(16)
+      doc.text('Service Details', 20, 75)
+      
+      doc.setFontSize(12)
+      doc.text(`Title: ${ticket.title}`, 20, 85)
+      
+      // Description (with word wrap)
+      const splitDescription = doc.splitTextToSize(ticket.description, 170)
+      doc.text(splitDescription, 20, 95)
+      
+      // Parts table
+      if (ticket.parts.length > 0) {
+        doc.setFontSize(16)
+        doc.text('Parts', 20, 120)
+        
+        // @ts-ignore
+        doc.autoTable({
+          startY: 125,
+          head: [['Part Number', 'Description', 'Quantity', 'Unit Cost', 'Total']],
+          body: ticket.parts.map(part => [
+            part.partNumber,
+            part.description,
+            part.quantity,
+            formatCurrency(part.unitCost),
+            formatCurrency(part.total)
+          ]),
+          foot: [['', '', '', 'Parts Total:', formatCurrency(totals.partsTotal)]],
+        })
+      }
+      
+      // Labor table
+      if (ticket.labor.length > 0) {
+        // @ts-ignore
+        const finalY = doc.lastAutoTable.finalY || 125
+        
+        doc.setFontSize(16)
+        doc.text('Labor', 20, finalY + 15)
+        
+        // @ts-ignore
+        doc.autoTable({
+          startY: finalY + 20,
+          head: [['Description', 'Hours', 'Rate', 'Total']],
+          body: ticket.labor.map(labor => [
+            labor.description,
+            labor.hours,
+            formatCurrency(labor.rate),
+            formatCurrency(labor.total)
+          ]),
+          foot: [['', '', 'Labor Total:', formatCurrency(totals.laborTotal)]],
+        })
+      }
+      
+      // Grand total
+      // @ts-ignore
+      const finalY = doc.lastAutoTable.finalY || 125
+      doc.setFontSize(14)
+      doc.text(`Grand Total: ${formatCurrency(totals.grandTotal)}`, 150, finalY + 20, { align: 'right' })
+      
+      // Notes
+      if (ticket.notes) {
+        doc.setFontSize(16)
+        doc.text('Notes', 20, finalY + 35)
+        
+        doc.setFontSize(12)
+        const splitNotes = doc.splitTextToSize(ticket.notes, 170)
+        doc.text(splitNotes, 20, finalY + 45)
+      }
+      
+      // Save the PDF
+      doc.save(`service-ticket-${ticket.id}.pdf`)
+      
+      toast({
+        title: 'PDF Generated',
+        description: 'Service ticket PDF has been downloaded',
+      })
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to generate PDF',
+        variant: 'destructive'
+      })
+    }
   }
 
   return (
@@ -42,18 +207,15 @@ export function VehicleDetail({ vehicle, onClose, onEdit }: VehicleDetailProps) 
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-xl">{vehicle.year} {vehicle.make} {vehicle.model}</CardTitle>
+              <CardTitle className="text-xl">{ticket.title}</CardTitle>
               <CardDescription>
-                VIN: {vehicle.vin}
+                Service Ticket #{ticket.id}
               </CardDescription>
             </div>
             <div className="flex items-center space-x-2">
-              <Button onClick={() => {
-                onClose();
-                onEdit(vehicle);
-              }} size="sm">
+              <Button onClick={() => onEdit(ticket)} size="sm">
                 <Edit className="h-4 w-4 mr-2" />
-                Edit Home/RV
+                Edit Ticket
               </Button>
               <Button variant="ghost" size="sm" onClick={onClose}>
                 <X className="h-4 w-4" />
@@ -61,310 +223,216 @@ export function VehicleDetail({ vehicle, onClose, onEdit }: VehicleDetailProps) 
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Vehicle Header */}
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge className={cn("ri-badge-status", getStatusColor(vehicle.status))}>
-              {vehicle.status.toUpperCase()}
-            </Badge>
-            <Badge variant="outline">
-              {getTypeLabel(vehicle.type)}
-            </Badge>
-            <div className="ml-auto font-bold text-lg text-primary">
-              {formatCurrency(vehicle.price)}
-            </div>
-          </div>
-
-          {/* Vehicle Tabs */}
-          <Tabs defaultValue="details" className="space-y-4">
-            <TabsList>
+        <CardContent>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="details">Details</TabsTrigger>
-              <TabsTrigger value="images">Images</TabsTrigger>
-              <TabsTrigger value="features">Features</TabsTrigger>
-              <TabsTrigger value="videos">Videos</TabsTrigger>
+              <TabsTrigger value="parts-labor">Parts & Labor</TabsTrigger>
               <TabsTrigger value="notes">Notes</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="details" className="space-y-4">
-              {/* Basic Details */}
+            <TabsContent value="details" className="space-y-6">
+              {/* Ticket Header */}
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className={cn("ri-badge-status", getStatusColor(ticket.status))}>
+                  {ticket.status.replace('_', ' ').toUpperCase()}
+                </Badge>
+                <Badge className={cn("ri-badge-status", getPriorityColor(ticket.priority))}>
+                  {ticket.priority.toUpperCase()} PRIORITY
+                </Badge>
+                {ticket.customFields?.warrantyStatus && (
+                  <Badge className={cn("ri-badge-status", getWarrantyStatusColor(ticket.customFields.warrantyStatus))}>
+                    {getWarrantyStatusLabel(ticket.customFields.warrantyStatus)}
+                  </Badge>
+                )}
+                {ticket.customFields?.customerAuthorization && (
+                  <Badge className="bg-green-50 text-green-700 border-green-200">
+                    AUTHORIZED
+                  </Badge>
+                )}
+              </div>
+
+              {/* Ticket Information */}
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Make</label>
-                  <p className="font-medium">{vehicle.make}</p>
+                  <label className="text-sm font-medium text-muted-foreground">Customer</label>
+                  <p className="font-medium">{ticket.customerId}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Model</label>
-                  <p className="font-medium">{vehicle.model}</p>
+                  <label className="text-sm font-medium text-muted-foreground">Vehicle</label>
+                  <p className="font-medium">{ticket.vehicleId || 'No Vehicle'}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Year</label>
-                  <p className="font-medium">{vehicle.year}</p>
+                  <label className="text-sm font-medium text-muted-foreground">Assigned To</label>
+                  <p className="font-medium">{ticket.assignedTo || 'Unassigned'}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">VIN</label>
-                  <p className="font-medium font-mono">{vehicle.vin}</p>
+                  <label className="text-sm font-medium text-muted-foreground">Created</label>
+                  <p className="font-medium">{formatDate(ticket.createdAt)}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Type</label>
-                  <p className="font-medium">{getTypeLabel(vehicle.type)}</p>
+                  <label className="text-sm font-medium text-muted-foreground">Scheduled Date</label>
+                  <p className="font-medium">{ticket.scheduledDate ? formatDate(ticket.scheduledDate) : 'Not scheduled'}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Location</label>
-                  <p className="font-medium">{vehicle.location}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Price</label>
-                  <p className="font-medium text-primary">{formatCurrency(vehicle.price)}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Cost</label>
-                  <p className="font-medium">{formatCurrency(vehicle.cost)}</p>
+                  <label className="text-sm font-medium text-muted-foreground">Estimated Completion</label>
+                  <p className="font-medium">{ticket.customFields?.estimatedCompletionDate || 'Not specified'}</p>
                 </div>
               </div>
 
-              {/* Specifications */}
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold mb-3">Specifications</h3>
-                <div className="grid gap-4 md:grid-cols-3">
-                  {vehicle.customFields?.exteriorColor && (
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Exterior Color</label>
-                      <p className="font-medium">{vehicle.customFields.exteriorColor}</p>
-                    </div>
-                  )}
-                  {vehicle.customFields?.interiorColor && (
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Interior Color</label>
-                      <p className="font-medium">{vehicle.customFields.interiorColor}</p>
-                    </div>
-                  )}
-                  {vehicle.customFields?.length && (
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Length</label>
-                      <p className="font-medium">{vehicle.customFields.length} ft</p>
-                    </div>
-                  )}
-                  {vehicle.customFields?.weight && (
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Weight</label>
-                      <p className="font-medium">{vehicle.customFields.weight} lbs</p>
-                    </div>
-                  )}
-                  {vehicle.customFields?.sleeps && (
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Sleeps</label>
-                      <p className="font-medium">{vehicle.customFields.sleeps}</p>
-                    </div>
-                  )}
-                  {vehicle.customFields?.slideouts && (
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Slideouts</label>
-                      <p className="font-medium">{vehicle.customFields.slideouts}</p>
-                    </div>
-                  )}
-                  {vehicle.customFields?.fuelType && (
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Fuel Type</label>
-                      <p className="font-medium">{vehicle.customFields.fuelType}</p>
-                    </div>
-                  )}
-                  {vehicle.customFields?.mileage && (
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Mileage</label>
-                      <p className="font-medium">{vehicle.customFields.mileage}</p>
-                    </div>
-                  )}
-                  {vehicle.customFields?.condition && (
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Condition</label>
-                      <p className="font-medium">{vehicle.customFields.condition}</p>
-                    </div>
-                  )}
-                  
-                  {/* MH-specific fields */}
-                  {(vehicle.type === VehicleType.SINGLE_WIDE || 
-                    vehicle.type === VehicleType.DOUBLE_WIDE || 
-                    vehicle.type === VehicleType.TRIPLE_WIDE || 
-                    vehicle.type === VehicleType.PARK_MODEL || 
-                    vehicle.type === VehicleType.MODULAR_HOME) && (
-                    <>
-                      {vehicle.customFields?.squareFootage && (
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Square Footage</label>
-                          <p className="font-medium">{vehicle.customFields.squareFootage} sq ft</p>
-                        </div>
-                      )}
-                      {vehicle.customFields?.bedrooms && (
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Bedrooms</label>
-                          <p className="font-medium">{vehicle.customFields.bedrooms}</p>
-                        </div>
-                      )}
-                      {vehicle.customFields?.bathrooms && (
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Bathrooms</label>
-                          <p className="font-medium">{vehicle.customFields.bathrooms}</p>
-                        </div>
-                      )}
-                      {vehicle.customFields?.constructionType && (
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Construction Type</label>
-                          <p className="font-medium">{vehicle.customFields.constructionType}</p>
-                        </div>
-                      )}
-                      {vehicle.customFields?.exteriorSiding && (
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Exterior Siding</label>
-                          <p className="font-medium">{vehicle.customFields.exteriorSiding}</p>
-                        </div>
-                      )}
-                      {vehicle.customFields?.roofType && (
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Roof Type</label>
-                          <p className="font-medium">{vehicle.customFields.roofType}</p>
-                        </div>
-                      )}
-                    </>
-                  )}
-                  
-                  {/* MH-specific fields */}
-                  {(vehicle.type === VehicleType.SINGLE_WIDE || 
-                    vehicle.type === VehicleType.DOUBLE_WIDE || 
-                    vehicle.type === VehicleType.TRIPLE_WIDE || 
-                    vehicle.type === VehicleType.PARK_MODEL || 
-                    vehicle.type === VehicleType.MODULAR_HOME) && (
-                    <>
-                      {vehicle.customFields?.squareFootage && (
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Square Footage</label>
-                          <p className="font-medium">{vehicle.customFields.squareFootage} sq ft</p>
-                        </div>
-                      )}
-                      {vehicle.customFields?.bedrooms && (
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Bedrooms</label>
-                          <p className="font-medium">{vehicle.customFields.bedrooms}</p>
-                        </div>
-                      )}
-                      {vehicle.customFields?.bathrooms && (
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Bathrooms</label>
-                          <p className="font-medium">{vehicle.customFields.bathrooms}</p>
-                        </div>
-                      )}
-                      {vehicle.customFields?.constructionType && (
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Construction Type</label>
-                          <p className="font-medium">{vehicle.customFields.constructionType}</p>
-                        </div>
-                      )}
-                      {vehicle.customFields?.exteriorSiding && (
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Exterior Siding</label>
-                          <p className="font-medium">{vehicle.customFields.exteriorSiding}</p>
-                        </div>
-                      )}
-                      {vehicle.customFields?.roofType && (
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Roof Type</label>
-                          <p className="font-medium">{vehicle.customFields.roofType}</p>
-                        </div>
-                      )}
-                    </>
-                  )}
+              {/* Description */}
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Description</label>
+                <div className="mt-1 p-3 bg-muted/30 rounded-md">
+                  <p className="whitespace-pre-wrap">{ticket.description}</p>
                 </div>
+              </div>
+
+              {/* Customer Portal Access */}
+              <div className="p-3 bg-blue-50 rounded-md">
+                <div className="flex items-center space-x-2">
+                  <User className="h-4 w-4 text-blue-600" />
+                  <span className="font-medium text-blue-700">Customer Portal Access:</span>
+                  <span className="text-blue-700">
+                    {ticket.customFields?.customerPortalAccess !== false ? 'Enabled' : 'Disabled'}
+                  </span>
+                </div>
+                <p className="text-sm text-blue-600 mt-1">
+                  {ticket.customFields?.customerPortalAccess !== false 
+                    ? 'Customer can view this ticket in the portal' 
+                    : 'Customer cannot view this ticket in the portal'}
+                </p>
               </div>
             </TabsContent>
 
-            <TabsContent value="images">
-              {vehicle.images && vehicle.images.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {vehicle.images.map((image, index) => (
-                    <div key={index} className="overflow-hidden rounded-md">
-                      <img 
-                        src={image} 
-                        alt={`${vehicle.make} ${vehicle.model} ${index + 1}`} 
-                        className="w-full h-auto object-cover hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 text-muted-foreground border-2 border-dashed rounded-lg">
-                  <ImageIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                  <p>No images available</p>
-                </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="features">
-              {vehicle.features && vehicle.features.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {vehicle.features.map((feature, index) => (
-                    <div key={index} className="flex items-center p-2 bg-muted/30 rounded-md">
-                      <Package className="h-4 w-4 mr-2 text-primary" />
-                      <span>{feature}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 text-muted-foreground border-2 border-dashed rounded-lg">
-                  <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                  <p>No features listed</p>
-                </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="videos">
-              {vehicle.customFields?.videos && vehicle.customFields.videos.length > 0 ? (
-                <div className="space-y-4">
-                  {vehicle.customFields.videos.map((video, index) => (
-                    <div key={index} className="p-3 bg-muted/30 rounded-md">
-                      <div className="flex items-center mb-2">
-                        <Video className="h-4 w-4 mr-2 text-primary" />
-                        <a 
-                          href={video} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
-                        >
-                          Video {index + 1}
-                        </a>
+            <TabsContent value="parts-labor" className="space-y-6">
+              {/* Parts */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Parts</h3>
+                {ticket.parts.length > 0 ? (
+                  <div className="space-y-3">
+                    {ticket.parts.map((part) => (
+                      <div key={part.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-medium">{part.description}</span>
+                            <Badge variant="outline">
+                              {part.partNumber}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            Quantity: {part.quantity} × {formatCurrency(part.unitCost)}
+                          </p>
+                        </div>
+                        <div className="font-bold">
+                          {formatCurrency(part.total)}
+                        </div>
                       </div>
-                      {/* In a real app, you might embed the video here */}
+                    ))}
+                    <div className="flex justify-end p-2">
+                      <span className="font-medium">Parts Total: {formatCurrency(totals.partsTotal)}</span>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 text-muted-foreground border-2 border-dashed rounded-lg">
-                  <Video className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                  <p>No videos available</p>
-                </div>
-              )}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground border-2 border-dashed rounded-lg">
+                    <p>No parts added to this service ticket</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Labor */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Labor</h3>
+                {ticket.labor.length > 0 ? (
+                  <div className="space-y-3">
+                    {ticket.labor.map((labor) => (
+                      <div key={labor.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex-1">
+                          <div className="font-medium">{labor.description}</div>
+                          <p className="text-sm text-muted-foreground">
+                            {labor.hours} hours × {formatCurrency(labor.rate)}/hr
+                          </p>
+                        </div>
+                        <div className="font-bold">
+                          {formatCurrency(labor.total)}
+                        </div>
+                      </div>
+                    ))}
+                    <div className="flex justify-end p-2">
+                      <span className="font-medium">Labor Total: {formatCurrency(totals.laborTotal)}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground border-2 border-dashed rounded-lg">
+                    <p>No labor added to this service ticket</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Totals */}
+              <Card className="bg-muted/30">
+                <CardContent className="pt-6">
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span>Parts Total:</span>
+                      <span>{formatCurrency(totals.partsTotal)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Labor Total:</span>
+                      <span>{formatCurrency(totals.laborTotal)}</span>
+                    </div>
+                    <div className="flex justify-between text-lg font-bold border-t pt-2">
+                      <span>Grand Total:</span>
+                      <span>{formatCurrency(totals.grandTotal)}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
-            <TabsContent value="notes">
-              {vehicle.customFields?.notes ? (
-                <div className="p-4 bg-muted/30 rounded-md whitespace-pre-wrap">
-                  {vehicle.customFields.notes}
-                </div>
-              ) : (
-                <div className="text-center py-12 text-muted-foreground border-2 border-dashed rounded-lg">
-                  <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                  <p>No notes available</p>
-                </div>
-              )}
+            <TabsContent value="notes" className="space-y-6">
+              {/* Customer Notes */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Customer Notes</h3>
+                {ticket.notes ? (
+                  <div className="p-3 bg-muted/30 rounded-md">
+                    <p className="whitespace-pre-wrap">{ticket.notes}</p>
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground border-2 border-dashed rounded-lg">
+                    <p>No customer notes for this service ticket</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Technician Notes */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Technician Notes</h3>
+                {ticket.customFields?.technicianNotes ? (
+                  <div className="p-3 bg-yellow-50 rounded-md">
+                    <p className="whitespace-pre-wrap text-yellow-800">{ticket.customFields.technicianNotes}</p>
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground border-2 border-dashed rounded-lg">
+                    <p>No technician notes for this service ticket</p>
+                  </div>
+                )}
+              </div>
             </TabsContent>
           </Tabs>
 
           {/* Actions */}
-          <div className="flex justify-end space-x-3 pt-6 border-t">
+          <div className="flex justify-end space-x-3 pt-6 border-t mt-6">
             <Button variant="outline" onClick={onClose}>
               Close
             </Button>
-            <Button onClick={() => onEdit(vehicle)}>
+            <Button variant="outline" onClick={handlePrintPDF}>
+              <Printer className="h-4 w-4 mr-2" />
+              Print PDF
+            </Button>
+            <Button onClick={() => onEdit(ticket)}>
               <Edit className="h-4 w-4 mr-2" />
-              Edit Home/RV
+              Edit Ticket
             </Button>
           </div>
         </CardContent>
