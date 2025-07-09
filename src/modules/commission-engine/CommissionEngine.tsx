@@ -1,103 +1,490 @@
-import React, { useState } from 'react'
-import { Routes, Route } from 'react-router-dom'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { DollarSign, Plus, Search, Filter, CheckCircle, XCircle, Clock, Calendar, User, BarChart3 } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import { Commission, CommissionStatus, CommissionType } from '@/types'
-import { CommissionRule } from './types'
-import { formatCurrency, formatDate } from '@/lib/utils'
-import { cn } from '@/lib/utils'
-import { useCommissionManagement } from './hooks/useCommissionManagement'
-import { useAuth } from '@/contexts/AuthContext'
-import { useToast } from '@/hooks/use-toast'
-import { CommissionForm } from './components/CommissionForm'
-import { CommissionDetail } from './components/CommissionDetail'
-import { CommissionRulesList } from './components/CommissionRulesList'
-import { CommissionRuleForm } from './components/CommissionRuleForm'
-import { CommissionReportGenerator } from './components/CommissionReportGenerator'
+import { saveToLocalStorage, loadFromLocalStorage } from '@/lib/utils'
+import { CommissionRule, FlatCommissionRule, PercentageCommissionRule, TieredCommissionRule, CommissionAuditEntry, CommissionReportFilters, CommissionReportSummary } from '../types'
 
-// Mock data for sales reps and deals
-const mockSalesReps = [
-  {
-    id: 'sales-001',
-    name: 'John Smith',
-    email: 'john.smith@dealership.com',
-    phone: '(555) 123-4567',
-    territory: 'North Region',
-    isActive: true,
-    targets: {
-      monthly: 10,
-      quarterly: 30,
-      annual: 120
-    }
-  },
-  {
-    id: 'sales-002',
-    name: 'Sarah Johnson',
-    email: 'sarah.johnson@dealership.com',
-    phone: '(555) 987-6543',
-    territory: 'South Region',
-    isActive: true,
-    targets: {
-      monthly: 12,
-      quarterly: 36,
-      annual: 144
-    }
-  },
-  {
-    id: 'sales-003',
-    name: 'Mike Davis',
-    email: 'mike.davis@dealership.com',
-    phone: '(555) 456-7890',
-    territory: 'East Region',
-    isActive: true,
-    targets: {
-      monthly: 8,
-      quarterly: 24,
-      annual: 96
+export function useCommissionManagement() {
+  const [commissions, setCommissions] = useState<Commission[]>([])
+  const [rules, setRules] = useState<CommissionRule[]>([])
+  const [auditTrail, setAuditTrail] = useState<CommissionAuditEntry[]>([])
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    initializeMockData()
+  }, [])
+
+  const initializeMockData = () => {
+    // Load existing commissions from localStorage or use mock data
+    const savedCommissions = loadFromLocalStorage('renter-insight-commissions', [
+      {
+        id: '1',
+        salesPersonId: 'sales-001',
+        dealId: 'deal-001',
+        type: CommissionType.PERCENTAGE,
+        rate: 0.05,
+        amount: 6875,
+        status: CommissionStatus.APPROVED,
+        paidDate: new Date('2024-01-20'),
+        notes: 'Commission for Georgetown sale',
+        customFields: {},
+        createdAt: new Date('2024-01-18'),
+        updatedAt: new Date('2024-01-20')
+      },
+      {
+        id: '2',
+        salesPersonId: 'sales-002',
+        dealId: 'deal-002',
+        type: CommissionType.FLAT,
+        rate: 0,
+        amount: 2500,
+        status: CommissionStatus.PENDING,
+        notes: 'Flat commission for service contract',
+        customFields: {},
+        createdAt: new Date('2024-01-15'),
+        updatedAt: new Date('2024-01-15')
+      }
+    ])
+    const parsedCommissions = savedCommissions.map(c => ({
+      ...c,
+      paidDate: c.paidDate ? new Date(c.paidDate) : undefined,
+      createdAt: new Date(c.createdAt),
+      updatedAt: new Date(c.updatedAt)
+    }));
+
+    // Load existing rules from localStorage or use mock data
+    const savedRules = loadFromLocalStorage('renter-insight-commission-rules', [
+      {
+        id: '1',
+        name: 'Standard Sales Commission',
+        type: 'percentage',
+        rate: 0.05,
+        isActive: true,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-01')
+      },
+      {
+        id: '2',
+        name: 'Service Contract Bonus',
+        type: 'flat',
+        amount: 500,
+        isActive: true,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-01')
+      },
+      {
+        id: '3',
+        name: 'Tiered Sales Commission',
+        type: 'tiered',
+        tiers: [
+          { id: '1', ruleId: '3', minAmount: 0, maxAmount: 50000, rate: 0.03 },
+          { id: '2', ruleId: '3', minAmount: 50000, maxAmount: 100000, rate: 0.05 },
+          { id: '3', ruleId: '3', minAmount: 100000, rate: 0.07 }
+        ],
+        isActive: true,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-01')
+      }
+    ])
+    const parsedRules = savedRules.map(r => ({
+      ...r,
+      createdAt: new Date(r.createdAt),
+      updatedAt: new Date(r.updatedAt)
+    }));
+
+    // Load existing audit trail from localStorage or use mock data
+    const savedAuditTrail = loadFromLocalStorage('renter-insight-commission-audit', [
+      {
+        id: '1',
+        commissionId: '1',
+        userId: 'user-001',
+        userName: 'Admin User',
+        action: 'created',
+        newValue: {
+          salesPersonId: 'sales-001',
+          dealId: 'deal-001',
+          type: CommissionType.PERCENTAGE,
+          rate: 0.05,
+          amount: 6875,
+          status: CommissionStatus.PENDING
+        },
+        timestamp: new Date('2024-01-18')
+      },
+      {
+        id: '2',
+        commissionId: '1',
+        userId: 'user-001',
+        userName: 'Admin User',
+        action: 'approved',
+        previousValue: { status: CommissionStatus.PENDING },
+        newValue: { status: CommissionStatus.APPROVED },
+        notes: 'Approved after deal verification',
+        timestamp: new Date('2024-01-19')
+      }
+    ])
+    const parsedAuditTrail = savedAuditTrail.map(entry => ({
+      ...entry,
+      timestamp: new Date(entry.timestamp)
+    }));
+
+    setCommissions(parsedCommissions)
+    setRules(parsedRules)
+    setAuditTrail(parsedAuditTrail)
+  }
+
+  const saveCommissionsToStorage = (updatedCommissions: Commission[]) => {
+    saveToLocalStorage('renter-insight-commissions', updatedCommissions)
+  }
+
+  const saveRulesToStorage = (updatedRules: CommissionRule[]) => {
+    saveToLocalStorage('renter-insight-commission-rules', updatedRules)
+  }
+
+  const saveAuditTrailToStorage = (updatedAuditTrail: CommissionAuditEntry[]) => {
+    saveToLocalStorage('renter-insight-commission-audit', updatedAuditTrail)
+  }
+
+  const getCommissionsBySalesPerson = (salesPersonId: string) => {
+    return commissions.filter(commission => commission.salesPersonId === salesPersonId)
+  }
+
+  const getCommissionsByDeal = (dealId: string) => {
+    return commissions.filter(commission => commission.dealId === dealId)
+  }
+
+  const getCommissionById = (commissionId: string) => {
+    return commissions.find(commission => commission.id === commissionId)
+  }
+
+  const getRuleById = (ruleId: string) => {
+    return rules.find(rule => rule.id === ruleId)
+  }
+
+  const getAuditTrailByCommission = (commissionId: string) => {
+    return auditTrail.filter(entry => entry.commissionId === commissionId)
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+  }
+
+  const createCommission = async (commissionData: Partial<Commission>, userId: string, userName: string) => {
+    setLoading(true)
+    try {
+      const newCommission: Commission = {
+        id: Math.random().toString(36).substr(2, 9),
+        salesPersonId: commissionData.salesPersonId || '',
+        dealId: commissionData.dealId || '',
+        type: commissionData.type || CommissionType.PERCENTAGE,
+        rate: commissionData.rate || 0,
+        amount: commissionData.amount || 0,
+        status: CommissionStatus.PENDING,
+        notes: commissionData.notes || '',
+        customFields: commissionData.customFields || {},
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+
+      const updatedCommissions = [...commissions, newCommission]
+      setCommissions(updatedCommissions)
+      saveCommissionsToStorage(updatedCommissions)
+
+      // Add audit entry
+      const auditEntry: CommissionAuditEntry = {
+        id: Math.random().toString(36).substr(2, 9),
+        commissionId: newCommission.id,
+        userId,
+        userName,
+        action: 'created',
+        newValue: { ...newCommission },
+        timestamp: new Date()
+      }
+
+      const updatedAuditTrail = [...auditTrail, auditEntry]
+      setAuditTrail(updatedAuditTrail)
+      saveAuditTrailToStorage(updatedAuditTrail)
+
+      return newCommission
+    } finally {
+      setLoading(false)
     }
   }
-]
 
-const mockDeals = [
-  {
-    id: 'deal-001',
-    name: 'Georgetown Class A Sale - Smith Family',
-    customerName: 'John & Mary Smith',
-    value: 137500,
-    stage: 'closed_won',
-    status: 'active',
-    createdAt: new Date('2024-01-15')
-  },
-  {
-    id: 'deal-002',
-    name: 'Travel Trailer - Johnson Family',
-    customerName: 'Sarah Johnson',
-    value: 75000,
-    stage: 'closed_won',
-    status: 'active',
-    createdAt: new Date('2024-01-10')
-  },
-  {
-    id: 'deal-003',
-    name: 'Service Contract - Davis',
-    customerName: 'Mike Davis',
-    value: 2500,
-    stage: 'closed_won',
-    status: 'active',
-    createdAt: new Date('2024-01-20')
+  const updateCommission = async (commissionId: string, updates: Partial<Commission>, userId: string, userName: string, notes?: string) => {
+    const commission = commissions.find(c => c.id === commissionId)
+    if (!commission) return null
+
+    const updatedCommission = {
+      ...commission,
+      ...updates,
+      updatedAt: new Date()
+    }
+
+    const updatedCommissions = commissions.map(c => 
+      c.id === commissionId ? updatedCommission : c
+    )
+
+    setCommissions(updatedCommissions)
+    saveCommissionsToStorage(updatedCommissions)
+
+    // Add audit entry
+    const auditEntry: CommissionAuditEntry = {
+      id: Math.random().toString(36).substr(2, 9),
+      commissionId,
+      userId,
+      userName,
+      action: 'updated',
+      previousValue: { ...commission },
+      newValue: updates,
+      notes,
+      timestamp: new Date()
+    }
+
+    const updatedAuditTrail = [...auditTrail, auditEntry]
+    setAuditTrail(updatedAuditTrail)
+    saveAuditTrailToStorage(updatedAuditTrail)
+
+    return updatedCommission
   }
-]
 
-function CommissionsList() {
-  const {
+  const approveCommission = async (commissionId: string, userId: string, userName: string, notes?: string) => {
+    return updateCommission(
+      commissionId, 
+      { status: CommissionStatus.APPROVED }, 
+      userId, 
+      userName, 
+      notes
+    )
+  }
+
+  const rejectCommission = async (commissionId: string, userId: string, userName: string, notes?: string) => {
+    return updateCommission(
+      commissionId, 
+      { status: CommissionStatus.CANCELLED }, 
+      userId, 
+      userName, 
+      notes
+    )
+  }
+
+  const markCommissionPaid = async (commissionId: string, userId: string, userName: string, notes?: string) => {
+    return updateCommission(
+      commissionId, 
+      { 
+        status: CommissionStatus.PAID,
+        paidDate: new Date()
+      }, 
+      userId, 
+      userName, 
+      notes
+    )
+  }
+
+  const createRule = async (ruleData: Partial<CommissionRule>) => {
+    setLoading(true)
+    try {
+      let newRule: CommissionRule
+
+      switch (ruleData.type) {
+        case 'flat':
+          newRule = {
+            id: Math.random().toString(36).substr(2, 9),
+            name: ruleData.name || '',
+            type: 'flat',
+            amount: (ruleData as Partial<FlatCommissionRule>).amount || 0,
+            isActive: ruleData.isActive ?? true,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          } as FlatCommissionRule
+          break
+        
+        case 'percentage':
+          newRule = {
+            id: Math.random().toString(36).substr(2, 9),
+            name: ruleData.name || '',
+            type: 'percentage',
+            rate: (ruleData as Partial<PercentageCommissionRule>).rate || 0,
+            isActive: ruleData.isActive ?? true,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          } as PercentageCommissionRule
+          break
+        
+        case 'tiered':
+          newRule = {
+            id: Math.random().toString(36).substr(2, 9),
+            name: ruleData.name || '',
+            type: 'tiered',
+            tiers: (ruleData as Partial<TieredCommissionRule>).tiers || [],
+            isActive: ruleData.isActive ?? true,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          } as TieredCommissionRule
+          break
+        
+        default:
+          throw new Error('Invalid commission rule type')
+      }
+
+      const updatedRules = [...rules, newRule]
+      setRules(updatedRules)
+      saveRulesToStorage(updatedRules)
+
+      return newRule
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const updateRule = async (ruleId: string, updates: Partial<CommissionRule>) => {
+    const rule = rules.find(r => r.id === ruleId)
+    if (!rule) return null
+
+    const updatedRule = {
+      ...rule,
+      ...updates,
+      updatedAt: new Date()
+    }
+
+    const updatedRules = rules.map(r => 
+      r.id === ruleId ? updatedRule : r
+    )
+
+    setRules(updatedRules)
+    saveRulesToStorage(updatedRules)
+
+    return updatedRule
+  }
+
+  const deleteRule = async (ruleId: string) => {
+    const updatedRules = rules.filter(r => r.id !== ruleId)
+    setRules(updatedRules)
+    saveRulesToStorage(updatedRules)
+  }
+
+  const calculateCommission = (dealAmount: number, ruleId: string) => {
+    const rule = rules.find(r => r.id === ruleId)
+    if (!rule) return 0
+
+    switch (rule.type) {
+      case 'flat':
+        return (rule as FlatCommissionRule).amount
+      
+      case 'percentage':
+        return dealAmount * (rule as PercentageCommissionRule).rate
+      
+      case 'tiered':
+        const tiers = (rule as TieredCommissionRule).tiers
+        const applicableTier = tiers.find(tier => 
+          dealAmount >= tier.minAmount && 
+          (tier.maxAmount === undefined || dealAmount < tier.maxAmount)
+        )
+        return applicableTier ? dealAmount * applicableTier.rate : 0
+      
+      default:
+        return 0
+    }
+  }
+
+  const generateCommissionReport = (filters: CommissionReportFilters): {
+    commissions: Commission[],
+    summary: CommissionReportSummary
+  } => {
+    let filteredCommissions = [...commissions]
+
+    // Apply filters
+    if (filters.startDate) {
+      filteredCommissions = filteredCommissions.filter(c => 
+        new Date(c.createdAt) >= new Date(filters.startDate!)
+      )
+    }
+
+    if (filters.endDate) {
+      filteredCommissions = filteredCommissions.filter(c => 
+        new Date(c.createdAt) <= new Date(filters.endDate!)
+      )
+    }
+
+    if (filters.salesPersonId) {
+      filteredCommissions = filteredCommissions.filter(c => 
+        c.salesPersonId === filters.salesPersonId
+      )
+    }
+
+    if (filters.status) {
+      filteredCommissions = filteredCommissions.filter(c => 
+        c.status === filters.status
+      )
+    }
+
+    if (filters.type) {
+      filteredCommissions = filteredCommissions.filter(c => 
+        c.type === filters.type
+      )
+    }
+
+    // Calculate summary
+    const summary: CommissionReportSummary = {
+      totalCommissions: filteredCommissions.length,
+      totalAmount: filteredCommissions.reduce((sum, c) => sum + c.amount, 0),
+      pendingAmount: filteredCommissions.filter(c => c.status === CommissionStatus.PENDING)
+        .reduce((sum, c) => sum + c.amount, 0),
+      approvedAmount: filteredCommissions.filter(c => c.status === CommissionStatus.APPROVED)
+        .reduce((sum, c) => sum + c.amount, 0),
+      paidAmount: filteredCommissions.filter(c => c.status === CommissionStatus.PAID)
+        .reduce((sum, c) => sum + c.amount, 0),
+      byType: {
+        flat: filteredCommissions.filter(c => c.type === CommissionType.FLAT)
+          .reduce((sum, c) => sum + c.amount, 0),
+        percentage: filteredCommissions.filter(c => c.type === CommissionType.PERCENTAGE)
+          .reduce((sum, c) => sum + c.amount, 0),
+        tiered: filteredCommissions.filter(c => c.type === CommissionType.TIERED)
+          .reduce((sum, c) => sum + c.amount, 0)
+      }
+    }
+
+    return {
+      commissions: filteredCommissions,
+      summary
+    }
+  }
+
+  const exportCommissionsToCSV = (commissions: Commission[]) => {
+    const headers = [
+      'ID', 
+      'Sales Person', 
+      'Deal ID', 
+      'Type', 
+      'Rate', 
+      'Amount', 
+      'Status', 
+      'Paid Date', 
+      'Notes', 
+      'Created At'
+    ]
+
+    const rows = commissions.map(c => [
+      c.id,
+      c.salesPersonId,
+      c.dealId,
+      c.type,
+      c.rate,
+      c.amount,
+      c.status,
+      c.paidDate ? c.paidDate.toISOString() : '',
+      c.notes,
+      c.createdAt.toISOString()
+    ])
+
+    return [headers, ...rows]
+  }
+
+  return {
     commissions,
     rules,
     auditTrail,
+    loading,
+    getCommissionsBySalesPerson,
+    getCommissionsByDeal,
+    getCommissionById,
+    getRuleById,
+    getAuditTrailByCommission,
     createCommission,
     updateCommission,
     approveCommission,
@@ -106,561 +493,8 @@ function CommissionsList() {
     createRule,
     updateRule,
     deleteRule,
-    getAuditTrailByCommission,
+    calculateCommission,
     generateCommissionReport,
     exportCommissionsToCSV
-  } = useCommissionManagement()
-  
-  const { user } = useAuth()
-  const { toast } = useToast()
-  
-  const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
-  const [activeTab, setActiveTab] = useState('commissions')
-  const [showCommissionForm, setShowCommissionForm] = useState(false)
-  const [showCommissionDetail, setShowCommissionDetail] = useState(false)
-  const [showRuleForm, setShowRuleForm] = useState(false)
-  const [selectedCommission, setSelectedCommission] = useState<Commission | null>(null)
-  const [selectedRule, setSelectedRule] = useState<CommissionRule | null>(null)
-
-  const getStatusColor = (status: CommissionStatus) => {
-    switch (status) {
-      case CommissionStatus.PENDING:
-        return 'bg-yellow-50 text-yellow-700 border-yellow-200'
-      case CommissionStatus.APPROVED:
-        return 'bg-blue-50 text-blue-700 border-blue-200'
-      case CommissionStatus.PAID:
-        return 'bg-green-50 text-green-700 border-green-200'
-      case CommissionStatus.CANCELLED:
-        return 'bg-red-50 text-red-700 border-red-200'
-      default:
-        return 'bg-gray-50 text-gray-700 border-gray-200'
-    }
   }
-
-  const getTypeColor = (type: CommissionType) => {
-    switch (type) {
-      case CommissionType.FLAT:
-        return 'bg-blue-50 text-blue-700 border-blue-200'
-      case CommissionType.PERCENTAGE:
-        return 'bg-green-50 text-green-700 border-green-200'
-      case CommissionType.TIERED:
-        return 'bg-purple-50 text-purple-700 border-purple-200'
-      default:
-        return 'bg-gray-50 text-gray-700 border-gray-200'
-    }
-  }
-
-  const getStatusIcon = (status: CommissionStatus) => {
-    switch (status) {
-      case CommissionStatus.PENDING:
-        return <Clock className="h-4 w-4 text-yellow-500" />
-      case CommissionStatus.APPROVED:
-        return <CheckCircle className="h-4 w-4 text-blue-500" />
-      case CommissionStatus.PAID:
-        return <DollarSign className="h-4 w-4 text-green-500" />
-      case CommissionStatus.CANCELLED:
-        return <XCircle className="h-4 w-4 text-red-500" />
-      default:
-        return null
-    }
-  }
-
-  const filteredCommissions = commissions.filter(commission => {
-    const matchesSearch = 
-      commission.salesPersonId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      commission.dealId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      commission.id.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesStatus = statusFilter === 'all' || commission.status === statusFilter
-
-    return matchesSearch && matchesStatus
-  })
-
-  const handleCreateCommission = () => {
-    setSelectedCommission(null)
-    setShowCommissionForm(true)
-  }
-
-  const handleEditCommission = (commission: Commission) => {
-    setSelectedCommission(commission)
-    setShowCommissionForm(true)
-    setShowCommissionDetail(false)
-  }
-
-  const handleViewCommission = (commission: Commission) => {
-    setSelectedCommission(commission)
-    setShowCommissionDetail(true)
-  }
-
-  const handleSaveCommission = async (commissionData: Partial<Commission>, notes?: string) => {
-    try {
-      if (selectedCommission) {
-        // Update existing commission
-        await updateCommission(
-          selectedCommission.id, 
-          commissionData, 
-          user?.id || 'current-user',
-          user?.name || 'Current User',
-          notes
-        )
-        toast({
-          title: 'Success',
-          description: 'Commission updated successfully',
-        })
-      } else {
-        // Create new commission
-        await createCommission(
-          commissionData, 
-          user?.id || 'current-user',
-          user?.name || 'Current User'
-        )
-        toast({
-          title: 'Success',
-          description: 'Commission created successfully',
-        })
-      }
-      setShowCommissionForm(false)
-      setSelectedCommission(null)
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: `Failed to ${selectedCommission ? 'update' : 'create'} commission`,
-        variant: 'destructive'
-      })
-    }
-  }
-
-  const handleApproveCommission = async (commissionId: string, notes?: string) => {
-    try {
-      await approveCommission(
-        commissionId, 
-        user?.id || 'current-user',
-        user?.name || 'Current User',
-        notes
-      )
-      toast({
-        title: 'Success',
-        description: 'Commission approved successfully',
-      })
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to approve commission',
-        variant: 'destructive'
-      })
-    }
-  }
-
-  const handleRejectCommission = async (commissionId: string, notes?: string) => {
-    try {
-      await rejectCommission(
-        commissionId, 
-        user?.id || 'current-user',
-        user?.name || 'Current User',
-        notes
-      )
-      toast({
-        title: 'Success',
-        description: 'Commission rejected successfully',
-      })
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to reject commission',
-        variant: 'destructive'
-      })
-    }
-  }
-
-  const handleMarkPaid = async (commissionId: string, notes?: string) => {
-    try {
-      await markCommissionPaid(
-        commissionId, 
-        user?.id || 'current-user',
-        user?.name || 'Current User',
-        notes
-      )
-      toast({
-        title: 'Success',
-        description: 'Commission marked as paid successfully',
-      })
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to mark commission as paid',
-        variant: 'destructive'
-      })
-    }
-  }
-
-  const handleCreateRule = () => {
-    setSelectedRule(null)
-    setShowRuleForm(true)
-  }
-
-  const handleEditRule = (rule: CommissionRule) => {
-    setSelectedRule(rule)
-    setShowRuleForm(true)
-  }
-
-  const handleSaveRule = async (ruleData: Partial<CommissionRule>) => {
-    try {
-      if (selectedRule) {
-        // Update existing rule
-        await updateRule(selectedRule.id, ruleData)
-        toast({
-          title: 'Success',
-          description: 'Commission rule updated successfully',
-        })
-      } else {
-        // Create new rule
-        await createRule(ruleData)
-        toast({
-          title: 'Success',
-          description: 'Commission rule created successfully',
-        })
-      }
-      setShowRuleForm(false)
-      setSelectedRule(null)
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: `Failed to ${selectedRule ? 'update' : 'create'} commission rule`,
-        variant: 'destructive'
-      })
-    }
-  }
-
-  const handleDeleteRule = async (ruleId: string) => {
-    if (window.confirm('Are you sure you want to delete this commission rule?')) {
-      try {
-        await deleteRule(ruleId)
-        toast({
-          title: 'Success',
-          description: 'Commission rule deleted successfully',
-        })
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to delete commission rule',
-          variant: 'destructive'
-        })
-      }
-    }
-  }
-
-  // Stats
-  const totalCommissions = commissions.length
-  const pendingCommissions = commissions.filter(c => c.status === CommissionStatus.PENDING).length
-  const approvedCommissions = commissions.filter(c => c.status === CommissionStatus.APPROVED).length
-  const paidCommissions = commissions.filter(c => c.status === CommissionStatus.PAID).length
-  
-  const totalAmount = commissions.reduce((sum, c) => sum + c.amount, 0)
-  const pendingAmount = commissions.filter(c => c.status === CommissionStatus.PENDING)
-    .reduce((sum, c) => sum + c.amount, 0)
-  const approvedAmount = commissions.filter(c => c.status === CommissionStatus.APPROVED)
-    .reduce((sum, c) => sum + c.amount, 0)
-  const paidAmount = commissions.filter(c => c.status === CommissionStatus.PAID)
-    .reduce((sum, c) => sum + c.amount, 0)
-
-  return (
-    <div className="space-y-8">
-      {/* Commission Form Modal */}
-      {showCommissionForm && (
-        <CommissionForm
-          commission={selectedCommission || undefined}
-          salesReps={mockSalesReps}
-          deals={mockDeals}
-          rules={rules}
-          onSave={handleSaveCommission}
-          onCancel={() => {
-            setShowCommissionForm(false)
-            setSelectedCommission(null)
-          }}
-        />
-      )}
-      
-      {/* Commission Detail Modal */}
-      {showCommissionDetail && selectedCommission && (
-        <CommissionDetail
-          commission={selectedCommission}
-          salesReps={mockSalesReps}
-          deals={mockDeals}
-          auditTrail={getAuditTrailByCommission(selectedCommission.id)}
-          onClose={() => setShowCommissionDetail(false)}
-          onEdit={handleEditCommission}
-          onApprove={handleApproveCommission}
-          onReject={handleRejectCommission}
-          onMarkPaid={handleMarkPaid}
-        />
-      )}
-      
-      {/* Rule Form Modal */}
-      {showRuleForm && (
-        <CommissionRuleForm
-          rule={selectedRule || undefined}
-          onSave={handleSaveRule}
-          onCancel={() => {
-            setShowRuleForm(false)
-            setSelectedRule(null)
-          }}
-        />
-      )}
-
-      {/* Page Header */}
-      <div className="ri-page-header">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="ri-page-title">Commission Engine</h1>
-            <p className="ri-page-description">
-              Manage sales commissions and payment rules
-            </p>
-          </div>
-          <Button className="shadow-sm" onClick={handleCreateCommission}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Commission
-          </Button>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="ri-stats-grid">
-        <Card className="shadow-sm border-0 bg-gradient-to-br from-blue-50 to-blue-100/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-blue-900">Total Commissions</CardTitle>
-            <DollarSign className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-900">{formatCurrency(totalAmount)}</div>
-            <p className="text-xs text-blue-600 flex items-center mt-1">
-              <User className="h-3 w-3 mr-1" />
-              {totalCommissions} commissions
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm border-0 bg-gradient-to-br from-yellow-50 to-yellow-100/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-yellow-900">Pending</CardTitle>
-            <Clock className="h-4 w-4 text-yellow-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-900">{formatCurrency(pendingAmount)}</div>
-            <p className="text-xs text-yellow-600 flex items-center mt-1">
-              <Clock className="h-3 w-3 mr-1" />
-              {pendingCommissions} pending approval
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm border-0 bg-gradient-to-br from-blue-50 to-blue-100/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-blue-900">Approved</CardTitle>
-            <CheckCircle className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-900">{formatCurrency(approvedAmount)}</div>
-            <p className="text-xs text-blue-600 flex items-center mt-1">
-              <CheckCircle className="h-3 w-3 mr-1" />
-              {approvedCommissions} approved
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm border-0 bg-gradient-to-br from-green-50 to-green-100/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-green-900">Paid</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-900">{formatCurrency(paidAmount)}</div>
-            <p className="text-xs text-green-600 flex items-center mt-1">
-              <DollarSign className="h-3 w-3 mr-1" />
-              {paidCommissions} paid out
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Content Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="commissions">Commissions</TabsTrigger>
-          <TabsTrigger value="rules">Commission Rules</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="commissions" className="space-y-6">
-          {/* Search and Filters */}
-          <div className="flex gap-4">
-            <div className="ri-search-bar">
-              <Search className="ri-search-icon" />
-              <Input
-                placeholder="Search commissions..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="ri-search-input shadow-sm"
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value={CommissionStatus.PENDING}>Pending</SelectItem>
-                <SelectItem value={CommissionStatus.APPROVED}>Approved</SelectItem>
-                <SelectItem value={CommissionStatus.PAID}>Paid</SelectItem>
-                <SelectItem value={CommissionStatus.CANCELLED}>Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" className="shadow-sm">
-              <Filter className="h-4 w-4 mr-2" />
-              Filter
-            </Button>
-            <Button onClick={handleCreateCommission} className="shadow-sm">
-              <Plus className="h-4 w-4 mr-2" />
-              New Commission
-            </Button>
-          </div>
-
-          {/* Commissions Table */}
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-xl">Commissions</CardTitle>
-              <CardDescription>
-                Track and manage sales commissions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {filteredCommissions.map((commission) => {
-                  const salesRep = mockSalesReps.find(rep => rep.id === commission.salesPersonId)
-                  const deal = mockDeals.find(d => d.id === commission.dealId)
-                  
-                  return (
-                    <div key={commission.id} className="ri-table-row">
-                      <div className="flex items-center space-x-4 flex-1">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h3 className="font-semibold text-foreground">Commission #{commission.id}</h3>
-                            <Badge className={cn("ri-badge-status", getTypeColor(commission.type))}>
-                              {commission.type.toUpperCase()}
-                            </Badge>
-                            <Badge className={cn("ri-badge-status", getStatusColor(commission.status))}>
-                              {getStatusIcon(commission.status)}
-                              <span className="ml-1">{commission.status.toUpperCase()}</span>
-                            </Badge>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
-                            <div className="flex items-center">
-                              <User className="h-3 w-3 mr-2 text-blue-500" />
-                              <span className="font-medium">Sales Rep:</span> 
-                              <span className="ml-1">{salesRep?.name || commission.salesPersonId}</span>
-                            </div>
-                            <div className="flex items-center">
-                              <DollarSign className="h-3 w-3 mr-2 text-green-500" />
-                              <span className="font-medium">Deal:</span> 
-                              <span className="ml-1">{deal?.name || commission.dealId}</span>
-                            </div>
-                            <div className="flex items-center">
-                              <DollarSign className="h-3 w-3 mr-2 text-purple-500" />
-                              <span className="font-medium">Amount:</span> 
-                              <span className="ml-1 font-bold text-primary">{formatCurrency(commission.amount)}</span>
-                            </div>
-                            <div className="flex items-center">
-                              <Calendar className="h-3 w-3 mr-2 text-orange-500" />
-                              <span className="font-medium">Created:</span> 
-                              <span className="ml-1">{formatDate(commission.createdAt)}</span>
-                            </div>
-                          </div>
-                          {commission.notes && (
-                            <div className="mt-2 bg-muted/30 p-2 rounded-md">
-                              <p className="text-sm text-muted-foreground">
-                                <span className="font-medium">Notes:</span> {commission.notes}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="ri-action-buttons">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="shadow-sm"
-                          onClick={() => handleViewCommission(commission)}
-                        >
-                          View
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="shadow-sm"
-                          onClick={() => handleEditCommission(commission)}
-                        >
-                          Edit
-                        </Button>
-                        {commission.status === CommissionStatus.PENDING && (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="shadow-sm"
-                            onClick={() => handleApproveCommission(commission.id)}
-                          >
-                            Approve
-                          </Button>
-                        )}
-                        {commission.status === CommissionStatus.APPROVED && (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="shadow-sm"
-                            onClick={() => handleMarkPaid(commission.id)}
-                          >
-                            Mark Paid
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-
-                {filteredCommissions.length === 0 && (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <DollarSign className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                    <p>No commissions found</p>
-                    <p className="text-sm">Create your first commission to get started</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="rules">
-          <CommissionRulesList
-            rules={rules}
-            onCreateRule={handleCreateRule}
-            onEditRule={handleEditRule}
-            onDeleteRule={handleDeleteRule}
-          />
-        </TabsContent>
-
-        <TabsContent value="reports">
-          <CommissionReportGenerator
-            salesReps={mockSalesReps}
-            onGenerateReport={generateCommissionReport}
-            onExportCSV={exportCommissionsToCSV}
-          />
-        </TabsContent>
-      </Tabs>
-    </div>
-  )
-}
-
-export default function CommissionEngine() {
-  return (
-    <Routes>
-      <Route path="/" element={<CommissionsList />} />
-      <Route path="/*" element={<CommissionsList />} />
-    </Routes>
-  )
 }
