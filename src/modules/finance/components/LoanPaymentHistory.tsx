@@ -9,8 +9,7 @@ import { Search, Filter, CreditCard, Calendar, Download, Printer, CheckCircle, X
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { Payment, PaymentStatus, PaymentMethod } from '@/types'
-import { useToast } from '@/hooks/use-toast'
-import { useEffect } from 'react'
+import { useToast } from '@/hooks/use-toast' 
 
 interface LoanPaymentHistoryProps {
   loan: any // Using 'any' for now, but ideally a Loan type
@@ -21,13 +20,14 @@ interface LoanPaymentHistoryProps {
 export function LoanPaymentHistory({ loan, onClose, onRecordPayment }: LoanPaymentHistoryProps) {
   const { toast } = useToast()
   const [payments, setPayments] = useState<Payment[]>([])
+  const [showRecordPaymentForm, setShowRecordPaymentForm] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [methodFilter, setMethodFilter] = useState('all')
   const [dateFilter, setDateFilter] = useState('all')
 
   // Initialize payments safely from loan prop
-  useEffect(() => {
+  React.useEffect(() => {
     if (loan && Array.isArray(loan.payments)) {
       setPayments(loan.payments);
     }
@@ -185,9 +185,9 @@ export function LoanPaymentHistory({ loan, onClose, onRecordPayment }: LoanPayme
   const handleRecordNewPayment = async () => {
     if (!onRecordPayment || !loan?.id) {
       toast({
-        title: "Error",
-        description: "Cannot record payment at this time",
-        variant: "destructive"
+        title: "Error", 
+        description: "Cannot record payment at this time", 
+        variant: "destructive" 
       });
       return;
     }
@@ -198,9 +198,9 @@ export function LoanPaymentHistory({ loan, onClose, onRecordPayment }: LoanPayme
       amount: 100, // Example amount
       method: PaymentMethod.CASH,
       status: PaymentStatus.COMPLETED,
-      processedDate: new Date(),
-      notes: 'Manual payment recorded',
-      transactionId: Math.random().toString(36).substr(2, 9)
+      processedDate: new Date(), 
+      notes: 'Manual payment recorded', 
+      transactionId: Math.random().toString(36).substr(2, 9) 
     };
 
     try {
@@ -222,7 +222,7 @@ export function LoanPaymentHistory({ loan, onClose, onRecordPayment }: LoanPayme
       <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         {loan && (
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between"> 
               <div>
                 <CardTitle>Payment History for Loan #{loan.id || 'Unknown'}</CardTitle>
                 <CardDescription>
@@ -230,7 +230,15 @@ export function LoanPaymentHistory({ loan, onClose, onRecordPayment }: LoanPayme
                   {loan.vehicleInfo ? ` | Vehicle: ${loan.vehicleInfo}` : ''}
                 </CardDescription>
               </div>
-              <Button variant="ghost" size="sm" onClick={onClose}>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => {
+                  if (typeof onClose === 'function') {
+                    onClose();
+                  }
+                }}
+              >
                 <X className="h-4 w-4" />
               </Button>
             </div>
@@ -300,15 +308,17 @@ export function LoanPaymentHistory({ loan, onClose, onRecordPayment }: LoanPayme
               <Download className="h-4 w-4 mr-2" />
               Export
             </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleRecordNewPayment}
-              disabled={!onRecordPayment || !loan?.id}
-            >
-              <CreditCard className="h-4 w-4 mr-2" />
-              Record Payment
-            </Button>
+            {onRecordPayment && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleRecordNewPayment}
+                disabled={!loan?.id}
+              >
+                <CreditCard className="h-4 w-4 mr-2" />
+                Record Payment
+              </Button>
+            )}
           </div>
 
           <div className="overflow-x-auto">
