@@ -54,7 +54,7 @@ function QuoteDetailModal({ quote, onClose, onEdit }: QuoteDetailModalProps) {
               </CardDescription>
             </div>
             <div className="flex items-center space-x-2">
-              <Button onClick={() => { onClose(); onEdit(quote); }} size="sm">
+              <Button onClick={() => { onEdit(quote); }} size="sm">
                 <Edit className="h-4 w-4 mr-2" />
                 Edit Quote
               </Button>
@@ -203,9 +203,12 @@ export function QuotesList() {
   }
 
   const handleEditQuote = (quote: Quote) => {
-    setEditingQuote(quote)
-    setSelectedCustomerId(quote.customerId)
-    setShowQuoteBuilder(true)
+    setViewingQuote(null); // Close the view modal
+    setTimeout(() => {
+      setEditingQuote(quote);
+      setSelectedCustomerId(quote.customerId);
+      setShowQuoteBuilder(true);
+    }, 100); // Small delay to allow view modal to close
   }
 
   const handleViewQuote = (quote: Quote) => {
@@ -550,3 +553,4 @@ export default function QuoteBuilderPage() { // Renamed to avoid conflict with c
     </Routes>
   )
 }
+
