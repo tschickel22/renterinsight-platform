@@ -103,7 +103,7 @@ export function LoanPaymentHistory({ loan, onClose, onRecordPayment }: LoanPayme
 
   // Filter payments based on search term and filters
   const filteredPayments = Array.isArray(payments) ? payments.filter(payment => {
-      (payment.invoiceId && payment.invoiceId.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      const matchesSearch = (payment.invoiceId && payment.invoiceId.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (payment.id && payment.id.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (payment.transactionId && payment.transactionId.toLowerCase().includes(searchTerm.toLowerCase()))
 
