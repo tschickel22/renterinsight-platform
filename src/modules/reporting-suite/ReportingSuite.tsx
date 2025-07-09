@@ -87,6 +87,7 @@ const reportTemplates = [
 ]
 
 function ReportingDashboard() {
+  const [reports, setReports] = useState<Report[]>(mockReports) // Re-added reports state
   const { 
     reportData, 
     reportColumns, 
@@ -184,7 +185,7 @@ function ReportingDashboard() {
             <div className="text-2xl font-bold text-blue-900">{reports.length}</div>
             <p className="text-xs text-blue-600 flex items-center mt-1">
               <TrendingUp className="h-3 w-3 mr-1" />
-              +5 units this month
+              All reports
             </p>
           </CardContent>
         </Card>
