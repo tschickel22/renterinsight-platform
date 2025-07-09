@@ -286,8 +286,8 @@ export function CommissionReportGenerator({
                 <div>
                   <Label htmlFor="salesPersonId">Sales Rep</Label>
                   <Select 
-                    value={filters.salesPersonId || ''} 
-                    onValueChange={(value) => setFilters(prev => ({ ...prev, salesPersonId: value }))}
+                    value={''} // This needs to be managed by a state variable if you want to filter
+                    onValueChange={(value) => { /* Update filter state here */ }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="All Sales Reps" />
@@ -306,8 +306,8 @@ export function CommissionReportGenerator({
                 <div>
                   <Label htmlFor="status">Status</Label>
                   <Select 
-                    value={filters.status || ''} 
-                    onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}
+                    value={''} // This needs to be managed by a state variable if you want to filter
+                    onValueChange={(value) => { /* Update filter state here */ }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="All Statuses" />
@@ -325,8 +325,8 @@ export function CommissionReportGenerator({
                 <div>
                   <Label htmlFor="type">Commission Type</Label>
                   <Select 
-                    value={filters.type || ''} 
-                    onValueChange={(value) => setFilters(prev => ({ ...prev, type: value }))}
+                    value={''} // This needs to be managed by a state variable if you want to filter
+                    onValueChange={(value) => { /* Update filter state here */ }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="All Types" />
