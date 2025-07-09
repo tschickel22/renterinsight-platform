@@ -4,13 +4,143 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { FileText, Plus, Search, Filter, Eye, Edit, Send, Copy, Trash2, DollarSign } from 'lucide-react'
+import { FileText, Plus, Search, Filter, Eye, Edit, Send, Copy, Trash2, DollarSign, Calendar, X } from 'lucide-react'
 import { QuoteBuilder } from './QuoteBuilder'
 import { useQuoteManagement, Quote } from '../hooks/useQuoteManagement'
-import { formatCurrency, formatDate, cn } from '@/lib/utils'
+import { formatCurrency, formatDate } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
-import { QuoteDetailModal } from './QuoteDetailModal'
-import { Routes, Route } from 'react-router-dom'
+
+// Quote Detail Modal Component
+interface QuoteDetailModalProps {
+  quote: Quote
+  onClose: () => void
+  onEdit: (quote: Quote) => void
+}
+
+function QuoteDetailModal({ quote, onClose, onEdit }: QuoteDetailModalProps) {
+  const getStatusColor = (status: Quote['status']) => {
+    switch (status) {
+      case 'draft':
+        return 'bg-gray-50 text-gray-700 border-gray-200'
+      case 'sent':
+        return 'bg-blue-50 text-blue-700 border-blue-200'
+      case 'viewed':
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200'
+      case 'accepted':
+        return 'bg-green-50 text-green-700 border-green-200'
+      case 'rejected':
+        return 'bg-red-50 text-red-700 border-red-200'
+      case 'expired':
+        return 'bg-orange-50 text-orange-700 border-orange-200'
+      default:
+        return 'bg-gray-50 text-gray-700 border-gray-200'
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-xl">Quote #{quote.id}</CardTitle>
+              <CardDescription>
+                Quote details and line items
+              </CardDescription>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button onClick={() => onEdit(quote)} size="sm">
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Quote
+              </Button>
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Quote Header Info */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">Customer ID</label>
+              <p className="font-medium">{quote.customerId}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">Status</label>
+              <div className="mt-1">
+                <Badge className={cn("ri-badge-status", getStatusColor(quote.status))}>
+                  {quote.status.toUpperCase()}
+                </Badge>
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">Created Date</label>
+              <p className="font-medium">{formatDate(quote.createdAt)}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">Valid Until</label>
+              <p className="font-medium">{formatDate(quote.validUntil)}</p>
+            </div>
+          </div>
+
+          {/* Line Items */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Line Items</h3>
+            <div className="space-y-3">
+              {Array.isArray(quote.items) && quote.items.length > 0 ? (
+                quote.items.map((item, index) => (
+                  <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex-1">
+                      <h4 className="font-medium">{item.description}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Quantity: {item.quantity} × {formatCurrency(item.unitPrice)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold text-lg">{formatCurrency(item.total)}</div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">No items in this quote.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Quote Totals */}
+          <div className="bg-muted/30 p-4 rounded-lg">
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span>Subtotal:</span>
+                <span>{formatCurrency(quote.subtotal)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Tax:</span>
+                <span>{formatCurrency(quote.tax)}</span>
+              </div>
+              <div className="flex justify-between text-lg font-bold border-t pt-2">
+                <span>Total:</span>
+                <span>{formatCurrency(quote.total)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Notes */}
+          {quote.notes && (
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">Notes</label>
+              <div className="mt-1 p-3 bg-muted/30 rounded-md">
+                <p className="text-sm">{quote.notes}</p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
 
 export function QuotesList() {
   const {
@@ -217,7 +347,7 @@ export function QuotesList() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {filteredQuotes.length > 0 ? (
+            {Array.isArray(filteredQuotes) && filteredQuotes.length > 0 ? (
               filteredQuotes.map((quote) => (
                 <div key={quote.id} className="ri-table-row">
                   <div className="flex items-center space-x-4 flex-1">
@@ -272,15 +402,6 @@ export function QuotesList() {
         </CardContent>
       </Card>
     </div>
-  )
-}
-
-export default function QuoteBuilderPage() {
-  return (
-    <Routes>
-      <Route path="/" element={<QuotesList />} />
-      <Route path="/*" element={<QuotesList />} />
-    </Routes>
   )
 }
 
