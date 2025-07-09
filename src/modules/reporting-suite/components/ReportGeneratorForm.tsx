@@ -17,9 +17,9 @@ interface ReportGeneratorFormProps {
   onGenerate: (reportConfig: ReportConfig) => void
   onExportCSV: () => void
   isGenerating: boolean
-  hasData: boolean
-  reportData: any[] // Pass reportData to the form
-  reportColumns: any[] // Pass reportColumns to the form
+  // Removed hasData prop
+  reportData: any[] // Receive reportData
+  reportColumns: any[] // Receive reportColumns
 }
 
 export interface ReportConfig {
@@ -41,7 +41,7 @@ export function ReportGeneratorForm({
   onGenerate,
   onExportCSV,
   isGenerating,
-  hasData,
+  // Removed hasData from destructuring
   reportData, // Receive reportData
   reportColumns // Receive reportColumns
 }: ReportGeneratorFormProps) {
@@ -108,8 +108,8 @@ export function ReportGeneratorForm({
   }, [initialReportConfig]);
 
   const handleExportPDF = () => {
-    // Use optional chaining to safely access length
-    if (!hasData || !reportData?.length || !reportColumns?.length) {
+    // Directly check reportData and reportColumns length
+    if (!reportData?.length || !reportColumns?.length) {
       toast({
         title: 'No Data to Export',
         description: 'Generate a report first before exporting to PDF.',
@@ -363,7 +363,7 @@ export function ReportGeneratorForm({
               More Filters
             </Button>
             <div className="flex space-x-2">
-              {hasData && (
+              {reportData?.length > 0 && ( // Check reportData length directly
                 <Button type="button" variant="outline" onClick={onExportCSV}>
                   <Download className="h-4 w-4 mr-2" />
                   Export CSV
@@ -389,3 +389,4 @@ export function ReportGeneratorForm({
     </Card>
   )
 }
+
