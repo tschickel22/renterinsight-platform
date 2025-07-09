@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react' // Import useRef
+// src/modules/reporting-suite/ReportingSuite.tsx
+import React, { useState, useRef, useEffect } from 'react' // Import useRef and useEffect
 import { Routes, Route } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -100,6 +101,7 @@ function ReportingDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [reportConfigForForm, setReportConfigForForm] = useState<any>(null)
   const reportGeneratorRef = useRef<HTMLDivElement>(null); // Create a ref for the report generator section
+  const [shouldScrollToGenerator, setShouldScrollToGenerator] = useState(false); // New state for scrolling
 
   const getTypeColor = (type: ReportType) => {
     switch (type) {
@@ -154,13 +156,17 @@ function ReportingDashboard() {
   const handleCreateNewReport = () => {
     setActiveTab('generator'); // Switch to the Report Generator tab
     setReportConfigForForm(null); // Reset the form to create a new report
+    setShouldScrollToGenerator(true); // Set state to trigger scroll
     console.log('Create Report button clicked!'); // Log to confirm execution
-    
-    // Scroll to the report generator section
-    if (reportGeneratorRef.current) {
-      reportGeneratorRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
   };
+
+  // Effect to scroll to the report generator section when shouldScrollToGenerator is true
+  useEffect(() => {
+    if (shouldScrollToGenerator && reportGeneratorRef.current) {
+      reportGeneratorRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setShouldScrollToGenerator(false); // Reset the state after scrolling
+    }
+  }, [shouldScrollToGenerator, reportGeneratorRef]);
 
   return (
     <div className="space-y-8">
@@ -191,7 +197,7 @@ function ReportingDashboard() {
             <div className="text-2xl font-bold text-blue-900">{reports.length}</div>
             <p className="text-xs text-blue-600 flex items-center mt-1">
               <TrendingUp className="h-3 w-3 mr-1" />
-              All reports
+              +5 units this month
             </p>
           </CardContent>
         </Card>
@@ -344,3 +350,4 @@ export default function ReportingSuite() {
     </Routes>
   )
 }
+
