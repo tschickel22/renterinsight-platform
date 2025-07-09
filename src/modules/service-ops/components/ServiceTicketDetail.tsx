@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
 import { jsPDF } from 'jspdf'
 import 'jspdf-autotable'
-import { useTenant } from '@/contexts/TenantContext'
+import { useTenant } from '@/contexts/TenantContext' // Import useTenant
 
 interface ServiceTicketDetailProps {
   ticket: ServiceTicket
@@ -21,7 +21,7 @@ interface ServiceTicketDetailProps {
 
 export function ServiceTicketDetail({ ticket, onClose, onEdit }: ServiceTicketDetailProps) {
   const { toast } = useToast()
-  const { tenant } = useTenant()
+  const { tenant } = useTenant() // Use useTenant hook
   const [activeTab, setActiveTab] = useState('details')
 
   const getStatusColor = (status: ServiceStatus) => {
@@ -491,3 +491,4 @@ export function ServiceTicketDetail({ ticket, onClose, onEdit }: ServiceTicketDe
     </div>
   )
 }
+
