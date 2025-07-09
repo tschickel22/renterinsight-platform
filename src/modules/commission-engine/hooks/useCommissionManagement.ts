@@ -44,6 +44,12 @@ export function useCommissionManagement() {
         updatedAt: new Date('2024-01-15')
       }
     ])
+    const parsedCommissions = savedCommissions.map(c => ({
+      ...c,
+      paidDate: c.paidDate ? new Date(c.paidDate) : undefined,
+      createdAt: new Date(c.createdAt),
+      updatedAt: new Date(c.updatedAt)
+    }));
 
     // Load existing rules from localStorage or use mock data
     const savedRules = loadFromLocalStorage('renter-insight-commission-rules', [
@@ -79,6 +85,11 @@ export function useCommissionManagement() {
         updatedAt: new Date('2024-01-01')
       }
     ])
+    const parsedRules = savedRules.map(r => ({
+      ...r,
+      createdAt: new Date(r.createdAt),
+      updatedAt: new Date(r.updatedAt)
+    }));
 
     // Load existing audit trail from localStorage or use mock data
     const savedAuditTrail = loadFromLocalStorage('renter-insight-commission-audit', [
@@ -110,10 +121,14 @@ export function useCommissionManagement() {
         timestamp: new Date('2024-01-19')
       }
     ])
+    const parsedAuditTrail = savedAuditTrail.map(entry => ({
+      ...entry,
+      timestamp: new Date(entry.timestamp)
+    }));
 
-    setCommissions(savedCommissions)
-    setRules(savedRules)
-    setAuditTrail(savedAuditTrail)
+    setCommissions(parsedCommissions)
+    setRules(parsedRules)
+    setAuditTrail(parsedAuditTrail)
   }
 
   const saveCommissionsToStorage = (updatedCommissions: Commission[]) => {
@@ -145,7 +160,12 @@ export function useCommissionManagement() {
   }
 
   const getAuditTrailByCommission = (commissionId: string) => {
-    return auditTrail.filter(entry => entry.commissionId === commissionId)
+    return auditTrail
+      .filter(entry => entry.commissionId === commissionId)
+      .map(entry => ({ // Explicitly ensure Date objects here
+        ...entry,
+        timestamp: new Date(entry.timestamp)
+      }))
       .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
   }
 
