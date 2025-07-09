@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { X, Save, Plus, Trash2, CheckSquare, ArrowUp, ArrowDown, Clipboard } from 'lucide-react'
 import { PDITemplate, PDITemplateSection, PDITemplateItem } from '../types'
-import { VehicleType } from '@/types'
+import { VehicleType } from '@/types/vehicle'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 
@@ -348,16 +348,16 @@ export function PDITemplateForm({ template, onSave, onCancel }: PDITemplateFormP
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={VehicleType.RV}>RV</SelectItem>
-                      <SelectItem value={VehicleType.MOTORHOME}>Motorhome</SelectItem>
-                      <SelectItem value={VehicleType.TRAVEL_TRAILER}>Travel Trailer</SelectItem>
-                      <SelectItem value={VehicleType.FIFTH_WHEEL}>Fifth Wheel</SelectItem>
-                      <SelectItem value={VehicleType.TOY_HAULER}>Toy Hauler</SelectItem>
-                      <SelectItem value={VehicleType.SINGLE_WIDE}>Single Wide MH</SelectItem>
-                      <SelectItem value={VehicleType.DOUBLE_WIDE}>Double Wide MH</SelectItem>
-                      <SelectItem value={VehicleType.TRIPLE_WIDE}>Triple Wide MH</SelectItem>
-                      <SelectItem value={VehicleType.PARK_MODEL}>Park Model</SelectItem>
-                      <SelectItem value={VehicleType.MODULAR_HOME}>Modular Home</SelectItem>
+                      <SelectItem value="rv">RV</SelectItem>
+                      <SelectItem value="motorhome">Motorhome</SelectItem>
+                      <SelectItem value="trailer">Travel Trailer</SelectItem>
+                      <SelectItem value="fifth-wheel">Fifth Wheel</SelectItem>
+                      <SelectItem value="toy_hauler">Toy Hauler</SelectItem>
+                      <SelectItem value="single_wide">Single Wide MH</SelectItem>
+                      <SelectItem value="double_wide">Double Wide MH</SelectItem>
+                      <SelectItem value="triple_wide">Triple Wide MH</SelectItem>
+                      <SelectItem value="park_model">Park Model</SelectItem>
+                      <SelectItem value="modular_home">Modular Home</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

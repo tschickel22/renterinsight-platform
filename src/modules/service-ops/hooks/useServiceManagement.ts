@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { ServiceTicket, ServiceStatus, Priority, ServicePart, ServiceLabor } from '@/types'
+import { ServiceTicket, ServicePart, ServiceLabor } from '@/types'
+import { ServiceStatus, Priority } from '@/types'
 import { saveToLocalStorage, loadFromLocalStorage } from '@/lib/utils'
 
 export function useServiceManagement() {
@@ -19,8 +20,8 @@ export function useServiceManagement() {
         vehicleId: 'veh-1',
         title: 'Annual Maintenance Service',
         description: 'Complete annual maintenance including oil change, filter replacement, and system checks',
-        priority: Priority.MEDIUM,
-        status: ServiceStatus.IN_PROGRESS,
+        priority: 'medium',
+        status: 'in_progress',
         assignedTo: 'Tech-001',
         scheduledDate: new Date('2024-01-20'),
         parts: [
@@ -59,8 +60,8 @@ export function useServiceManagement() {
         vehicleId: 'veh-2',
         title: 'AC System Repair',
         description: 'Air conditioning not cooling properly, needs diagnostic and repair',
-        priority: Priority.HIGH,
-        status: ServiceStatus.WAITING_PARTS,
+        priority: 'high',
+        status: 'waiting_parts',
         assignedTo: 'Tech-002',
         scheduledDate: new Date('2024-01-22'),
         parts: [
@@ -123,8 +124,8 @@ export function useServiceManagement() {
         vehicleId: ticketData.vehicleId,
         title: ticketData.title || '',
         description: ticketData.description || '',
-        priority: ticketData.priority || Priority.MEDIUM,
-        status: ticketData.status || ServiceStatus.OPEN,
+        priority: ticketData.priority || 'medium',
+        status: ticketData.status || 'open',
         assignedTo: ticketData.assignedTo,
         scheduledDate: ticketData.scheduledDate,
         parts: ticketData.parts || [],

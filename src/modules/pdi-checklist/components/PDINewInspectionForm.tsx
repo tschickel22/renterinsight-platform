@@ -6,7 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label'
 import { X, ClipboardCheck } from 'lucide-react'
 import { PDITemplate, PDIInspection } from '../types'
-import { Vehicle, VehicleType } from '@/types'
+import { Vehicle } from '@/types'
+import { VehicleType } from '@/types/vehicle'
 import { useToast } from '@/hooks/use-toast'
 
 interface PDINewInspectionFormProps {

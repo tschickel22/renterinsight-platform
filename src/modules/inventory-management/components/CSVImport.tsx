@@ -6,7 +6,8 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { X, Upload, Check, AlertTriangle, FileText } from 'lucide-react'
-import { Vehicle, VehicleStatus, VehicleType } from '@/types'
+import { Vehicle } from '@/types'
+import { VehicleStatus, VehicleType } from '@/types/vehicle'
 import { useToast } from '@/hooks/use-toast'
 import Papa from 'papaparse'
 
@@ -205,23 +206,23 @@ export function CSVImport({ onImport, onCancel }: CSVImportProps) {
   const validateVehicleType = (value: string): VehicleType => {
     const normalizedValue = value.toLowerCase().replace(/[^a-z0-9]/g, '')
     
-    if (normalizedValue.includes('motorhome')) return VehicleType.MOTORHOME
-    if (normalizedValue.includes('travel') && normalizedValue.includes('trailer')) return VehicleType.TRAVEL_TRAILER
-    if (normalizedValue.includes('fifth') && normalizedValue.includes('wheel')) return VehicleType.FIFTH_WHEEL
-    if (normalizedValue.includes('toy') && normalizedValue.includes('hauler')) return VehicleType.TOY_HAULER
+    if (normalizedValue.includes('motorhome')) return 'motorhome'
+    if (normalizedValue.includes('travel') && normalizedValue.includes('trailer')) return 'trailer'
+    if (normalizedValue.includes('fifth') && normalizedValue.includes('wheel')) return 'fifth-wheel'
+    if (normalizedValue.includes('toy') && normalizedValue.includes('hauler')) return 'toy_hauler'
     
-    return VehicleType.RV
+    return 'rv'
   }
 
   const validateVehicleStatus = (value: string): VehicleStatus => {
     const normalizedValue = value.toLowerCase().replace(/[^a-z0-9]/g, '')
     
-    if (normalizedValue.includes('reserved')) return VehicleStatus.RESERVED
-    if (normalizedValue.includes('sold')) return VehicleStatus.SOLD
-    if (normalizedValue.includes('service')) return VehicleStatus.SERVICE
-    if (normalizedValue.includes('delivered')) return VehicleStatus.DELIVERED
+    if (normalizedValue.includes('reserved')) return 'reserved'
+    if (normalizedValue.includes('sold')) return 'sold'
+    if (normalizedValue.includes('service')) return 'service'
+    if (normalizedValue.includes('delivered')) return 'delivered'
     
-    return VehicleStatus.AVAILABLE
+    return 'available'
   }
 
   return (

@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { X, Edit, Wrench, DollarSign, Calendar, Clock, User, Printer, Download, FileText } from 'lucide-react'
-import { ServiceTicket, ServiceStatus, Priority } from '@/types'
+import { ServiceTicket } from '@/types'
+import { ServiceStatus, Priority } from '@/types'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
@@ -23,15 +24,16 @@ export function ServiceTicketDetail({ ticket, onClose, onEdit }: ServiceTicketDe
 
   const getStatusColor = (status: ServiceStatus) => {
     switch (status) {
-      case ServiceStatus.OPEN:
+      case 'open':
         return 'bg-blue-50 text-blue-700 border-blue-200'
-      case ServiceStatus.IN_PROGRESS:
+      case 'in_progress':
+      case 'in_progress':
         return 'bg-yellow-50 text-yellow-700 border-yellow-200'
-      case ServiceStatus.WAITING_PARTS:
+      case 'waiting_parts':
         return 'bg-orange-50 text-orange-700 border-orange-200'
-      case ServiceStatus.COMPLETED:
+      case 'completed':
         return 'bg-green-50 text-green-700 border-green-200'
-      case ServiceStatus.CANCELLED:
+      case 'cancelled':
         return 'bg-red-50 text-red-700 border-red-200'
       default:
         return 'bg-gray-50 text-gray-700 border-gray-200'
@@ -40,13 +42,13 @@ export function ServiceTicketDetail({ ticket, onClose, onEdit }: ServiceTicketDe
 
   const getPriorityColor = (priority: Priority) => {
     switch (priority) {
-      case Priority.LOW:
+      case 'low':
         return 'bg-green-50 text-green-700 border-green-200'
-      case Priority.MEDIUM:
+      case 'medium':
         return 'bg-yellow-50 text-yellow-700 border-yellow-200'
-      case Priority.HIGH:
+      case 'high':
         return 'bg-orange-50 text-orange-700 border-orange-200'
-      case Priority.URGENT:
+      case 'urgent':
         return 'bg-red-50 text-red-700 border-red-200'
       default:
         return 'bg-gray-50 text-gray-700 border-gray-200'

@@ -22,7 +22,8 @@ import {
   Check,
   X
 } from 'lucide-react'
-import { Vehicle, VehicleStatus, VehicleType } from '@/types'
+import { Vehicle } from '@/types'
+import { VehicleStatus, VehicleType } from '@/types/vehicle'
 import { formatCurrency } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
@@ -57,15 +58,15 @@ export function InventoryTable({
 
   const getStatusColor = (status: VehicleStatus) => {
     switch (status) {
-      case VehicleStatus.AVAILABLE:
+      case 'available':
         return 'bg-green-50 text-green-700 border-green-200'
-      case VehicleStatus.RESERVED:
+      case 'reserved':
         return 'bg-yellow-50 text-yellow-700 border-yellow-200'
-      case VehicleStatus.SOLD:
+      case 'sold':
         return 'bg-blue-50 text-blue-700 border-blue-200'
-      case VehicleStatus.SERVICE:
+      case 'service':
         return 'bg-orange-50 text-orange-700 border-orange-200'
-      case VehicleStatus.DELIVERED:
+      case 'delivered':
         return 'bg-purple-50 text-purple-700 border-purple-200'
       default:
         return 'bg-gray-50 text-gray-700 border-gray-200'
@@ -216,11 +217,11 @@ export function InventoryTable({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value={VehicleStatus.AVAILABLE}>Available</SelectItem>
-              <SelectItem value={VehicleStatus.RESERVED}>Reserved</SelectItem>
-              <SelectItem value={VehicleStatus.SOLD}>Sold</SelectItem>
-              <SelectItem value={VehicleStatus.SERVICE}>Service</SelectItem>
-              <SelectItem value={VehicleStatus.DELIVERED}>Delivered</SelectItem>
+              <SelectItem value="available">Available</SelectItem>
+              <SelectItem value="reserved">Reserved</SelectItem>
+              <SelectItem value="sold">Sold</SelectItem>
+              <SelectItem value="service">Service</SelectItem>
+              <SelectItem value="delivered">Delivered</SelectItem>
             </SelectContent>
           </Select>
           
@@ -230,11 +231,11 @@ export function InventoryTable({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value={VehicleType.RV}>RV</SelectItem>
-              <SelectItem value={VehicleType.MOTORHOME}>Motorhome</SelectItem>
-              <SelectItem value={VehicleType.TRAVEL_TRAILER}>Travel Trailer</SelectItem>
-              <SelectItem value={VehicleType.FIFTH_WHEEL}>Fifth Wheel</SelectItem>
-              <SelectItem value={VehicleType.TOY_HAULER}>Toy Hauler</SelectItem>
+              <SelectItem value="rv">RV</SelectItem>
+              <SelectItem value="motorhome">Motorhome</SelectItem>
+              <SelectItem value="trailer">Travel Trailer</SelectItem>
+              <SelectItem value="fifth-wheel">Fifth Wheel</SelectItem>
+              <SelectItem value="toy_hauler">Toy Hauler</SelectItem>
             </SelectContent>
           </Select>
           

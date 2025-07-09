@@ -4,8 +4,8 @@ export enum LeadStatus {
   QUALIFIED = 'qualified',
   PROPOSAL = 'proposal',
   NEGOTIATION = 'negotiation',
-  CLOSED_WON = 'closed_won',
-  CLOSED_LOST = 'closed_lost'
+  CLOSED_WON = 'closed-won',
+  CLOSED_LOST = 'closed-lost'
 }
 
 export interface Lead {
@@ -108,13 +108,28 @@ export interface LeadReminder {
   id: string
   leadId: string
   userId: string
-  type: 'follow_up' | 'call' | 'email' | 'meeting' | 'deadline'
+  type: ReminderType
   title: string
   description: string
   dueDate: Date
   isCompleted: boolean
-  priority: 'low' | 'medium' | 'high' | 'urgent'
+  priority: Priority
   createdAt: Date
+}
+
+export enum ReminderType {
+  FOLLOW_UP = 'follow_up',
+  CALL = 'call',
+  EMAIL = 'email',
+  MEETING = 'meeting',
+  DEADLINE = 'deadline'
+}
+
+export enum Priority {
+  LOW = 'low',
+  MEDIUM = 'medium',
+  HIGH = 'high',
+  URGENT = 'urgent'
 }
 
 export interface PipelineStage {

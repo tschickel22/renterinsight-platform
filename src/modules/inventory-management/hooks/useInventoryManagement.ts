@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Vehicle, VehicleStatus, VehicleType } from '@/types'
+import { Vehicle } from '@/types'
+import { VehicleStatus, VehicleType } from '@/types/vehicle'
 import { saveToLocalStorage, loadFromLocalStorage } from '@/lib/utils'
 import Papa from 'papaparse'
 
@@ -20,8 +21,8 @@ export function useInventoryManagement() {
         make: 'Forest River',
         model: 'Georgetown',
         year: 2024,
-        type: VehicleType.MOTORHOME,
-        status: VehicleStatus.AVAILABLE,
+        type: 'motorhome',
+        status: 'available',
         price: 125000,
         cost: 95000,
         location: 'Lot A-15',
@@ -37,8 +38,8 @@ export function useInventoryManagement() {
         make: 'Winnebago',
         model: 'View',
         year: 2023,
-        type: VehicleType.RV,
-        status: VehicleStatus.AVAILABLE,
+        type: 'rv',
+        status: 'available',
         price: 89000,
         cost: 72000,
         location: 'Lot B-08',
@@ -54,8 +55,8 @@ export function useInventoryManagement() {
         make: 'Jayco',
         model: 'Eagle',
         year: 2024,
-        type: VehicleType.FIFTH_WHEEL,
-        status: VehicleStatus.AVAILABLE,
+        type: 'fifth-wheel',
+        status: 'available',
         price: 75000,
         cost: 58000,
         location: 'Lot C-12',
@@ -71,8 +72,8 @@ export function useInventoryManagement() {
         make: 'Airstream',
         model: 'Flying Cloud',
         year: 2024,
-        type: VehicleType.TRAVEL_TRAILER,
-        status: VehicleStatus.AVAILABLE,
+        type: 'trailer',
+        status: 'available',
         price: 95000,
         cost: 78000,
         location: 'Lot D-05',
@@ -88,8 +89,8 @@ export function useInventoryManagement() {
         make: 'Grand Design',
         model: 'Momentum',
         year: 2023,
-        type: VehicleType.TOY_HAULER,
-        status: VehicleStatus.AVAILABLE,
+        type: 'toy_hauler',
+        status: 'available',
         price: 110000,
         cost: 88000,
         location: 'Lot E-18',
@@ -105,8 +106,8 @@ export function useInventoryManagement() {
         make: 'Clayton Homes',
         model: 'Inspiration',
         year: 2024,
-        type: VehicleType.DOUBLE_WIDE,
-        status: VehicleStatus.AVAILABLE,
+        type: 'double_wide',
+        status: 'available',
         price: 125000,
         cost: 95000,
         location: 'MH Section A-10',
@@ -134,7 +135,7 @@ export function useInventoryManagement() {
   }
 
   const getAvailableVehicles = () => {
-    return vehicles.filter(vehicle => vehicle.status === VehicleStatus.AVAILABLE)
+    return vehicles.filter(vehicle => vehicle.status === 'available')
   }
 
   const getVehicleById = (id: string) => {
@@ -166,8 +167,8 @@ export function useInventoryManagement() {
         make: vehicleData.make || '',
         model: vehicleData.model || '',
         year: vehicleData.year || new Date().getFullYear(),
-        type: vehicleData.type || VehicleType.RV,
-        status: VehicleStatus.AVAILABLE,
+        type: vehicleData.type || 'rv',
+        status: 'available',
         price: vehicleData.price || 0,
         cost: vehicleData.cost || 0,
         location: vehicleData.location || '',

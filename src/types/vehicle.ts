@@ -1,14 +1,2 @@
-export enum VehicleStatus {
-  AVAILABLE = 'available',
-  SOLD = 'sold',
-  RESERVED = 'reserved',
-  SERVICE = 'service',
-  DELIVERED = 'delivered'
-}
-
-export enum VehicleType {
-  RV = 'rv',
-  MOTORHOME = 'motorhome',
-  TRAILER = 'trailer',
-  FIFTH_WHEEL = 'fifth-wheel'
-}
+export type VehicleStatus = 'available' | 'sold' | 'reserved' | 'service' | 'delivered';
+export type VehicleType = 'rv' | 'motorhome' | 'trailer' | 'fifth-wheel' | 'toy_hauler' | 'single_wide' | 'double_wide' | 'triple_wide' | 'park_model' | 'modular_home';

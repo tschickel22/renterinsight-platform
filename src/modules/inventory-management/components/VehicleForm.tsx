@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { useDropzone } from 'react-dropzone'
 import { X, Save, Plus, Trash2, Upload, Image as ImageIcon, Video, QrCode, Camera } from 'lucide-react'
-import { Vehicle, VehicleStatus, VehicleType } from '@/types'
+import { Vehicle } from '@/types'
+import { VehicleStatus, VehicleType } from '@/types/vehicle'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 
@@ -280,16 +281,16 @@ export function VehicleForm({ vehicle, onSave, onCancel, onScanBarcode }: Vehicl
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={VehicleType.RV}>RV</SelectItem>
-                      <SelectItem value={VehicleType.MOTORHOME}>Motorhome</SelectItem>
-                      <SelectItem value={VehicleType.TRAVEL_TRAILER}>Travel Trailer</SelectItem>
-                      <SelectItem value={VehicleType.FIFTH_WHEEL}>Fifth Wheel</SelectItem>
-                      <SelectItem value={VehicleType.TOY_HAULER}>Toy Hauler</SelectItem>
-                      <SelectItem value={VehicleType.SINGLE_WIDE}>Single Wide MH</SelectItem>
-                      <SelectItem value={VehicleType.DOUBLE_WIDE}>Double Wide MH</SelectItem>
-                      <SelectItem value={VehicleType.TRIPLE_WIDE}>Triple Wide MH</SelectItem>
-                      <SelectItem value={VehicleType.PARK_MODEL}>Park Model</SelectItem>
-                      <SelectItem value={VehicleType.MODULAR_HOME}>Modular Home</SelectItem>
+                      <SelectItem value="rv">RV</SelectItem>
+                      <SelectItem value="motorhome">Motorhome</SelectItem>
+                      <SelectItem value="trailer">Travel Trailer</SelectItem>
+                      <SelectItem value="fifth-wheel">Fifth Wheel</SelectItem>
+                      <SelectItem value="toy_hauler">Toy Hauler</SelectItem>
+                      <SelectItem value="single_wide">Single Wide MH</SelectItem>
+                      <SelectItem value="double_wide">Double Wide MH</SelectItem>
+                      <SelectItem value="triple_wide">Triple Wide MH</SelectItem>
+                      <SelectItem value="park_model">Park Model</SelectItem>
+                      <SelectItem value="modular_home">Modular Home</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -304,11 +305,11 @@ export function VehicleForm({ vehicle, onSave, onCancel, onScanBarcode }: Vehicl
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={VehicleStatus.AVAILABLE}>Available</SelectItem>
-                      <SelectItem value={VehicleStatus.RESERVED}>Reserved</SelectItem>
-                      <SelectItem value={VehicleStatus.SOLD}>Sold</SelectItem>
-                      <SelectItem value={VehicleStatus.SERVICE}>Service</SelectItem>
-                      <SelectItem value={VehicleStatus.DELIVERED}>Delivered</SelectItem>
+                      <SelectItem value="available">Available</SelectItem>
+                      <SelectItem value="reserved">Reserved</SelectItem>
+                      <SelectItem value="sold">Sold</SelectItem>
+                      <SelectItem value="service">Service</SelectItem>
+                      <SelectItem value="delivered">Delivered</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

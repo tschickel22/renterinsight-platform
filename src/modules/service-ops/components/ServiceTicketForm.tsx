@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { X, Save, Plus, Trash2, Wrench, Calendar, Clock } from 'lucide-react'
-import { ServiceTicket, ServiceStatus, Priority, ServicePart, ServiceLabor } from '@/types'
+import { ServiceTicket, ServicePart, ServiceLabor } from '@/types'
+import { ServiceStatus, Priority } from '@/types'
 import { useToast } from '@/hooks/use-toast'
 import { formatCurrency } from '@/lib/utils'
 import { useInventoryManagement } from '@/modules/inventory-management/hooks/useInventoryManagement'
@@ -32,8 +33,8 @@ export function ServiceTicketForm({ ticket, onSave, onCancel }: ServiceTicketFor
     vehicleId: '',
     title: '',
     description: '',
-    priority: Priority.MEDIUM,
-    status: ServiceStatus.OPEN,
+    priority: 'medium',
+    status: 'open',
     assignedTo: '',
     scheduledDate: undefined,
     notes: '',
@@ -366,10 +367,10 @@ export function ServiceTicketForm({ ticket, onSave, onCancel }: ServiceTicketFor
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={Priority.LOW}>Low</SelectItem>
-                      <SelectItem value={Priority.MEDIUM}>Medium</SelectItem>
-                      <SelectItem value={Priority.HIGH}>High</SelectItem>
-                      <SelectItem value={Priority.URGENT}>Urgent</SelectItem>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="urgent">Urgent</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -384,11 +385,11 @@ export function ServiceTicketForm({ ticket, onSave, onCancel }: ServiceTicketFor
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={ServiceStatus.OPEN}>Open</SelectItem>
-                      <SelectItem value={ServiceStatus.IN_PROGRESS}>In Progress</SelectItem>
-                      <SelectItem value={ServiceStatus.WAITING_PARTS}>Waiting for Parts</SelectItem>
-                      <SelectItem value={ServiceStatus.COMPLETED}>Completed</SelectItem>
-                      <SelectItem value={ServiceStatus.CANCELLED}>Cancelled</SelectItem>
+                      <SelectItem value="open">Open</SelectItem>
+                      <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="waiting_parts">Waiting for Parts</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
