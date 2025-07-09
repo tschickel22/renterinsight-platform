@@ -300,4 +300,16 @@ function ReportingDashboard() {
               </CardHeader>
               <CardContent>
                 {/* You would map over your 'reports' state here to display them */}
-                <div className="text-center py-8 text-muted-
+                <div className="text-center py-8 text-muted-foreground">No saved reports yet.</div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">No saved reports yet.</div>
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
+  )
+}
+
+export default ReportingDashboard
