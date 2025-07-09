@@ -61,7 +61,9 @@ export function ReportGeneratorForm({
       return
     }
 
-    onGenerate(reportConfig)
+    // CRITICAL FIX: Ensure onGenerate is called with the current reportConfig state
+    console.log('Calling onGenerate with config:', reportConfig);
+    onGenerate(reportConfig);
   }
 
   const handleReportTypeChange = (type: ReportType) => {
