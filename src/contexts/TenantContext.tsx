@@ -1,126 +1,103 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { Tenant, CustomField } from '@/types'
+import { useAuth } from './AuthContext'
+
+interface Tenant {
+  id: string
+  name: string
+  domain: string
+  settings: {
+    theme: string
+    logo?: string
+    primaryColor: string
+    features: string[]
+  }
+}
 
 interface TenantContextType {
   tenant: Tenant | null
-  customFields: CustomField[]
-  getCustomFields: (module: string, section?: string) => CustomField[]
-  updateTenantSettings: (settings: Partial<Tenant['settings']>) => Promise<void>
-  addCustomField: (field: Omit<CustomField, 'id'>) => Promise<void>
-  updateCustomField: (id: string, field: Partial<CustomField>) => Promise<void>
-  deleteCustomField: (id: string) => Promise<void>
+  isLoading: boolean
+  updateTenant: (updates: Partial<Tenant>) => Promise<void>
 }
 
 const TenantContext = createContext<TenantContextType | undefined>(undefined)
 
-export function useTenant() {
-  const context = useContext(TenantContext)
-  if (context === undefined) {
-    throw new Error('useTenant must be used within a TenantProvider')
+// Mock tenant data
+const mockTenants: Record<string, Tenant> = {
+  '1': {
+    id: '1',
+    name: 'RV World Dealership',
+    domain: 'rvworld.renterinsight.com',
+    settings: {
+      theme: 'light',
+      logo: '/logo-rvworld.png',
+      primaryColor: '#3b82f6',
+      features: ['crm', 'inventory', 'finance', 'service', 'reports']
+    }
+  },
+  '2': {
+    id: '2',
+    name: 'Mobile Home Solutions',
+    domain: 'mhsolutions.renterinsight.com',
+    settings: {
+      theme: 'light',
+      logo: '/logo-mhsolutions.png',
+      primaryColor: '#10b981',
+      features: ['crm', 'inventory', 'deals', 'agreements', 'portal']
+    }
+  },
+  '3': {
+    id: '3',
+    name: 'Premier RV & MH',
+    domain: 'premier.renterinsight.com',
+    settings: {
+      theme: 'dark',
+      logo: '/logo-premier.png',
+      primaryColor: '#8b5cf6',
+      features: ['crm', 'inventory', 'finance', 'service', 'delivery', 'commissions', 'reports']
+    }
   }
-  return context
 }
 
-interface TenantProviderProps {
-  children: ReactNode
-}
-
-export function TenantProvider({ children }: TenantProviderProps) {
+export function TenantProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth()
   const [tenant, setTenant] = useState<Tenant | null>(null)
-  const [customFields, setCustomFields] = useState<CustomField[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Load tenant data
-    const mockTenant: Tenant = {
-      id: 'tenant-1',
-      name: 'Demo RV Dealership',
-      domain: 'demo.renterinsight.com',
-      settings: {
-        timezone: 'America/New_York',
-        currency: 'USD',
-        dateFormat: 'MM/dd/yyyy',
-        businessHours: {
-          monday: { open: '09:00', close: '18:00', closed: false },
-          tuesday: { open: '09:00', close: '18:00', closed: false },
-          wednesday: { open: '09:00', close: '18:00', closed: false },
-          thursday: { open: '09:00', close: '18:00', closed: false },
-          friday: { open: '09:00', close: '18:00', closed: false },
-          saturday: { open: '09:00', close: '17:00', closed: false },
-          sunday: { open: '12:00', close: '17:00', closed: false }
-        },
-        features: {
-          crm: true,
-          inventory: true,
-          quotes: true,
-          agreements: true,
-          service: true,
-          delivery: true,
-          commissions: true,
-          portal: true,
-          invoices: true,
-          reports: true
-        }
-      },
-      customFields: [],
-      branding: {
-        primaryColor: '#3b82f6',
-        secondaryColor: '#64748b',
-        fontFamily: 'Inter'
-      },
-      createdAt: new Date(),
-      updatedAt: new Date()
+    if (user) {
+      // In a real app, you would fetch tenant based on user's organization
+      // For demo, we'll assign tenant based on user ID
+      const tenantId = user.id
+      const userTenant = mockTenants[tenantId] || mockTenants['1'] // Default to first tenant
+      
+      setTenant(userTenant)
+    } else {
+      setTenant(null)
     }
+    setIsLoading(false)
+  }, [user])
 
-    setTenant(mockTenant)
-    setCustomFields(mockTenant.customFields)
-  }, [])
-
-  const getCustomFields = (module: string, section?: string): CustomField[] => {
-    return customFields.filter(field => 
-      field.module === module && 
-      (section ? field.section === section : true)
-    )
-  }
-
-  const updateTenantSettings = async (settings: Partial<Tenant['settings']>) => {
+  const updateTenant = async (updates: Partial<Tenant>): Promise<void> => {
     if (!tenant) return
     
-    const updatedTenant = {
-      ...tenant,
-      settings: { ...tenant.settings, ...settings },
-      updatedAt: new Date()
-    }
+    setIsLoading(true)
     
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    const updatedTenant = { ...tenant, ...updates }
     setTenant(updatedTenant)
-  }
-
-  const addCustomField = async (field: Omit<CustomField, 'id'>) => {
-    const newField: CustomField = {
-      ...field,
-      id: Math.random().toString(36).substr(2, 9)
-    }
     
-    setCustomFields(prev => [...prev, newField])
-  }
-
-  const updateCustomField = async (id: string, field: Partial<CustomField>) => {
-    setCustomFields(prev => 
-      prev.map(f => f.id === id ? { ...f, ...field } : f)
-    )
-  }
-
-  const deleteCustomField = async (id: string) => {
-    setCustomFields(prev => prev.filter(f => f.id !== id))
+    // Update mock data
+    mockTenants[tenant.id] = updatedTenant
+    
+    setIsLoading(false)
   }
 
   const value = {
     tenant,
-    customFields,
-    getCustomFields,
-    updateTenantSettings,
-    addCustomField,
-    updateCustomField,
-    deleteCustomField
+    isLoading,
+    updateTenant
   }
 
   return (
@@ -128,4 +105,12 @@ export function TenantProvider({ children }: TenantProviderProps) {
       {children}
     </TenantContext.Provider>
   )
+}
+
+export function useTenant() {
+  const context = useContext(TenantContext)
+  if (context === undefined) {
+    throw new Error('useTenant must be used within a TenantProvider')
+  }
+  return context
 }

@@ -1,116 +1,97 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { User, UserRole } from '@/types'
-import { saveToLocalStorage, loadFromLocalStorage, removeFromLocalStorage } from '@/lib/utils'
+
+interface User {
+  id: string
+  email: string
+  name: string
+  role: string
+}
 
 interface AuthContextType {
   user: User | null
+  isLoading: boolean
   login: (email: string, password: string) => Promise<void>
   logout: () => void
-  isLoading: boolean
-  hasPermission: (resource: string, action: string) => boolean
-  hasRole: (role: UserRole) => boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export function useAuth() {
-  const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
+// Mock user data
+const mockUsers = [
+  {
+    id: '1',
+    email: 'admin@renterinsight.com',
+    name: 'Admin User',
+    role: 'admin'
+  },
+  {
+    id: '2',
+    email: 'manager@renterinsight.com',
+    name: 'Manager User',
+    role: 'manager'
+  },
+  {
+    id: '3',
+    email: 'sales@renterinsight.com',
+    name: 'Sales User',
+    role: 'sales'
   }
-  return context
-}
+]
 
-interface AuthProviderProps {
-  children: ReactNode
-}
-
-export function AuthProvider({ children }: AuthProviderProps) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Check for existing session
-    const token = loadFromLocalStorage('auth_token', null)
-    if (token) {
-      // Simulate user data - in real app, validate token with API
-      setUser({
-        id: '1',
-        email: 'admin@renterinsight.com',
-        name: 'Admin User',
-        role: UserRole.ADMIN,
-        tenantId: 'tenant-1',
-        permissions: [
-          { id: '1', name: 'All Access', resource: '*', action: '*' }
-        ],
-        createdAt: new Date(),
-        updatedAt: new Date()
-      })
+    // Check for stored user session
+    const storedUser = localStorage.getItem('renter-insight-user')
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser))
+      } catch (error) {
+        console.error('Failed to parse stored user:', error)
+        localStorage.removeItem('renter-insight-user')
+      }
     }
     setIsLoading(false)
   }, [])
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true)
-    try {
-      // Simulate API call for authentication
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
-
-      // Mock authentication logic
-      if (email === 'admin@renterinsight.com' && password === 'password') {
-        const mockUser: User = {
-          id: '1',
-          email,
-          name: 'Admin User',
-          role: UserRole.ADMIN,
-          tenantId: 'tenant-1',
-          permissions: [
-            { id: '1', name: 'All Access', resource: '*', action: '*' }
-          ],
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-        
-        setUser(mockUser)
-        saveToLocalStorage('auth_token', 'mock-token')
-        
-      } else {
-        throw new Error('Invalid credentials')
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      throw new Error('Login failed')
-    } finally {
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    // Find user by email
+    const foundUser = mockUsers.find(u => u.email === email)
+    
+    if (!foundUser) {
       setIsLoading(false)
+      throw new Error('Invalid email or password')
     }
+    
+    // For demo purposes, accept any password
+    // In a real app, you would validate the password
+    if (password.length < 1) {
+      setIsLoading(false)
+      throw new Error('Password is required')
+    }
+    
+    setUser(foundUser)
+    localStorage.setItem('renter-insight-user', JSON.stringify(foundUser))
+    setIsLoading(false)
   }
 
   const logout = () => {
     setUser(null)
-    removeFromLocalStorage('auth_token')
-  }
-
-  const hasPermission = (resource: string, action: string): boolean => {
-    if (!user) return false
-    
-    return user.permissions.some(permission => 
-      (permission.resource === '*' || permission.resource === resource) &&
-      (permission.action === '*' || permission.action === action)
-    )
-  }
-
-  const hasRole = (role: UserRole): boolean => {
-    if (!user) return false
-    return user.role === role || user.role === UserRole.ADMIN
+    localStorage.removeItem('renter-insight-user')
   }
 
   const value = {
     user,
-    login,
-    logout,
     isLoading,
-    hasPermission,
-    hasRole
+    login,
+    logout
   }
 
   return (
@@ -118,4 +99,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       {children}
     </AuthContext.Provider>
   )
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext)
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider')
+  }
+  return context
 }

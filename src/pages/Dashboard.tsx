@@ -1,153 +1,220 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Users, Package, FileText, DollarSign, TrendingUp, Calendar, Plus } from 'lucide-react'
-import { NewLeadForm } from '@/modules/crm-prospecting/components/NewLeadForm'
-import { Lead } from '@/types'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { 
+  Users, 
+  Package, 
+  DollarSign, 
+  TrendingUp, 
+  Calendar,
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  Plus
+} from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
+import { useTenant } from '@/contexts/TenantContext'
+import { formatCurrency } from '@/lib/utils'
 
-const stats = [
-  {
-    name: 'Total Leads',
-    value: '2,651',
-    change: '+4.75%',
-    changeType: 'positive',
-    icon: Users,
-  },
-  {
-    name: 'Inventory Units',
-    value: '847',
-    change: '+54.02%',
-    changeType: 'positive',
-    icon: Package,
-  },
-  {
-    name: 'Active Quotes',
-    value: '124',
-    change: '-1.39%',
-    changeType: 'negative',
-    icon: FileText,
-  },
-  {
-    name: 'Monthly Revenue',
-    value: '$405,091',
-    change: '+10.18%',
-    changeType: 'positive',
-    icon: DollarSign,
-  },
-]
+// Mock dashboard data
+const dashboardStats = {
+  totalLeads: 156,
+  activeDeals: 23,
+  monthlyRevenue: 485000,
+  inventoryCount: 89,
+  pendingDeliveries: 12,
+  serviceTickets: 8
+}
 
-const recentActivity = [
+const recentActivities = [
   {
-    id: 1,
+    id: '1',
     type: 'lead',
     title: 'New lead from website',
-    description: 'John Smith interested in Class A Motorhome',
-    time: '2 minutes ago',
+    description: 'John Smith interested in 2024 Forest River',
+    time: '2 hours ago',
+    status: 'new'
   },
   {
-    id: 2,
-    type: 'quote',
-    title: 'Quote sent to customer',
-    description: 'Quote #Q-2024-001 sent to Sarah Johnson',
-    time: '15 minutes ago',
+    id: '2',
+    type: 'deal',
+    title: 'Deal closed',
+    description: 'Sarah Johnson purchased 2023 Keystone RV',
+    time: '4 hours ago',
+    status: 'completed'
   },
   {
-    id: 3,
+    id: '3',
     type: 'service',
     title: 'Service appointment scheduled',
-    description: 'Annual maintenance for RV #VIN123456',
-    time: '1 hour ago',
+    description: 'Mike Davis - AC repair scheduled for tomorrow',
+    time: '6 hours ago',
+    status: 'scheduled'
   },
   {
-    id: 4,
+    id: '4',
     type: 'delivery',
     title: 'Delivery completed',
-    description: 'Travel Trailer delivered to Mike Davis',
-    time: '2 hours ago',
+    description: 'Unit #RV-2024-001 delivered to customer',
+    time: '1 day ago',
+    status: 'completed'
+  }
+]
+
+const upcomingTasks = [
+  {
+    id: '1',
+    title: 'Follow up with hot leads',
+    dueDate: 'Today',
+    priority: 'high'
   },
+  {
+    id: '2',
+    title: 'PDI inspection for Unit #MH-2024-005',
+    dueDate: 'Tomorrow',
+    priority: 'medium'
+  },
+  {
+    id: '3',
+    title: 'Monthly inventory audit',
+    dueDate: 'This week',
+    priority: 'low'
+  },
+  {
+    id: '4',
+    title: 'Commission calculations',
+    dueDate: 'End of month',
+    priority: 'medium'
+  }
 ]
 
 export default function Dashboard() {
-  const [showNewLeadForm, setShowNewLeadForm] = useState(false)
+  const { user } = useAuth()
+  const { tenant } = useTenant()
 
-  const handleNewLeadSuccess = (newLead: Lead) => {
-    console.log('New lead created from dashboard:', newLead)
-    // Optionally show a success message or redirect
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <CheckCircle className="h-4 w-4 text-green-500" />
+      case 'new':
+        return <AlertCircle className="h-4 w-4 text-blue-500" />
+      case 'scheduled':
+        return <Clock className="h-4 w-4 text-orange-500" />
+      default:
+        return <Clock className="h-4 w-4 text-gray-500" />
+    }
   }
 
-  const handleQuickAction = (action: string) => {
-    switch (action) {
-      case 'add-lead':
-        setShowNewLeadForm(true)
-        break
-      case 'add-inventory':
-        window.location.href = '/inventory'
-        break
-      case 'create-quote':
-        window.location.href = '/quotes'
-        break
-      case 'schedule-service':
-        window.location.href = '/service'
-        break
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high':
+        return 'bg-red-50 text-red-700 border-red-200'
+      case 'medium':
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200'
+      case 'low':
+        return 'bg-green-50 text-green-700 border-green-200'
       default:
-        break
+        return 'bg-gray-50 text-gray-700 border-gray-200'
     }
   }
 
   return (
-    <div className="space-y-6">
-      {/* New Lead Form Modal */}
-      {showNewLeadForm && (
-        <NewLeadForm
-          onClose={() => setShowNewLeadForm(false)}
-          onSuccess={handleNewLeadSuccess}
-        />
-      )}
-
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome to your Renter Insight CRM/DMS dashboard
-        </p>
+    <div className="space-y-8">
+      {/* Welcome Header */}
+      <div className="ri-page-header">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="ri-page-title">
+              Welcome back, {user?.name}!
+            </h1>
+            <p className="ri-page-description">
+              Here's what's happening at {tenant?.name || 'your dealership'} today
+            </p>
+          </div>
+          <Button className="shadow-sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Quick Action
+          </Button>
+        </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <Card key={stat.name}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {stat.name}
-              </CardTitle>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className={`text-xs ${
-                stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
-              }`}>
-                {stat.change} from last month
-              </p>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="ri-stats-grid">
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-blue-50 to-blue-100/50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-blue-900">Total Leads</CardTitle>
+            <Users className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-900">{dashboardStats.totalLeads}</div>
+            <p className="text-xs text-blue-600 flex items-center mt-1">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              +12% from last month
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-green-50 to-green-100/50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-green-900">Active Deals</CardTitle>
+            <DollarSign className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-900">{dashboardStats.activeDeals}</div>
+            <p className="text-xs text-green-600 flex items-center mt-1">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              +5 new this week
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-purple-50 to-purple-100/50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-purple-900">Monthly Revenue</CardTitle>
+            <TrendingUp className="h-4 w-4 text-purple-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-purple-900">
+              {formatCurrency(dashboardStats.monthlyRevenue)}
+            </div>
+            <p className="text-xs text-purple-600 flex items-center mt-1">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              +8% from last month
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-orange-50 to-orange-100/50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-orange-900">Inventory</CardTitle>
+            <Package className="h-4 w-4 text-orange-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-900">{dashboardStats.inventoryCount}</div>
+            <p className="text-xs text-orange-600 flex items-center mt-1">
+              <Package className="h-3 w-3 mr-1" />
+              Units in stock
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Recent Activity */}
-        <Card>
+      {/* Main Content Grid */}
+      <div className="ri-content-grid">
+        {/* Recent Activities */}
+        <Card className="shadow-sm">
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
+            <CardTitle className="text-xl">Recent Activities</CardTitle>
             <CardDescription>
-              Latest updates from your dealership
+              Latest updates from across your dealership
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-start space-x-3">
-                  <div className="flex-shrink-0">
-                    <div className="h-2 w-2 bg-primary rounded-full mt-2"></div>
-                  </div>
+              {recentActivities.map((activity) => (
+                <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-accent/50 transition-colors">
+                  {getStatusIcon(activity.status)}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground">
                       {activity.title}
@@ -165,57 +232,77 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
-        <Card>
+        {/* Upcoming Tasks */}
+        <Card className="shadow-sm">
           <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
+            <CardTitle className="text-xl">Upcoming Tasks</CardTitle>
             <CardDescription>
-              Common tasks and shortcuts
+              Tasks and reminders that need your attention
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-3">
-              <button 
-                onClick={() => handleQuickAction('add-lead')}
-                className="flex items-center justify-between p-3 text-left border rounded-lg hover:bg-accent transition-colors"
-              >
-                <div className="flex items-center space-x-3">
-                  <Users className="h-5 w-5 text-primary" />
-                  <span className="font-medium">Add New Lead</span>
+            <div className="space-y-3">
+              {upcomingTasks.map((task) => (
+                <div key={task.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-accent/50 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {task.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Due: {task.dueDate}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge className={`ri-badge-status ${getPriorityColor(task.priority)}`}>
+                    {task.priority.toUpperCase()}
+                  </Badge>
                 </div>
-                <Plus className="h-4 w-4 text-muted-foreground" />
-              </button>
-              <button 
-                onClick={() => handleQuickAction('add-inventory')}
-                className="flex items-center justify-between p-3 text-left border rounded-lg hover:bg-accent transition-colors"
-              >
-                <div className="flex items-center space-x-3">
-                  <Package className="h-5 w-5 text-primary" />
-                  <span className="font-medium">Add Inventory</span>
-                </div>
-                <span className="text-muted-foreground">→</span>
-              </button>
-              <button 
-                onClick={() => handleQuickAction('create-quote')}
-                className="flex items-center justify-between p-3 text-left border rounded-lg hover:bg-accent transition-colors"
-              >
-                <div className="flex items-center space-x-3">
-                  <FileText className="h-5 w-5 text-primary" />
-                  <span className="font-medium">Create Quote</span>
-                </div>
-                <span className="text-muted-foreground">→</span>
-              </button>
-              <button 
-                onClick={() => handleQuickAction('schedule-service')}
-                className="flex items-center justify-between p-3 text-left border rounded-lg hover:bg-accent transition-colors"
-              >
-                <div className="flex items-center space-x-3">
-                  <Calendar className="h-5 w-5 text-primary" />
-                  <span className="font-medium">Schedule Service</span>
-                </div>
-                <span className="text-muted-foreground">→</span>
-              </button>
+              ))}
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick Stats Row */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="shadow-sm">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Deliveries</CardTitle>
+            <AlertCircle className="h-4 w-4 text-orange-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{dashboardStats.pendingDeliveries}</div>
+            <p className="text-xs text-muted-foreground">
+              Units ready for delivery
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Service Tickets</CardTitle>
+            <Clock className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{dashboardStats.serviceTickets}</div>
+            <p className="text-xs text-muted-foreground">
+              Open service requests
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">This Month</CardTitle>
+            <TrendingUp className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">24</div>
+            <p className="text-xs text-muted-foreground">
+              Units sold
+            </p>
           </CardContent>
         </Card>
       </div>
