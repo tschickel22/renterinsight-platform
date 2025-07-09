@@ -221,6 +221,23 @@ export interface Agreement {
 export type AgreementStatus = 'draft' | 'pending' | 'active' | 'completed' | 'cancelled' | 'expired'
 export type AgreementType = 'purchase' | 'lease' | 'rental' | 'service' | 'warranty' | 'financing'
 
+// Export AgreementStatus and AgreementType as enums for consistency with component usage
+export enum AgreementStatus {
+  DRAFT = 'draft',
+  PENDING = 'pending',
+  SIGNED = 'signed',
+  ACTIVE = 'active',
+  EXPIRED = 'expired',
+  CANCELLED = 'cancelled'
+}
+
+export enum AgreementType {
+  PURCHASE = 'purchase',
+  LEASE = 'lease',
+  SERVICE = 'service',
+  WARRANTY = 'warranty'
+}
+
 // Commission Types
 export interface Commission {
   id: string
@@ -235,6 +252,20 @@ export interface Commission {
 }
 
 export type CommissionStatus = 'pending' | 'approved' | 'paid' | 'voided' | 'disputed'
+
+// Export CommissionStatus and CommissionType as enums for consistency with component usage
+export enum CommissionStatus {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  PAID = 'paid',
+  CANCELLED = 'cancelled'
+}
+
+export enum CommissionType {
+  FLAT = 'flat',
+  PERCENTAGE = 'percentage',
+  TIERED = 'tiered'
+}
 
 // Common utility types
 export interface ApiResponse<T> {
