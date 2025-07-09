@@ -49,4 +49,19 @@ renter_insight_openapi.yaml
 **/test/
 **/tests/
 
-# 🔒 Ignore all other apps except reporti
+# 🧭 Ignore all apps except finance
+apps/*
+!apps/finance/**
+
+# 🧭 Ignore all apps except finance
+apps/*
+!apps/finance/**
+
+# 🧭 Ignore all modules except finance
+src/modules/*
+!src/modules/finance/**
+
+# (Optional) Ignore global context, types, pages if not needed
+src/contexts/**
+src/types/**
+src/pages/**
