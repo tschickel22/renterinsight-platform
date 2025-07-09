@@ -1,3 +1,4 @@
+// src/modules/reporting-suite/components/ReportGeneratorForm.tsx
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
@@ -7,6 +8,9 @@ import { useToast } from '@/hooks/use-toast'
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { jsPDF } from 'jspdf' // Import jsPDF
+import 'jspdf-autotable' // Import jspdf-autotable
+import { useTenant } from '@/contexts/TenantContext' // Import useTenant
 
 interface ReportGeneratorFormProps {
   initialReportConfig?: ReportConfig | null
@@ -14,6 +18,8 @@ interface ReportGeneratorFormProps {
   onExportCSV: () => void
   isGenerating: boolean
   hasData: boolean
+  reportData: any[] // Pass reportData to the form
+  reportColumns: any[] // Pass reportColumns to the form
 }
 
 export interface ReportConfig {
@@ -30,19 +36,22 @@ export interface ReportConfig {
   }
 }
 
-export function ReportGeneratorForm({ 
+export function ReportGeneratorForm({
   initialReportConfig,
-  onGenerate, 
-  onExportCSV, 
+  onGenerate,
+  onExportCSV,
   isGenerating,
-  hasData
+  hasData,
+  reportData, // Receive reportData
+  reportColumns // Receive reportColumns
 }: ReportGeneratorFormProps) {
   const { toast } = useToast()
+  const { tenant } = useTenant() // Use the useTenant hook
   const [reportConfig, setReportConfig] = useState<ReportConfig>({
     type: ReportType.SALES,
     name: 'Sales Report',
     dateRange: {
-      startDate: '2023-01-01', // Changed to an earlier date to include mock data
+      startDate: '2023-01-01',
       endDate: new Date().toISOString().split('T')[0]
     },
     filters: {}
@@ -51,7 +60,7 @@ export function ReportGeneratorForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     console.log('handleSubmit called from ReportGeneratorForm');
-    
+
     if (!reportConfig.name) {
       toast({
         title: 'Validation Error',
@@ -61,14 +70,13 @@ export function ReportGeneratorForm({
       return
     }
 
-    // CRITICAL FIX: Ensure onGenerate is called with the current reportConfig state
     console.log('Calling onGenerate with config:', reportConfig);
     onGenerate(reportConfig);
   }
 
   const handleReportTypeChange = (type: ReportType) => {
     let name = 'Custom Report'
-    
+
     switch (type) {
       case ReportType.SALES:
         name = 'Sales Report'
@@ -83,7 +91,7 @@ export function ReportGeneratorForm({
         name = 'Financial Report'
         break
     }
-    
+
     setReportConfig(prev => ({
       ...prev,
       type,
@@ -96,11 +104,81 @@ export function ReportGeneratorForm({
     if (initialReportConfig) {
       console.log('ReportGeneratorForm useEffect triggered with initialReportConfig:', initialReportConfig);
       setReportConfig(initialReportConfig);
-      
-      // If we're receiving a new config, we don't need to auto-generate
-      // as the parent component will handle that
     }
   }, [initialReportConfig]);
+
+  const handleExportPDF = () => {
+    if (!hasData || !reportData.length || !reportColumns.length) {
+      toast({
+        title: 'No Data to Export',
+        description: 'Generate a report first before exporting to PDF.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    const doc = new jsPDF();
+
+    // Add header with company name and logo
+    doc.setFontSize(18);
+    doc.text(tenant?.name || 'Renter Insight CRM/DMS', 14, 22);
+
+    if (tenant?.branding?.logo) {
+      // You might need to adjust x, y, width, height based on your logo size and desired position
+      // For a real logo, ensure it's a base64 string or a URL accessible by jsPDF
+      // For this example, we'll use a placeholder or assume it's a small image.
+      // If it's a URL, jsPDF might need to fetch it, which can be asynchronous.
+      // For simplicity, assuming a small image or a placeholder.
+      // If it's a complex image, consider converting it to a data URL (base64) beforehand.
+      // doc.addImage(tenant.branding.logo, 'PNG', 170, 10, 30, 30); // Example: x, y, width, height
+    }
+
+    doc.setFontSize(12);
+    doc.text(reportConfig.name, 14, 30);
+    doc.text(`Date Range: ${reportConfig.dateRange.startDate} to ${reportConfig.dateRange.endDate}`, 14, 38);
+
+    // Prepare table headers and data
+    const headers = reportColumns.map(col => col.label);
+    const data = reportData.map(row =>
+      reportColumns.map(col => {
+        const value = row[col.key];
+        switch (col.type) {
+          case 'currency':
+            return typeof value === 'number' ? `$${value.toFixed(2)}` : value;
+          case 'date':
+            return value instanceof Date ? value.toISOString().split('T')[0] : value;
+          default:
+            return value;
+        }
+      })
+    );
+
+    // Add table
+    (doc as any).autoTable({
+      startY: 50,
+      head: [headers],
+      body: data,
+      theme: 'striped',
+      headStyles: { fillColor: [66, 139, 202] },
+      styles: { fontSize: 8, cellPadding: 2 },
+      columnStyles: {
+        // Example: align currency columns right
+        ...reportColumns.reduce((acc, col, index) => {
+          if (col.type === 'currency') {
+            acc[index] = { halign: 'right' };
+          }
+          return acc;
+        }, {})
+      }
+    });
+
+    doc.save(`${reportConfig.name.replace(/\s/g, '_')}.pdf`);
+
+    toast({
+      title: 'PDF Export Successful',
+      description: 'The report has been exported as a PDF.',
+    });
+  };
 
   return (
     <Card className="shadow-sm">
@@ -115,10 +193,16 @@ export function ReportGeneratorForm({
               Configure and generate custom reports
             </CardDescription>
           </div>
-          <Button variant="outline" size="sm" onClick={onExportCSV}>
-            <Download className="h-4 w-4 mr-2" />
-            Export CSV
-          </Button>
+          <div className="flex space-x-2">
+            <Button variant="outline" size="sm" onClick={onExportCSV}>
+              <Download className="h-4 w-4 mr-2" />
+              Export CSV
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExportPDF}> {/* New PDF Export Button */}
+              <Download className="h-4 w-4 mr-2" />
+              Export PDF
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -126,8 +210,8 @@ export function ReportGeneratorForm({
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <Label htmlFor="reportType">Report Type</Label>
-              <Select 
-                value={reportConfig.type} 
+              <Select
+                value={reportConfig.type}
                 onValueChange={(value: ReportType) => handleReportTypeChange(value)}
               >
                 <SelectTrigger>
@@ -142,7 +226,7 @@ export function ReportGeneratorForm({
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div>
               <Label htmlFor="reportName">Report Name</Label>
               <Input
@@ -153,7 +237,7 @@ export function ReportGeneratorForm({
               />
             </div>
           </div>
-          
+
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <Label htmlFor="startDate">Start Date</Label>
@@ -163,8 +247,8 @@ export function ReportGeneratorForm({
                   id="startDate"
                   type="date"
                   value={reportConfig.dateRange.startDate}
-                  onChange={(e) => setReportConfig(prev => ({ 
-                    ...prev, 
+                  onChange={(e) => setReportConfig(prev => ({
+                    ...prev,
                     dateRange: {
                       ...prev.dateRange,
                       startDate: e.target.value
@@ -174,7 +258,7 @@ export function ReportGeneratorForm({
                 />
               </div>
             </div>
-            
+
             <div>
               <Label htmlFor="endDate">End Date</Label>
               <div className="relative">
@@ -183,8 +267,8 @@ export function ReportGeneratorForm({
                   id="endDate"
                   type="date"
                   value={reportConfig.dateRange.endDate}
-                  onChange={(e) => setReportConfig(prev => ({ 
-                    ...prev, 
+                  onChange={(e) => setReportConfig(prev => ({
+                    ...prev,
                     dateRange: {
                       ...prev.dateRange,
                       endDate: e.target.value
@@ -195,14 +279,14 @@ export function ReportGeneratorForm({
               </div>
             </div>
           </div>
-          
+
           <div className="grid gap-4 md:grid-cols-3">
             <div>
               <Label htmlFor="salesRep">Sales Rep</Label>
-              <Select 
-                value={reportConfig.filters.salesRep || ''} 
-                onValueChange={(value) => setReportConfig(prev => ({ 
-                  ...prev, 
+              <Select
+                value={reportConfig.filters.salesRep || ''}
+                onValueChange={(value) => setReportConfig(prev => ({
+                  ...prev,
                   filters: {
                     ...prev.filters,
                     salesRep: value || undefined
@@ -220,13 +304,13 @@ export function ReportGeneratorForm({
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div>
               <Label htmlFor="status">Status</Label>
-              <Select 
-                value={reportConfig.filters.status || ''} 
-                onValueChange={(value) => setReportConfig(prev => ({ 
-                  ...prev, 
+              <Select
+                value={reportConfig.filters.status || ''}
+                onValueChange={(value) => setReportConfig(prev => ({
+                  ...prev,
                   filters: {
                     ...prev.filters,
                     status: value || undefined
@@ -244,13 +328,13 @@ export function ReportGeneratorForm({
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div>
               <Label htmlFor="location">Location</Label>
-              <Select 
-                value={reportConfig.filters.location || ''} 
-                onValueChange={(value) => setReportConfig(prev => ({ 
-                  ...prev, 
+              <Select
+                value={reportConfig.filters.location || ''}
+                onValueChange={(value) => setReportConfig(prev => ({
+                  ...prev,
                   filters: {
                     ...prev.filters,
                     location: value || undefined
@@ -270,7 +354,7 @@ export function ReportGeneratorForm({
               </Select>
             </div>
           </div>
-          
+
           <div className="flex justify-between pt-4">
             <Button type="button" variant="outline">
               <Filter className="h-4 w-4 mr-2" />
@@ -303,4 +387,3 @@ export function ReportGeneratorForm({
     </Card>
   )
 }
-
