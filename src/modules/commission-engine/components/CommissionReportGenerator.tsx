@@ -56,7 +56,7 @@ export function CommissionReportGenerator({
   const handleExportCSV = () => {
     if (!report) return
     
-    try {      
+    try {
       const csvData = onExportCSV(report.commissions)
       
       // Convert to CSV
@@ -414,7 +414,7 @@ export function CommissionReportGenerator({
             <div className="text-center py-12 text-muted-foreground border-2 border-dashed rounded-lg">
               <BarChart3 className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
               <p>No report generated yet</p>
-              <p className="text-sm">Click "Generate Report" to create a commission report</p>
+              <p className="text-sm">Use the filters above to generate a commission report</p>
             </div>
           )}
         </CardContent>

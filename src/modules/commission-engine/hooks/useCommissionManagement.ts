@@ -17,7 +17,7 @@ export function useCommissionManagement() {
     // Load existing commissions from localStorage or use mock data
     const savedCommissions = loadFromLocalStorage('renter-insight-commissions', [
       {
-        id: 'comm-001',
+        id: '1',
         salesPersonId: 'sales-001',
         dealId: 'deal-001',
         type: CommissionType.PERCENTAGE,
@@ -31,7 +31,7 @@ export function useCommissionManagement() {
         updatedAt: new Date('2024-01-20')
       },
       {
-        id: 'comm-002',
+        id: '2',
         salesPersonId: 'sales-002',
         dealId: 'deal-002',
         type: CommissionType.FLAT,
@@ -41,55 +41,15 @@ export function useCommissionManagement() {
         notes: 'Flat commission for service contract',
         customFields: {},
         createdAt: new Date('2024-01-15'),
-        updatedAt: new Date('2024-01-15'),
-      },
-      {
-        id: 'comm-003',
-        salesPersonId: 'sales-001',
-        dealId: 'deal-003',
-        type: CommissionType.PERCENTAGE,
-        rate: 0.04,
-        amount: 1000,
-        status: CommissionStatus.PAID,
-        paidDate: new Date('2024-01-25'),
-        notes: 'Commission for toy hauler sale',
-        customFields: {},
-        createdAt: new Date('2024-01-22'),
-        updatedAt: new Date('2024-01-25')
-      },
-      {
-        id: 'comm-004',
-        salesPersonId: 'sales-003',
-        dealId: 'deal-004',
-        type: CommissionType.TIERED,
-        rate: 0.07,
-        amount: 7000,
-        status: CommissionStatus.APPROVED,
-        notes: 'Tiered commission for luxury motorhome',
-        customFields: {},
-        createdAt: new Date('2024-01-18'),
-        updatedAt: new Date('2024-01-20')
-      },
-      {
-        id: 'comm-005',
-        salesPersonId: 'sales-002',
-        dealId: 'deal-005',
-        type: CommissionType.PERCENTAGE,
-        rate: 0.05,
-        amount: 3250,
-        status: CommissionStatus.PENDING,
-        notes: 'Pending approval for fifth wheel sale',
-        customFields: {},
-        createdAt: new Date('2024-01-26'),
-        updatedAt: new Date('2024-01-26')
+        updatedAt: new Date('2024-01-15')
       }
     ])
 
     // Load existing rules from localStorage or use mock data
     const savedRules = loadFromLocalStorage('renter-insight-commission-rules', [
       {
-        id: 'payment-001',
-        invoiceId: 'invoice-001',
+        id: '1',
+        name: 'Standard Sales Commission',
         type: 'percentage',
         rate: 0.05,
         isActive: true,
@@ -123,8 +83,8 @@ export function useCommissionManagement() {
     // Load existing audit trail from localStorage or use mock data
     const savedAuditTrail = loadFromLocalStorage('renter-insight-commission-audit', [
       {
-        id: 'audit-001',
-        commissionId: 'comm-001',
+        id: '1',
+        commissionId: '1',
         userId: 'user-001',
         userName: 'Admin User',
         action: 'created',
@@ -139,8 +99,8 @@ export function useCommissionManagement() {
         timestamp: new Date('2024-01-18')
       },
       {
-        id: 'audit-002',
-        commissionId: 'comm-001',
+        id: '2',
+        commissionId: '1',
         userId: 'user-001',
         userName: 'Admin User',
         action: 'approved',
@@ -148,49 +108,6 @@ export function useCommissionManagement() {
         newValue: { status: CommissionStatus.APPROVED },
         notes: 'Approved after deal verification',
         timestamp: new Date('2024-01-19')
-      },
-      {
-        id: 'audit-003',
-        commissionId: 'comm-001',
-        userId: 'user-001',
-        userName: 'Admin User',
-        action: 'paid',
-        previousValue: { status: CommissionStatus.APPROVED },
-        newValue: { status: CommissionStatus.PAID },
-        notes: 'Payment processed via direct deposit',
-        timestamp: new Date('2024-01-20')
-      },
-      {
-        id: 'audit-004',
-        commissionId: 'comm-003',
-        userId: 'user-001',
-        userName: 'Admin User',
-        action: 'created',
-        newValue: {
-          salesPersonId: 'sales-001',
-          dealId: 'deal-003',
-          type: CommissionType.PERCENTAGE,
-          rate: 0.04,
-          amount: 1000,
-          status: CommissionStatus.PENDING
-        },
-        timestamp: new Date('2024-01-22')
-      },
-      {
-        id: 'audit-005',
-        commissionId: 'comm-004',
-        userId: 'user-001',
-        userName: 'Admin User',
-        action: 'created',
-        newValue: {
-          salesPersonId: 'sales-003',
-          dealId: 'deal-004',
-          type: CommissionType.TIERED,
-          rate: 0.07,
-          amount: 7000,
-          status: CommissionStatus.PENDING
-        },
-        timestamp: new Date('2024-01-18')
       }
     ])
 
@@ -454,19 +371,18 @@ export function useCommissionManagement() {
     commissions: Commission[],
     summary: CommissionReportSummary
   } => {
-    // Create a copy of commissions to work with
-    let filteredCommissions = [...commissions];
+    let filteredCommissions = [...commissions]
 
     // Apply filters
     if (filters.startDate) {
       filteredCommissions = filteredCommissions.filter(c => 
-        new Date(c.createdAt) >= new Date(filters.startDate)
+        new Date(c.createdAt) >= new Date(filters.startDate!)
       )
     }
 
     if (filters.endDate) {
       filteredCommissions = filteredCommissions.filter(c => 
-        new Date(c.createdAt) <= new Date(filters.endDate)
+        new Date(c.createdAt) <= new Date(filters.endDate!)
       )
     }
 
@@ -491,20 +407,20 @@ export function useCommissionManagement() {
     // Calculate summary
     const summary: CommissionReportSummary = {
       totalCommissions: filteredCommissions.length,
-      totalAmount: filteredCommissions.reduce((sum, c) => sum + (c.amount || 0), 0),
+      totalAmount: filteredCommissions.reduce((sum, c) => sum + c.amount, 0),
       pendingAmount: filteredCommissions.filter(c => c.status === CommissionStatus.PENDING)
-        .reduce((sum, c) => sum + (c.amount || 0), 0),
+        .reduce((sum, c) => sum + c.amount, 0),
       approvedAmount: filteredCommissions.filter(c => c.status === CommissionStatus.APPROVED)
-        .reduce((sum, c) => sum + (c.amount || 0), 0),
+        .reduce((sum, c) => sum + c.amount, 0),
       paidAmount: filteredCommissions.filter(c => c.status === CommissionStatus.PAID)
-        .reduce((sum, c) => sum + (c.amount || 0), 0),
+        .reduce((sum, c) => sum + c.amount, 0),
       byType: {
         flat: filteredCommissions.filter(c => c.type === CommissionType.FLAT)
-          .reduce((sum, c) => sum + (c.amount || 0), 0),
+          .reduce((sum, c) => sum + c.amount, 0),
         percentage: filteredCommissions.filter(c => c.type === CommissionType.PERCENTAGE)
-          .reduce((sum, c) => sum + (c.amount || 0), 0),
+          .reduce((sum, c) => sum + c.amount, 0),
         tiered: filteredCommissions.filter(c => c.type === CommissionType.TIERED)
-          .reduce((sum, c) => sum + (c.amount || 0), 0)
+          .reduce((sum, c) => sum + c.amount, 0)
       }
     }
 
@@ -517,15 +433,15 @@ export function useCommissionManagement() {
   const exportCommissionsToCSV = (commissions: Commission[]) => {
     const headers = [
       'ID', 
-      'Sales Person ID', 
+      'Sales Person', 
       'Deal ID', 
       'Type', 
       'Rate', 
       'Amount', 
       'Status', 
-      'Paid Date',
-      'Created Date',
+      'Paid Date', 
       'Notes', 
+      'Created At'
     ]
 
     const rows = commissions.map(c => [
@@ -533,12 +449,12 @@ export function useCommissionManagement() {
       c.salesPersonId,
       c.dealId,
       c.type,
-      c.rate || 0,
-      c.amount || 0,
+      c.rate,
+      c.amount,
       c.status,
-      c.paidDate ? new Date(c.paidDate).toISOString().split('T')[0] : '',
-      new Date(c.createdAt).toISOString().split('T')[0],
+      c.paidDate ? c.paidDate.toISOString() : '',
       c.notes,
+      c.createdAt.toISOString()
     ])
 
     return [headers, ...rows]
