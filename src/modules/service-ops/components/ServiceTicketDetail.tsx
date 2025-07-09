@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
 import { jsPDF } from 'jspdf'
 import 'jspdf-autotable'
-import { useTenant } from '@/contexts/TenantContext' // Import useTenant
+import { useTenant } from '@/contexts/TenantContext'
 
 interface ServiceTicketDetailProps {
   ticket: ServiceTicket
@@ -21,7 +21,7 @@ interface ServiceTicketDetailProps {
 
 export function ServiceTicketDetail({ ticket, onClose, onEdit }: ServiceTicketDetailProps) {
   const { toast } = useToast()
-  const { tenant } = useTenant() // Get tenant information
+  const { tenant } = useTenant()
   const [activeTab, setActiveTab] = useState('details')
 
   const getStatusColor = (status: ServiceStatus) => {
@@ -104,55 +104,88 @@ export function ServiceTicketDetail({ ticket, onClose, onEdit }: ServiceTicketDe
 
   const handlePrintPDF = () => {
     try {
-      const doc = new jsPDF()
-      let startY = 20; // Initial Y position for content after header
+      const doc = new jsPDF();
+      let currentY = 10; // Initial Y position
 
-      // Define generateContent function
-      const generateContent = () => {
-        // Add Company Name (if no logo or logo failed)
-        if (!tenant?.branding?.logo && tenant?.name) {
+      // Function to add header (logo and company name)
+      const addHeader = (callback: () => void) => {
+        const logoUrl = tenant?.branding?.logo;
+        const companyName = tenant?.name;
+        const logoWidth = 30;
+        const logoHeight = 15;
+        const logoX = 10;
+        const logoY = 10;
+        const textX = logoX + logoWidth + 5; // Space after logo
+
+        if (logoUrl) {
+          const img = new Image();
+          img.src = logoUrl;
+          img.onload = () => {
+            doc.addImage(img, 'PNG', logoX, logoY, logoWidth, logoHeight);
+            if (companyName) {
+              doc.setFontSize(16);
+              doc.text(companyName, textX, logoY + (logoHeight / 2) + 2); // Vertically center with logo
+            }
+            currentY = Math.max(currentY, logoY + logoHeight + 10); // Update Y after header
+            callback();
+          };
+          img.onerror = () => {
+            // If logo fails to load, add company name only
+            if (companyName) {
+              doc.setFontSize(16);
+              doc.text(companyName, logoX, logoY + 5); // Add company name at logo position
+              currentY = Math.max(currentY, logoY + 15 + 10); // Update Y after company name
+            } else {
+              currentY = Math.max(currentY, logoY + 10); // Just move Y down if no logo or name
+            }
+            callback();
+          };
+        } else if (companyName) {
           doc.setFontSize(16);
-          doc.text(tenant.name, 20, startY);
-          startY += 10; // Move Y down after company name
+          doc.text(companyName, logoX, logoY + 5);
+          currentY = Math.max(currentY, logoY + 15 + 10);
+          callback();
+        } else {
+          currentY = Math.max(currentY, logoY + 10); // Just move Y down if no logo or name
+          callback();
         }
+      };
 
-        doc.setFontSize(20)
-        doc.text('Service Ticket', 105, startY + 20, { align: 'center' }) // Adjusted Y position
-        startY += 40; // Move Y down after main title
-        
-        doc.setFontSize(12)
-        doc.text(`Ticket #: ${ticket.id || 'N/A'}`, 20, startY) // Adjusted Y position
-        startY += 10;
-        doc.text(`Date: ${formatDate(ticket.createdAt)}`, 20, startY)
-        startY += 10;
-        doc.text(`Customer: ${ticket.customerId || 'N/A'}`, 20, startY)
-        startY += 10;
-        doc.text(`Status: ${ticket.status?.replace('_', ' ')?.toUpperCase() || 'N/A'}`, 20, startY)
-        startY += 15; // Extra space before next section
-        
-        // Add service details
-        doc.setFontSize(16)
-        doc.text('Service Details', 20, startY)
-        startY += 10;
-        
-        doc.setFontSize(12)
-        doc.text(`Title: ${ticket.title || 'N/A'}`, 20, startY)
-        startY += 10;
-        
-        // Description (with word wrap)
-        const splitDescription = doc.splitTextToSize(ticket.description || '', 170)
-        doc.text(splitDescription, 20, startY)
-        startY += (splitDescription.length * 7) + 15; // Adjust Y based on lines of description + extra space
-        
-        // Parts table
+      // Function to generate the rest of the service ticket content
+      const generateTicketContent = () => {
+        doc.setFontSize(20);
+        doc.text('Service Ticket', 105, currentY + 10, { align: 'center' });
+        currentY += 30;
+
+        doc.setFontSize(12);
+        doc.text(`Ticket #: ${ticket.id || 'N/A'}`, 20, currentY);
+        currentY += 7;
+        doc.text(`Date: ${formatDate(ticket.createdAt)}`, 20, currentY);
+        currentY += 7;
+        doc.text(`Customer: ${ticket.customerId || 'N/A'}`, 20, currentY);
+        currentY += 7;
+        doc.text(`Status: ${ticket.status?.replace('_', ' ')?.toUpperCase() || 'N/A'}`, 20, currentY);
+        currentY += 15;
+
+        doc.setFontSize(16);
+        doc.text('Service Details', 20, currentY);
+        currentY += 10;
+
+        doc.setFontSize(12);
+        doc.text(`Title: ${ticket.title || 'N/A'}`, 20, currentY);
+        currentY += 7;
+
+        const splitDescription = doc.splitTextToSize(ticket.description || '', 170);
+        doc.text(splitDescription, 20, currentY);
+        currentY += (splitDescription.length * 7) + 15;
+
         if (Array.isArray(ticket.parts) && ticket.parts.length > 0) {
-          doc.setFontSize(16)
-          doc.text('Parts', 20, startY)
-          startY += 5;
-          
-          // @ts-ignore
-          doc.autoTable({
-            startY: startY,
+          doc.setFontSize(16);
+          doc.text('Parts', 20, currentY);
+          currentY += 5;
+
+          (doc as any).autoTable({
+            startY: currentY,
             head: [['Part Number', 'Description', 'Quantity', 'Unit Cost', 'Total']],
             body: ticket.parts.map(part => [
               part.partNumber || '',
@@ -164,20 +197,17 @@ export function ServiceTicketDetail({ ticket, onClose, onEdit }: ServiceTicketDe
             foot: [['', '', '', 'Parts Total:', formatCurrency(totals.partsTotal)]],
             theme: 'striped',
             headStyles: { fillColor: [66, 139, 202] }
-          })
-          // @ts-ignore
-          startY = doc.lastAutoTable.finalY + 15; // Update Y after table + space
+          });
+          currentY = (doc as any).lastAutoTable.finalY + 15;
         }
-        
-        // Labor table
+
         if (Array.isArray(ticket.labor) && ticket.labor.length > 0) {
-          doc.setFontSize(16)
-          doc.text('Labor', 20, startY)
-          startY += 5;
-          
-          // @ts-ignore
-          doc.autoTable({
-            startY: startY,
+          doc.setFontSize(16);
+          doc.text('Labor', 20, currentY);
+          currentY += 5;
+
+          (doc as any).autoTable({
+            startY: currentY,
             head: [['Description', 'Hours', 'Rate', 'Total']],
             body: ticket.labor.map(labor => [
               labor.description || '',
@@ -188,70 +218,44 @@ export function ServiceTicketDetail({ ticket, onClose, onEdit }: ServiceTicketDe
             foot: [['', '', 'Labor Total:', formatCurrency(totals.laborTotal)]],
             theme: 'striped',
             headStyles: { fillColor: [66, 139, 202] }
-          })
-          // @ts-ignore
-          startY = doc.lastAutoTable.finalY + 10; // Update Y after table + space
+          });
+          currentY = (doc as any).lastAutoTable.finalY + 10;
         }
-        
-        // Grand total
-        doc.setFontSize(14)
-        doc.text(`Grand Total: ${formatCurrency(totals.grandTotal)}`, 150, startY, { align: 'right' })
-        startY += 15;
-        
-        // Notes
+
+        doc.setFontSize(14);
+        doc.text(`Grand Total: ${formatCurrency(totals.grandTotal)}`, 150, currentY, { align: 'right' });
+        currentY += 15;
+
         if (ticket.notes) {
-          doc.setFontSize(16)
-          doc.text('Notes', 20, startY)
-          startY += 10;
-          
-          doc.setFontSize(12)
-          const splitNotes = doc.splitTextToSize(ticket.notes, 170)
-          doc.text(splitNotes, 20, startY)
-          startY += (splitNotes.length * 7) + 10; // Adjust Y based on lines of notes + space
+          doc.setFontSize(16);
+          doc.text('Notes', 20, currentY);
+          currentY += 10;
+
+          const splitNotes = doc.splitTextToSize(ticket.notes, 170);
+          doc.text(splitNotes, 20, currentY);
+          currentY += (splitNotes.length * 7) + 10;
         }
-        
-        // Save the PDF
-        doc.save(`service-ticket-${ticket.id || 'N/A'}.pdf`)
-        
+
+        doc.save(`service-ticket-${ticket.id || 'N/A'}.pdf`);
+
         toast({
           title: 'PDF Generated',
           description: 'Service ticket PDF has been downloaded',
-        })
+        });
       };
 
-      // Logo loading and content generation logic
-      if (tenant?.branding?.logo) {
-        const img = new Image();
-        img.src = tenant.branding.logo;
-        img.onload = () => {
-          doc.addImage(img, 'PNG', 10, 10, 30, 15);
-          if (tenant?.name) {
-            doc.setFontSize(16);
-            doc.text(tenant.name, 45, 20);
-          }
-          generateContent();
-        };
-        img.onerror = () => {
-          // If logo fails to load, proceed without it
-          if (tenant?.name) {
-            doc.setFontSize(16);
-            doc.text(tenant.name, 20, 20);
-          }
-          generateContent();
-        };
-      } else {
-        // If no logo is configured, directly generate content
-        generateContent();
-      }
+      // Start by adding the header, then generate the rest of the content
+      addHeader(generateTicketContent);
+
     } catch (error) {
-      console.error('Error generating PDF:', error)
+      console.error('Error generating PDF:', error);
       toast({
         title: 'Error',
         description: 'Failed to generate PDF',
         variant: 'destructive'
-      })
+      });
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
