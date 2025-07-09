@@ -1,3 +1,4 @@
+// src/modules/reporting-suite/components/DashboardReports.tsx
 import React, { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -114,41 +115,53 @@ export function DashboardReports() {
     { name: 'Toy Haulers', value: 100000 }
   ])
 
+  // Sample data for Lead Conversion Funnel
+  const [leadFunnelData, setLeadFunnelData] = useState([
+    { name: 'New Leads', value: 1000 },
+    { name: 'Contacted', value: 700 },
+    { name: 'Qualified', value: 400 },
+    { name: 'Proposal', value: 200 },
+    { name: 'Closed Won', value: 100 },
+  ]);
+
+  // Sample data for Revenue Trend
+  const [revenueTrendData, setRevenueTrendData] = useState([
+    { month: 'Jan', revenue: 300000 },
+    { month: 'Feb', revenue: 320000 },
+    { month: 'Mar', revenue: 350000 },
+    { month: 'Apr', revenue: 330000 },
+    { month: 'May', revenue: 380000 },
+    { month: 'Jun', revenue: 400000 },
+  ]);
+
   const handleRefresh = async () => {
     setLoading(true)
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
+      // Simulate fetching new data
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      setStats(mockUsageStats); // In a real app, this would be updated data
       toast({
-        title: 'Dashboard Refreshed',
-        description: 'Latest data has been loaded.',
-      })
+        title: 'Usage Stats Refreshed',
+        description: 'Latest usage data has been loaded.',
+      });
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Failed to refresh dashboard data.',
+        description: 'Failed to refresh usage stats.',
         variant: 'destructive',
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleExport = () => {
+    // Simulate exporting data
     toast({
-      title: 'Export Started',
-      description: 'Your dashboard report is being prepared for download.',
-    })
-    
-    // Simulate download delay
-    setTimeout(() => {
-      toast({
-        title: 'Export Complete',
-        description: 'Your dashboard report has been downloaded.',
-      })
-    }, 2000)
-  }
+      title: 'Export Initiated',
+      description: 'Usage data is being prepared for download.',
+    });
+  };
 
   const handleTimeframeChange = (value: string) => {
     setTimeframe(value)
@@ -169,26 +182,13 @@ export function DashboardReports() {
             <div>
               <CardTitle className="flex items-center">
                 <BarChart3 className="h-5 w-5 mr-2 text-primary" />
-                Dashboard Report
+                Platform Usage Statistics
               </CardTitle>
               <CardDescription>
-                Key performance indicators and business metrics
+                Monitor key performance indicators and usage trends
               </CardDescription>
             </div>
             <div className="flex space-x-2">
-              <Select value={timeframe} onValueChange={handleTimeframeChange}>
-                <SelectTrigger className="w-[150px]">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="7d">Last 7 Days</SelectItem>
-                  <SelectItem value="30d">Last 30 Days</SelectItem>
-                  <SelectItem value="90d">Last 90 Days</SelectItem>
-                  <SelectItem value="ytd">Year to Date</SelectItem>
-                  <SelectItem value="1y">Last Year</SelectItem>
-                </SelectContent>
-              </Select>
               <Button variant="outline" size="sm" onClick={handleRefresh} disabled={loading}>
                 {loading ? (
                   <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
@@ -205,159 +205,209 @@ export function DashboardReports() {
           </div>
         </CardHeader>
         <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="leads">Leads & Marketing</TabsTrigger>
-              <TabsTrigger value="sales">Sales & Revenue</TabsTrigger>
-            </TabsList>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card className="shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total API Calls</CardTitle>
+                <Activity className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalApiCalls.toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground">All time</p>
+              </CardContent>
+            </Card>
+            <Card className="shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.activeUsers}</div>
+                <p className="text-xs text-muted-foreground">Currently logged in</p>
+              </CardContent>
+            </Card>
+            <Card className="shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Storage Used</CardTitle>
+                <Database className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.storageUsedGB} GB</div>
+                <p className="text-xs text-muted-foreground">Total across all tenants</p>
+              </CardContent>
+            </Card>
+            <Card className="shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Emails Sent</CardTitle>
+                <Mail className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.emailsSent.toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground">Last 30 days</p>
+              </CardContent>
+            </Card>
+          </div>
 
-            <TabsContent value="overview" className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-4">
-                {metrics.filter(m => m.category === 'leads' || m.category === 'sales').slice(0, 4).map((metric, index) => (
-                  <Card key={index} className="shadow-sm">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-muted-foreground">{metric.metric}</p>
-                        {metric.trend === 'up' ? (
-                          <TrendingUp className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <TrendingDown className="h-4 w-4 text-red-500" />
-                        )}
-                      </div>
-                      <div className="mt-2">
-                        <p className="text-2xl font-bold">{metric.value}</p>
-                        <p className={cn(
-                          "text-xs",
-                          metric.trend === 'up' ? 'text-green-600' : 'text-red-600'
-                        )}>
-                          {metric.change} from last period
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle>Daily API Calls</CardTitle>
+                <CardDescription>API call volume over time</CardDescription>
+              </CardHeader>
+              <CardContent className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={stats.dailyApiCalls}>
+                    <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                    <YAxis tick={{ fontSize: 10 }} />
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <Tooltip />
+                    <Area type="monotone" dataKey="calls" stroke="#8884d8" fill="#8884d8" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle>Module Usage</CardTitle>
+                <CardDescription>API calls by module</CardDescription>
+              </CardHeader>
+              <CardContent className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={stats.moduleUsage} layout="vertical">
+                    <XAxis type="number" tick={{ fontSize: 10 }} />
+                    <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} width={120} />
+                    <Tooltip />
+                    <Bar dataKey="usage" fill="#82ca9d" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle>Usage Trends</CardTitle>
+              <CardDescription>Historical data and forecasts</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center space-x-2 mb-4">
+                <Label htmlFor="timeframe">Timeframe:</Label>
+                <Select value={timeframe} onValueChange={handleTimeframeChange}>
+                  <SelectTrigger className="w-[120px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="7d">Last 7 Days</SelectItem>
+                    <SelectItem value="30d">Last 30 Days</SelectItem>
+                    <SelectItem value="90d">Last 90 Days</SelectItem>
+                    <SelectItem value="1y">Last Year</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <Card className="shadow-sm">
-                  <CardHeader>
-                    <CardTitle>Leads by Source</CardTitle>
-                    <CardDescription>Distribution of leads across different sources</CardDescription>
-                  </CardHeader>
-                  <CardContent className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={leadsBySource}>
-                        <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                        <YAxis tickFormatter={(value) => value.toLocaleString()} tick={{ fontSize: 10 }} />
-                        <Tooltip formatter={(value) => value.toLocaleString()} />
-                        <Bar dataKey="value" fill="#8884d8" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-
-                <Card className="shadow-sm">
-                  <CardHeader>
-                    <CardTitle>Sales by Product Category</CardTitle>
-                    <CardDescription>Revenue generated by different product categories</CardDescription>
-                  </CardHeader>
-                  <CardContent className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={salesByProduct}>
-                        <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                        <YAxis tickFormatter={(value) => formatCurrency(value)} tick={{ fontSize: 10 }} />
-                        <Tooltip formatter={(value) => formatCurrency(value)} />
-                        <Area type="monotone" dataKey="value" stroke="#82ca9d" fill="#82ca9d" />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="leads" className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-4">
-                {metrics.filter(m => m.category === 'leads').map((metric, index) => (
-                  <Card key={index} className="shadow-sm">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-muted-foreground">{metric.metric}</p>
-                        {metric.trend === 'up' ? (
-                          <TrendingUp className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <TrendingDown className="h-4 w-4 text-red-500" />
-                        )}
-                      </div>
-                      <div className="mt-2">
-                        <p className="text-2xl font-bold">{metric.value}</p>
-                        <p className={cn(
-                          "text-xs",
-                          metric.trend === 'up' ? 'text-green-600' : 'text-red-600'
-                        )}>
-                          {metric.change} from last period
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-              <Card className="shadow-sm">
-                <CardHeader>
-                  <CardTitle>Lead Conversion Funnel</CardTitle>
-                  <CardDescription>Visual representation of lead progression</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {/* Placeholder for a funnel chart */}
-                  <div className="h-64 flex items-center justify-center bg-muted/20 rounded-md">
-                    <p className="text-muted-foreground">Funnel Chart Placeholder</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="sales" className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-4">
-                {metrics.filter(m => m.category === 'sales').map((metric, index) => (
-                  <Card key={index} className="shadow-sm">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-muted-foreground">{metric.metric}</p>
-                        {metric.trend === 'up' ? (
-                          <TrendingUp className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <TrendingDown className="h-4 w-4 text-red-500" />
-                        )}
-                      </div>
-                      <div className="mt-2">
-                        <p className="text-2xl font-bold">{metric.value}</p>
-                        <p className={cn(
-                          "text-xs",
-                          metric.trend === 'up' ? 'text-green-600' : 'text-red-600'
-                        )}>
-                          {metric.change} from last period
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-              <Card className="shadow-sm">
-                <CardHeader>
-                  <CardTitle>Revenue Trend</CardTitle>
-                  <CardDescription>Monthly revenue over the selected timeframe</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {/* Placeholder for a line chart showing revenue over time */}
-                  <div className="h-64 flex items-center justify-center bg-muted/20 rounded-md">
-                    <p className="text-muted-foreground">Revenue Trend Chart Placeholder</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={stats.dailyApiCalls} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                    <YAxis tick={{ fontSize: 10 }} />
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="calls" stroke="#8884d8" activeDot={{ r: 8 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </Card>
         </CardContent>
       </Card>
+      <TabsContent value="leads" className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-4">
+          {metrics.filter(m => m.category === 'leads').map((metric, index) => (
+            <Card key={index} className="shadow-sm">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-muted-foreground">{metric.metric}</p>
+                  {metric.trend === 'up' ? (
+                    <TrendingUp className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <TrendingDown className="h-4 w-4 text-red-500" />
+                  )}
+                </div>
+                <div className="mt-2">
+                  <p className="text-2xl font-bold">{metric.value}</p>
+                  <p className={cn(
+                    "text-xs",
+                    metric.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                  )}>
+                    {metric.change} from last period
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>Lead Conversion Funnel</CardTitle>
+            <CardDescription>Visual representation of lead progression</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={leadFunnelData} layout="vertical" margin={{ left: 80 }}>
+                <XAxis type="number" tickFormatter={(value) => value.toLocaleString()} />
+                <YAxis type="category" dataKey="name" width={100} />
+                <Tooltip formatter={(value) => value.toLocaleString()} />
+                <Bar dataKey="value" fill="#8884d8" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="sales" className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-4">
+          {metrics.filter(m => m.category === 'sales').map((metric, index) => (
+            <Card key={index} className="shadow-sm">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-muted-foreground">{metric.metric}</p>
+                  {metric.trend === 'up' ? (
+                    <TrendingUp className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <TrendingDown className="h-4 w-4 text-red-500" />
+                  )}
+                </div>
+                <div className="mt-2">
+                  <p className="text-2xl font-bold">{metric.value}</p>
+                  <p className={cn(
+                    "text-xs",
+                    metric.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                  )}>
+                    {metric.change} from last period
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>Revenue Trend</CardTitle>
+            <CardDescription>Monthly revenue over the selected timeframe</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={revenueTrendData}>
+                <XAxis dataKey="month" />
+                <YAxis tickFormatter={(value) => formatCurrency(value)} />
+                <CartesianGrid strokeDasharray="3 3" />
+                <Tooltip formatter={(value) => formatCurrency(value)} />
+                <Line type="monotone" dataKey="revenue" stroke="#82ca9d" />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </TabsContent>
     </div>
   )
 }
