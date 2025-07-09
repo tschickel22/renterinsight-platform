@@ -1,23 +1,49 @@
-apps/*
-!apps/reporting-suite/**
+# Ignore large generated files
+dist/
+node_modules/
+.git/
 
-node_modules/**
-public/**
-dist/**
-supabase/**
-.bolt/**
-.vscode/**
-.idea/**
-.env
-.env.*
+# Ignore large CSS files
+dist/assets/index-4d824b41.css
 
-src/__mocks__/**
-src/test-data/**
-src/fixtures/**
-*.test.ts
-*.spec.ts
+# Ignore large JS files
+dist/assets/index-493e33d7.js
+
+# Ignore lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Ignore build artifacts
+build/
+out/
+.next/
+.nuxt/
+.cache/
+
+# Ignore large data files
+*.csv
+*.json
 *.log
-*.tmp
-*.bak
-*.DS_Store
-Thumbs.db
+*.sql
+
+# Ignore media files
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.svg
+*.mp4
+*.webm
+*.webp
+*.ico
+
+# Ignore specific large files in your project
+renter_insight_bolt_manifest.json
+renter_insight_openapi.yaml
+
+# Ignore test data
+**/__tests__/
+**/__mocks__/
+**/test/
+**/tests/
