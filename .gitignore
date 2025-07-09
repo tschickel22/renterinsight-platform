@@ -1,55 +1,35 @@
-# ✅ Ignore unused apps/modules while focusing on one
-apps/agreement-vault/
-apps/client-portal/
-apps/commission-engine/
-apps/company-settings/
-apps/crm-prospecting/
-apps/delivery-tracker/
-apps/inventory-management/
-apps/invoice-payments/
-apps/platform-admin/
-apps/quote-builder/
-apps/service-ops/
-
-# ✅ Backend and migrations (not needed for preview/build)
-supabase/
-supabase_discarded_migrations/
-*.sql
-
-# ✅ Node modules and dependencies (always ignore)
+# Node modules (never commit these)
 node_modules/
 
-# ✅ Environment files (keep secrets secure)
+# Build outputs
+dist/
+public/
+*.log
+
+# Environment secrets
 .env
 .env.*
 
-# ✅ Build artifacts and static assets
-dist/
-public/
-*.png
-*.jpg
-*.pdf
+# Supabase
+supabase/.temp/
+supabase/migrations/
+supabase/seed.sql
+supabase/config.toml
 
-# ✅ Documentation and config files
-docs/
-README.md
-CHANGELOG.md
-LICENSE
-tsconfig.json
-tailwind.config.js
-vite.config.ts
+# OS/system files
+.DS_Store
+Thumbs.db
 
-# ✅ Test, fixture, and mock data — keep UI code intact
+# Bolt AI-specific cache
+.bolt/
+
+# IDE/editor junk
+.vscode/
+.idea/
+
+# Optional: test data
 src/__mocks__/
 src/test-data/
 src/fixtures/
-*.spec.ts*
 *.test.ts*
-
-# ⚠️ DO NOT ignore these — needed for preview and compiling
-# (Ensure these folders exist and are accessible)
-# src/components/
-# src/hooks/
-# src/lib/
-# src/utils/
-# shared-core/
+*.spec.ts*
