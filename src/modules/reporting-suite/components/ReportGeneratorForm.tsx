@@ -42,7 +42,7 @@ export function ReportGeneratorForm({
     type: ReportType.SALES,
     name: 'Sales Report',
     dateRange: {
-      startDate: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
+      startDate: '2023-01-01', // Changed to an earlier date to include mock data
       endDate: new Date().toISOString().split('T')[0]
     },
     filters: {}
