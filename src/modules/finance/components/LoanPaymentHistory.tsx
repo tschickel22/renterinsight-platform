@@ -9,7 +9,7 @@ import { Search, Filter, CreditCard, Calendar, Download, Printer, CheckCircle, X
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { Payment, PaymentStatus, PaymentMethod } from '@/types'
-import { useToast } from '@/hooks/use-toast'
+import { useToast } from '@/hooks/use-toast' 
 import { useEffect } from 'react'
 
 interface LoanPaymentHistoryProps {
@@ -26,7 +26,7 @@ export function LoanPaymentHistory({ loan, onClose, onRecordPayment }: LoanPayme
   const [methodFilter, setMethodFilter] = useState('all')
   const [dateFilter, setDateFilter] = useState('all')
 
-  // Initialize payments safely from loan prop
+  // Initialize payments safely from loan prop 
   useEffect(() => {
     if (loan && Array.isArray(loan.payments)) {
       setPayments(loan.payments);
@@ -218,7 +218,7 @@ export function LoanPaymentHistory({ loan, onClose, onRecordPayment }: LoanPayme
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"> 
       <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         {loan && (
           <CardHeader>
@@ -231,7 +231,7 @@ export function LoanPaymentHistory({ loan, onClose, onRecordPayment }: LoanPayme
                 </CardDescription>
               </div>
               <Button variant="ghost" size="sm" onClick={onClose}>
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4" /> 
               </Button>
             </div>
           </CardHeader>
@@ -303,7 +303,7 @@ export function LoanPaymentHistory({ loan, onClose, onRecordPayment }: LoanPayme
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={handleRecordNewPayment}
+              onClick={handleRecordNewPayment} 
               disabled={!onRecordPayment || !loan?.id}
             >
               <CreditCard className="h-4 w-4 mr-2" />
@@ -353,7 +353,7 @@ export function LoanPaymentHistory({ loan, onClose, onRecordPayment }: LoanPayme
                   ))}
                 </tbody>
               </table>
-            ) : (
+            ) : ( 
               <div className="p-8 text-center text-muted-foreground border border-dashed rounded-lg">
                 <CreditCard className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>No payments found</p>

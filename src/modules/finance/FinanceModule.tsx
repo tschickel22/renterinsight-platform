@@ -16,7 +16,7 @@ import { PaymentHistory } from './components/PaymentHistory'
 import { LoanSettings } from './components/LoanSettings'
 import { NewLoanForm } from './components/NewLoanForm'
 import { LoanPaymentHistory } from './components/LoanPaymentHistory' // Import the new component
-import { Payment, PaymentMethod, PaymentStatus } from '@/types'
+import { Payment, PaymentMethod, PaymentStatus } from '@/types' 
 
 interface Loan {
   id: string;
@@ -52,9 +52,9 @@ export const FinanceModule: React.FC = () => {
   const [loans, setLoans] = useState<Loan[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
-  const [showNewLoanForm, setShowNewLoanForm] = useState(false)
-  const [showPaymentHistoryModal, setShowPaymentHistoryModal] = useState(false)
-  const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null)
+  const [showNewLoanForm, setShowNewLoanForm] = useState(false) 
+  const [showPaymentHistoryModal, setShowPaymentHistoryModal] = useState(false) 
+  const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null) 
 
   // Mock data for demonstration
   const mockLoans: Loan[] = [
@@ -103,7 +103,7 @@ export const FinanceModule: React.FC = () => {
     return matchesSearch && matchesFilter
   })
 
-  const handleViewPaymentHistory = (loan: Loan) => {
+  const handleViewPaymentHistory = (loan: Loan) => { 
     setSelectedLoan(loan);
     setShowPaymentHistoryModal(true);
   }
@@ -237,7 +237,7 @@ export const FinanceModule: React.FC = () => {
                         <p className="text-lg font-semibold">{loan.payments.length}</p>
                         <Button 
                           variant="outline" 
-                          size="sm" 
+                          size="sm"  
                           onClick={(e) => {
                             e.stopPropagation();
                             handleViewPaymentHistory(loan);
@@ -295,12 +295,12 @@ export const FinanceModule: React.FC = () => {
       </Tabs>
 
       {/* Payment History Modal */}
-      {showPaymentHistoryModal && selectedLoan && (
+      {showPaymentHistoryModal && selectedLoan && ( 
         <LoanPaymentHistory
           loan={selectedLoan}
           onClose={() => setShowPaymentHistoryModal(false)}
           onRecordPayment={handleRecordPayment}
-        />
+        /> 
       )}
 
       {showNewLoanForm && (
