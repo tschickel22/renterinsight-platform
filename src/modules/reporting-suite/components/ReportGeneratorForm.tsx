@@ -1,13 +1,12 @@
-import React, { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Label } from '@/components/ui/label' 
+import { Label } from '@/components/ui/label'
 import { BarChart3, Calendar, Filter, Download } from 'lucide-react'
 import { ReportType } from '@/types'
 import { useToast } from '@/hooks/use-toast'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 
 interface ReportGeneratorFormProps {
   initialReportConfig?: ReportConfig | null
@@ -51,6 +50,7 @@ export function ReportGeneratorForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('handleSubmit called from ReportGeneratorForm');
     
     if (!reportConfig.name) {
       toast({
@@ -103,13 +103,21 @@ export function ReportGeneratorForm({
   return (
     <Card className="shadow-sm">
       <CardHeader>
-        <CardTitle className="flex items-center">
-          <BarChart3 className="h-5 w-5 mr-2 text-primary" />
-          Generate Report
-        </CardTitle>
-        <CardDescription>
-          Configure and generate custom reports
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center">
+              <BarChart3 className="h-5 w-5 mr-2 text-primary" />
+              Generate Report
+            </CardTitle>
+            <CardDescription>
+              Configure and generate custom reports
+            </CardDescription>
+          </div>
+          <Button variant="outline" size="sm" onClick={onExportCSV}>
+            <Download className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -293,3 +301,4 @@ export function ReportGeneratorForm({
     </Card>
   )
 }
+
