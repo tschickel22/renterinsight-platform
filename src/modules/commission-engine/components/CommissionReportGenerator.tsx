@@ -38,7 +38,6 @@ export function CommissionReportGenerator({
   const handleGenerateReport = () => {
     try {
       const result = onGenerateReport(filters)
-      console.log('Generated report with data:', result);
       setReport(result)
       
       toast({
@@ -57,8 +56,7 @@ export function CommissionReportGenerator({
   const handleExportCSV = () => {
     if (!report) return
     
-    console.log('Exporting CSV for report:', report);
-    try {
+    try {      
       const csvData = onExportCSV(report.commissions)
       
       // Convert to CSV
@@ -341,7 +339,7 @@ export function CommissionReportGenerator({
                 <div className="flex items-center space-x-4">
                   <Label htmlFor="groupBy" className="whitespace-nowrap">Group By:</Label>
                   <Select 
-                    value={groupBy || 'none'} 
+                    value={groupBy} 
                     onValueChange={(value: 'none' | 'salesPerson' | 'status' | 'type') => setGroupBy(value)}
                   >
                     <SelectTrigger className="w-40">
@@ -361,13 +359,6 @@ export function CommissionReportGenerator({
                   Export CSV
                 </Button>
               </div>
-              
-              {/* Debug info - remove in production */}
-              {report && (
-                <div className="text-xs text-muted-foreground mt-2">
-                  Found {report.commissions.length} commissions
-                </div>
-              )}
 
               {/* Report Data */}
               <div className="space-y-6">
@@ -383,42 +374,36 @@ export function CommissionReportGenerator({
                       </span>
                     </h3>
                     
-                    {commissions.length > 0 ? (
-                      <div className="overflow-x-auto">
-                        <table className="w-full border-collapse">
-                          <thead>
-                            <tr className="bg-muted/50">
-                              <th className="p-2 text-left font-medium text-muted-foreground">Sales Rep</th>
-                              <th className="p-2 text-left font-medium text-muted-foreground">Deal</th>
-                              <th className="p-2 text-left font-medium text-muted-foreground">Type</th>
-                              <th className="p-2 text-left font-medium text-muted-foreground">Amount</th>
-                              <th className="p-2 text-left font-medium text-muted-foreground">Status</th>
-                              <th className="p-2 text-left font-medium text-muted-foreground">Created</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {commissions.map((commission) => {
-                              const salesRep = salesReps.find(r => r.id === commission.salesPersonId)
-                              
-                              return (
-                                <tr key={commission.id} className="border-b hover:bg-muted/10">
-                                  <td className="p-2">{salesRep?.name || commission.salesPersonId}</td>
-                                  <td className="p-2">{commission.dealId}</td>
-                                  <td className="p-2">{getTypeLabel(commission.type)}</td>
-                                  <td className="p-2 font-medium">{formatCurrency(commission.amount)}</td>
-                                  <td className="p-2">{getStatusLabel(commission.status)}</td>
-                                  <td className="p-2">{new Date(commission.createdAt).toLocaleDateString()}</td>
-                                </tr>
-                              )
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    ) : (
-                      <div className="p-4 text-center text-muted-foreground">
-                        No commission data available for this group
-                      </div>
-                    )}
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="bg-muted/50">
+                            <th className="p-2 text-left font-medium text-muted-foreground">Sales Rep</th>
+                            <th className="p-2 text-left font-medium text-muted-foreground">Deal</th>
+                            <th className="p-2 text-left font-medium text-muted-foreground">Type</th>
+                            <th className="p-2 text-left font-medium text-muted-foreground">Amount</th>
+                            <th className="p-2 text-left font-medium text-muted-foreground">Status</th>
+                            <th className="p-2 text-left font-medium text-muted-foreground">Created</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {commissions.map((commission) => {
+                            const salesRep = salesReps.find(r => r.id === commission.salesPersonId)
+                            
+                            return (
+                              <tr key={commission.id} className="border-b hover:bg-muted/10">
+                                <td className="p-2">{salesRep?.name || commission.salesPersonId}</td>
+                                <td className="p-2">{commission.dealId}</td>
+                                <td className="p-2">{getTypeLabel(commission.type)}</td>
+                                <td className="p-2 font-medium">{formatCurrency(commission.amount)}</td>
+                                <td className="p-2">{getStatusLabel(commission.status)}</td>
+                                <td className="p-2">{new Date(commission.createdAt).toLocaleDateString()}</td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -429,7 +414,7 @@ export function CommissionReportGenerator({
             <div className="text-center py-12 text-muted-foreground border-2 border-dashed rounded-lg">
               <BarChart3 className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
               <p>No report generated yet</p>
-              <p className="text-sm">Use the filters above to generate a commission report</p>
+              <p className="text-sm">Click "Generate Report" to create a commission report</p>
             </div>
           )}
         </CardContent>
