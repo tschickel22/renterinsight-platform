@@ -1,9 +1,10 @@
-  src/modules/reporting-suite/ReportingSuite.tsx
 import React, { useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { BarChart3, TrendingUp, DollarSign, Users, Package, Plus } from 'lucide-react'
 import { Report, ReportType } from '@/types'
 import { formatCurrency, formatDate } from '@/lib/utils'
@@ -86,7 +87,6 @@ const reportTemplates = [
 ]
 
 function ReportingDashboard() {
-  const [reports, setReports] = useState<Report[]>(mockReports)
   const { 
     reportData, 
     reportColumns, 
@@ -152,6 +152,7 @@ function ReportingDashboard() {
   const handleCreateNewReport = () => {
     setActiveTab('generator'); // Switch to the Report Generator tab
     setReportConfigForForm(null); // Reset the form to create a new report
+    console.log('Create Report button clicked!'); // Log to confirm execution
   };
 
   return (
@@ -183,7 +184,7 @@ function ReportingDashboard() {
             <div className="text-2xl font-bold text-blue-900">{reports.length}</div>
             <p className="text-xs text-blue-600 flex items-center mt-1">
               <TrendingUp className="h-3 w-3 mr-1" />
-              All reports
+              +5 units this month
             </p>
           </CardContent>
         </Card>
@@ -202,14 +203,14 @@ function ReportingDashboard() {
             </p>
           </CardContent>
         </Card>
-        <Card className="shadow-sm border-0 bg-gradient-to-br from-purple-50 to-purple-100/50">
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-yellow-50 to-yellow-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-purple-900">Scheduled</CardTitle>
-            <BarChart3 className="h-4 w-4 text-purple-600" />
+            <CardTitle className="text-sm font-medium text-yellow-900">Scheduled</CardTitle>
+            <BarChart3 className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-900">5</div>
-            <p className="text-xs text-purple-600 flex items-center mt-1">
+            <div className="text-2xl font-bold text-yellow-900">5</div>
+            <p className="text-xs text-yellow-600 flex items-center mt-1">
               <BarChart3 className="h-3 w-3 mr-1" />
               Automated reports
             </p>
