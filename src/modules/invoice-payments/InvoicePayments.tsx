@@ -15,6 +15,8 @@ import { InvoiceForm } from './components/InvoiceForm'
 import { InvoiceDetail } from './components/InvoiceDetail'
 import { PaymentHistory } from './components/PaymentHistory'
 import { Tabs as TabsComponent, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { generateInvoicePDF } from './utils' // Import the new utility function
+import { useTenant } from '@/contexts/TenantContext' // Import useTenant
 
 function InvoicesList() {
   const { 
@@ -29,6 +31,7 @@ function InvoicesList() {
     recordPayment
   } = useInvoiceManagement()
   const { toast } = useToast()
+  const { tenant } = useTenant() // Use useTenant hook
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [activeTab, setActiveTab] = useState('invoices')
@@ -165,6 +168,23 @@ function InvoicesList() {
         variant: 'destructive'
       })
       throw error
+    }
+  }
+
+  const handlePrintInvoicePDF = (invoice: Invoice) => {
+    try {
+      generateInvoicePDF(invoice, tenant) // Call the utility function
+      toast({
+        title: 'PDF Generated',
+        description: `Invoice ${invoice.number} PDF has been downloaded`,
+      })
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to generate PDF',
+        variant: 'destructive'
+      })
     }
   }
 
@@ -418,6 +438,7 @@ function InvoicesList() {
                         variant="outline" 
                         size="sm" 
                         className="shadow-sm"
+                        onClick={() => handlePrintInvoicePDF(invoice)} // Call the new function here
                       >
                         <Download className="h-3 w-3 mr-1" />
                         PDF
