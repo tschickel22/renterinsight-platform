@@ -115,7 +115,27 @@ function ReportingDashboard() {
   }
   
   const handleGenerateReport = (config: any) => {
-    generateReport(config)
+    // Check if the config is a template object (e.g., by checking for 'id' or 'description' property)
+    if (config && config.id && config.type) {
+      // This is a template, construct the full config for generateReport
+      const today = new Date();
+      const defaultStartDate = new Date(today.getFullYear(), today.getMonth(), 1); // First day of current month
+      const defaultEndDate = today; // Today's date
+
+      const fullConfig = {
+        reportType: config.type,
+        reportName: config.name,
+        startDate: defaultStartDate,
+        endDate: defaultEndDate,
+        // Add any other default filters or columns if necessary for templates
+        filters: [], // Assuming templates don't have specific filters initially
+        columns: [], // Assuming templates don't have specific columns initially
+      };
+      generateReport(fullConfig);
+    } else {
+      // This is likely from the ReportGeneratorForm, pass it as is
+      generateReport(config);
+    }
   }
   
   const handleExportCSV = () => {
