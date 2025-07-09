@@ -2,283 +2,207 @@ import React, { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-import { BarChart3, Calendar, Filter, Download } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { useReportGenerator } from '../hooks/useReportGenerator'
 import { ReportType } from '@/types'
-import { useToast } from '@/hooks/use-toast'
+import { Calendar, FileText, Settings } from 'lucide-react'
 
-interface ReportGeneratorFormProps {
-  onGenerate: (reportConfig: ReportConfig) => void
-  onExportCSV: () => void
-  isGenerating: boolean
-  hasData: boolean
-}
-
-export interface ReportConfig {
-  type: ReportType
-  name: string
-  dateRange: {
-    startDate: string
-    endDate: string
-  }
-  filters: {
-    salesRep?: string
-    status?: string
-    location?: string
-  }
-}
-
-export function ReportGeneratorForm({ 
-  onGenerate, 
-  onExportCSV, 
-  isGenerating,
-  hasData
-}: ReportGeneratorFormProps) {
-  const { toast } = useToast()
-  const [reportConfig, setReportConfig] = useState<ReportConfig>({
-    type: ReportType.SALES,
-    name: 'Sales Report',
-    dateRange: {
-      startDate: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
-      endDate: new Date().toISOString().split('T')[0]
-    },
-    filters: {}
+export default function ReportGeneratorForm() {
+  const { generateReport, loading } = useReportGenerator()
+  const [formData, setFormData] = useState({
+    reportName: '',
+    reportType: '' as ReportType | '',
+    startDate: '',
+    endDate: '',
+    description: ''
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const reportTypeOptions = [
+    { value: ReportType.SALES, label: 'Sales Report' },
+    { value: ReportType.INVENTORY, label: 'Inventory Report' },
+    { value: ReportType.SERVICE, label: 'Service Report' },
+    { value: ReportType.FINANCIAL, label: 'Financial Report' },
+    { value: ReportType.CUSTOM, label: 'Custom Report' }
+  ]
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('ReportGeneratorForm: handleSubmit called') // Debug log
     
-    if (!reportConfig.name) {
-      console.log('ReportGeneratorForm: Validation error - report name is required') // Debug log
-      toast({
-        title: 'Validation Error',
-        description: 'Report name is required',
-        variant: 'destructive'
-      })
+    if (!formData.reportName || !formData.reportType) {
+      console.warn('⚠️ Missing required fields:', { reportName: formData.reportName, reportType: formData.reportType })
       return
     }
 
-    console.log('ReportGeneratorForm: Calling onGenerate with config:', reportConfig) // Debug log
-    onGenerate(reportConfig)
-  }
-
-  const handleReportTypeChange = (type: ReportType) => {
-    let name = 'Custom Report'
+    console.log('📝 Form submission data:', formData)
+    console.log('🎯 Report type from form:', formData.reportType)
     
-    switch (type) {
-      case ReportType.SALES:
-        name = 'Sales Report'
-        break
-      case ReportType.INVENTORY:
-        name = 'Inventory Report'
-        break
-      case ReportType.SERVICE:
-        name = 'Service Report'
-        break
-      case ReportType.FINANCIAL:
-        name = 'Financial Report'
-        break
+    const config = {
+      reportType: formData.reportType as ReportType,
+      reportName: formData.reportName,
+      startDate: formData.startDate ? new Date(formData.startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+      endDate: formData.endDate ? new Date(formData.endDate) : new Date(),
+      filters: [],
+      columns: []
     }
     
-    setReportConfig(prev => ({
-      ...prev,
-      type,
-      name
-    }))
+    console.log('⚙️ Generated config object:', config)
+    console.log('🔍 Config reportType type:', typeof config.reportType)
+    console.log('🔍 Config reportType value:', config.reportType)
+    
+    try {
+      await generateReport(config)
+      console.log('✅ Custom report generation completed successfully')
+      
+      // Reset form after successful generation
+      setFormData({
+        reportName: '',
+        reportType: '',
+        startDate: '',
+        endDate: '',
+        description: ''
+      })
+    } catch (error) {
+      console.error('❌ Error generating custom report:', error)
+    }
+  }
+
+  const handleInputChange = (field: string, value: string) => {
+    console.log(`📝 Form field changed: ${field} = ${value}`)
+    setFormData(prev => ({ ...prev, [field]: value }))
   }
 
   return (
-    <Card className="shadow-sm">
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <BarChart3 className="h-5 w-5 mr-2 text-primary" />
-          Generate Report
-        </CardTitle>
-        <CardDescription>
-          Configure and generate custom reports
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <Label htmlFor="reportType">Report Type</Label>
-              <Select 
-                value={reportConfig.type} 
-                onValueChange={(value: ReportType) => handleReportTypeChange(value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={ReportType.SALES}>Sales Report</SelectItem>
-                  <SelectItem value={ReportType.INVENTORY}>Inventory Report</SelectItem>
-                  <SelectItem value={ReportType.SERVICE}>Service Report</SelectItem>
-                  <SelectItem value={ReportType.FINANCIAL}>Financial Report</SelectItem>
-                  <SelectItem value={ReportType.CUSTOM}>Custom Report</SelectItem>
-                </SelectContent>
-              </Select>
+    <div className="space-y-6">
+      <div className="ri-page-header">
+        <h2 className="ri-page-title">Custom Report Generator</h2>
+        <p className="ri-page-description">
+          Create custom reports with specific parameters and filters
+        </p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center space-x-2">
+            <Settings className="h-5 w-5 text-primary" />
+            <CardTitle>Report Configuration</CardTitle>
+          </div>
+          <CardDescription>
+            Configure your custom report parameters
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="reportName">Report Name *</Label>
+                <Input
+                  id="reportName"
+                  placeholder="Enter report name"
+                  value={formData.reportName}
+                  onChange={(e) => handleInputChange('reportName', e.target.value)}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="reportType">Report Type *</Label>
+                <Select
+                  value={formData.reportType}
+                  onValueChange={(value) => handleInputChange('reportType', value)}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select report type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {reportTypeOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            
-            <div>
-              <Label htmlFor="reportName">Report Name</Label>
-              <Input
-                id="reportName"
-                value={reportConfig.name}
-                onChange={(e) => setReportConfig(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Enter report name"
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="startDate">Start Date</Label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="startDate"
+                    type="date"
+                    className="pl-10"
+                    value={formData.startDate}
+                    onChange={(e) => handleInputChange('startDate', e.target.value)}
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="endDate">End Date</Label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="endDate"
+                    type="date"
+                    className="pl-10"
+                    value={formData.endDate}
+                    onChange={(e) => handleInputChange('endDate', e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Description (Optional)</Label>
+              <Textarea
+                id="description"
+                placeholder="Enter report description"
+                value={formData.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                rows={3}
               />
             </div>
-          </div>
-          
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <Label htmlFor="startDate">Start Date</Label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="startDate"
-                  type="date"
-                  value={reportConfig.dateRange.startDate}
-                  onChange={(e) => setReportConfig(prev => ({ 
-                    ...prev, 
-                    dateRange: {
-                      ...prev.dateRange,
-                      startDate: e.target.value
-                    }
-                  }))}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <Label htmlFor="endDate">End Date</Label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="endDate"
-                  type="date"
-                  value={reportConfig.dateRange.endDate}
-                  onChange={(e) => setReportConfig(prev => ({ 
-                    ...prev, 
-                    dateRange: {
-                      ...prev.dateRange,
-                      endDate: e.target.value
-                    }
-                  }))}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-          </div>
-          
-          <div className="grid gap-4 md:grid-cols-3">
-            <div>
-              <Label htmlFor="salesRep">Sales Rep</Label>
-              <Select 
-                value={reportConfig.filters.salesRep || ''} 
-                onValueChange={(value) => setReportConfig(prev => ({ 
-                  ...prev, 
-                  filters: {
-                    ...prev.filters,
-                    salesRep: value || undefined
-                  }
-                }))}
+
+            <div className="flex justify-end space-x-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setFormData({
+                  reportName: '',
+                  reportType: '',
+                  startDate: '',
+                  endDate: '',
+                  description: ''
+                })}
+                disabled={loading}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="All Sales Reps" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Sales Reps</SelectItem>
-                  <SelectItem value="rep-001">John Smith</SelectItem>
-                  <SelectItem value="rep-002">Sarah Johnson</SelectItem>
-                  <SelectItem value="rep-003">Mike Davis</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label htmlFor="status">Status</Label>
-              <Select 
-                value={reportConfig.filters.status || ''} 
-                onValueChange={(value) => setReportConfig(prev => ({ 
-                  ...prev, 
-                  filters: {
-                    ...prev.filters,
-                    status: value || undefined
-                  }
-                }))}
+                Reset
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading || !formData.reportName || !formData.reportType}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="All Statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Statuses</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label htmlFor="location">Location</Label>
-              <Select 
-                value={reportConfig.filters.location || ''} 
-                onValueChange={(value) => setReportConfig(prev => ({ 
-                  ...prev, 
-                  filters: {
-                    ...prev.filters,
-                    location: value || undefined
-                  }
-                }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All Locations" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Locations</SelectItem>
-                  <SelectItem value="north">North Region</SelectItem>
-                  <SelectItem value="south">South Region</SelectItem>
-                  <SelectItem value="east">East Region</SelectItem>
-                  <SelectItem value="west">West Region</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          <div className="flex justify-between pt-4">
-            <Button type="button" variant="outline">
-              <Filter className="h-4 w-4 mr-2" />
-              More Filters
-            </Button>
-            <div className="flex space-x-2">
-              {hasData && (
-                <Button type="button" variant="outline" onClick={onExportCSV}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Export CSV
-                </Button>
-              )}
-              <Button type="submit" disabled={isGenerating}>
-                {isGenerating ? (
+                {loading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
                     Generating...
                   </>
                 ) : (
                   <>
-                    <BarChart3 className="h-4 w-4 mr-2" />
+                    <FileText className="h-4 w-4 mr-2" />
                     Generate Report
                   </>
                 )}
               </Button>
             </div>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   )
 }

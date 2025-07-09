@@ -1,27 +1,14 @@
 // src/modules/reporting-suite/hooks/useReportGenerator.ts
 import { useState, useCallback } from 'react'
-import { Report, ReportType } from '@/types' // Assuming these types are defined in src/types/index.ts
+import { ReportType, ReportConfig, ReportColumn } from '@/types'
 import { formatDate } from '@/lib/utils'
-
-// Define the structure for a report configuration
-interface ReportConfig {
-  reportType: ReportType
-  reportName: string
-  startDate?: Date
-  endDate?: Date
-  filters?: any[] // Placeholder for filter definitions
-  columns?: any[] // Placeholder for column definitions
-}
-
-// Define the structure for a report column
-interface ReportColumn {
-  id: string
-  header: string
-  accessorKey: string
-}
 
 // Mock data generation function
 const generateMockReportData = (config: ReportConfig) => {
+  console.log('🏭 generateMockReportData called with config:', config)
+  console.log('🔍 Config reportType:', config.reportType)
+  console.log('🔍 ReportType enum values:', ReportType)
+  
   console.log('🔍 generateMockReportData called with config:', config)
   console.log('📊 Report type received:', config.reportType)
   console.log('📅 Date range:', { startDate: config.startDate, endDate: config.endDate })
@@ -34,6 +21,8 @@ const generateMockReportData = (config: ReportConfig) => {
   columns.push({ id: 'date', header: 'Date', accessorKey: 'date' })
   columns.push({ id: 'value', header: 'Value', accessorKey: 'value' })
 
+  console.log('📊 Initial columns:', columns)
+
   console.log('📋 Initial columns:', columns)
 
   // Generate some mock data based on report type
@@ -45,8 +34,11 @@ const generateMockReportData = (config: ReportConfig) => {
 
     console.log(`🔄 Processing row ${i}, report type: ${config.reportType}`)
 
+    console.log(`🔄 Processing row ${i}, report type: ${config.reportType}`)
+
     switch (config.reportType) {
       case ReportType.SALES:
+        console.log('💰 Processing SALES report type')
         console.log('💰 Generating SALES data')
         value = Math.floor(Math.random() * 1000) + 100
         itemSpecificData = {
@@ -58,6 +50,7 @@ const generateMockReportData = (config: ReportConfig) => {
         if (!columns.some(col => col.id === 'customer')) columns.push({ id: 'customer', header: 'Customer', accessorKey: 'customer' })
         break
       case ReportType.INVENTORY:
+        console.log('📦 Processing INVENTORY report type')
         console.log('📦 Generating INVENTORY data')
         value = Math.floor(Math.random() * 50) + 1
         itemSpecificData = {
@@ -68,6 +61,7 @@ const generateMockReportData = (config: ReportConfig) => {
         if (!columns.some(col => col.id === 'location')) columns.push({ id: 'location', header: 'Location', accessorKey: 'location' })
         break
       case ReportType.SERVICE:
+        console.log('🔧 Processing SERVICE report type')
         console.log('🔧 Generating SERVICE data')
         value = Math.floor(Math.random() * 500) + 50
         itemSpecificData = {
@@ -78,6 +72,7 @@ const generateMockReportData = (config: ReportConfig) => {
         if (!columns.some(col => col.id === 'technician')) columns.push({ id: 'technician', header: 'Technician', accessorKey: 'technician' })
         break
       case ReportType.FINANCIAL:
+        console.log('💵 Processing FINANCIAL report type')
         console.log('💳 Generating FINANCIAL data')
         value = Math.floor(Math.random() * 2000) + 200
         itemSpecificData = {
@@ -88,10 +83,14 @@ const generateMockReportData = (config: ReportConfig) => {
         if (!columns.some(col => col.id === 'transactionId')) columns.push({ id: 'transactionId', header: 'Transaction ID', accessorKey: 'transactionId' })
         break
       case ReportType.CUSTOM:
+        console.log('⚙️ Processing CUSTOM report type')
+        value = Math.floor(Math.random() * 100) + 10
+        break
         console.log('⚙️ Generating CUSTOM data')
         value = Math.floor(Math.random() * 100) + 10
         break
       default:
+        console.log('❓ Processing DEFAULT report type (unknown type)')
         console.log('❓ Unknown report type, using default data generation')
         value = Math.floor(Math.random() * 100) + 10
         break
@@ -113,6 +112,9 @@ const generateMockReportData = (config: ReportConfig) => {
   columns.forEach(col => uniqueColumnsMap.set(col.id, col));
   const uniqueColumns = Array.from(uniqueColumnsMap.values());
 
+  console.log('📋 Final generated data:', data)
+  console.log('📊 Final generated columns:', uniqueColumns)
+
   console.log('✅ Final generated data:', data)
   console.log('📋 Final columns:', uniqueColumns)
   console.log('📊 Data count:', data.length)
@@ -128,17 +130,26 @@ export function useReportGenerator() {
 
   const generateReport = useCallback(async (config: ReportConfig) => {
     console.log('🚀 generateReport called with config:', config)
+    console.log('🎯 Report type received:', config.reportType)
+    console.log('🔍 Type of reportType:', typeof config.reportType)
+    
+    console.log('🚀 generateReport called with config:', config)
     console.log('🔄 Setting loading to true')
     
     setLoading(true)
     setCurrentReportConfig(config)
     
+    console.log('⏳ Starting report generation...')
+    
     // Simulate API call or heavy computation
     console.log('⏳ Simulating API call delay...')
     await new Promise(resolve => setTimeout(resolve, 1000))
 
+    console.log('🏭 Calling generateMockReportData...')
     console.log('📊 Calling generateMockReportData...')
     const { data, columns } = generateMockReportData(config)
+    
+    console.log('📊 Setting report data and columns in state...')
     
     console.log('📥 Received data from generateMockReportData:', data)
     console.log('📋 Received columns from generateMockReportData:', columns)
@@ -150,10 +161,16 @@ export function useReportGenerator() {
     console.log('✅ Setting loading to false')
     setLoading(false)
     
+    console.log('✅ Report generation completed!')
+    
     console.log('🎉 Report generation complete!')
   }, [])
 
   const exportToCSV = useCallback(() => {
+    console.log('📤 exportToCSV called')
+    console.log('📊 Current report data length:', reportData.length)
+    console.log('📋 Current report columns length:', reportColumns.length)
+    
     console.log('📤 exportToCSV called')
     console.log('📊 Current reportData:', reportData)
     console.log('📋 Current reportColumns:', reportColumns)
@@ -177,6 +194,7 @@ export function useReportGenerator() {
     
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
+    
     if (link.download !== undefined) { // Feature detection for download attribute
       const url = URL.createObjectURL(blob)
       link.setAttribute('href', url)
@@ -185,9 +203,17 @@ export function useReportGenerator() {
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
+      console.log('📁 CSV export completed')
       console.log('✅ CSV export completed')
     }
   }, [reportData, reportColumns, currentReportConfig])
+
+  console.log('🎣 useReportGenerator hook state:', {
+    reportDataLength: reportData.length,
+    reportColumnsLength: reportColumns.length,
+    loading,
+    currentReportConfig
+  })
 
   console.log('🔍 useReportGenerator hook state:', {
     reportDataLength: reportData.length,
