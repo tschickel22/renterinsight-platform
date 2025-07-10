@@ -422,6 +422,5 @@ export function PaymentHistory({ payments, onViewPaymentDetails, statusFilterPro
       </Card>
     </div>
   )
-
 }
 
