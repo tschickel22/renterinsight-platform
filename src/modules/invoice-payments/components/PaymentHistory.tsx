@@ -14,14 +14,20 @@ import Papa from 'papaparse'
 interface PaymentHistoryProps {
   payments: Payment[]
   onViewPaymentDetails?: (payment: Payment) => void
+  statusFilterProp?: string; // New prop for external status filter
 }
 
-export function PaymentHistory({ payments, onViewPaymentDetails }: PaymentHistoryProps) {
+export function PaymentHistory({ payments, onViewPaymentDetails, statusFilterProp = 'all' }: PaymentHistoryProps) {
   const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState(statusFilterProp) // Initialize with prop
   const [methodFilter, setMethodFilter] = useState('all')
   const [dateFilter, setDateFilter] = useState('all')
+
+  // Update internal statusFilter when statusFilterProp changes
+  React.useEffect(() => {
+    setStatusFilter(statusFilterProp);
+  }, [statusFilterProp]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -92,50 +98,63 @@ export function PaymentHistory({ payments, onViewPaymentDetails }: PaymentHistor
   }
 
   // Filter payments based on search term and filters
-  const filteredPayments = payments.filter(payment => {
-    const matchesSearch = 
-      payment.invoiceId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      payment.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (payment.transactionId && payment.transactionId.toLowerCase().includes(searchTerm.toLowerCase()))
-    
-    const matchesStatus = statusFilter === 'all' || payment.status === statusFilter
-    const matchesMethod = methodFilter === 'all' || payment.method === methodFilter
-    
+  const filteredPayments = Array.isArray(payments) ? payments.filter(payment => {
+    const matchesSearch =
+      (payment?.invoiceId?.toLowerCase()?.includes(searchTerm.toLowerCase()) || false) ||
+      (payment?.id?.toLowerCase()?.includes(searchTerm.toLowerCase()) || false) ||
+      (payment?.transactionId && payment.transactionId.toLowerCase().includes(searchTerm.toLowerCase()))
+
+    const matchesStatus = statusFilter === 'all' || payment?.status === statusFilter
+    const matchesMethod = methodFilter === 'all' || payment?.method === methodFilter
+
     let matchesDate = true
     const now = new Date()
-    const paymentDate = payment.processedDate
-    
-    if (dateFilter === 'today') {
-      matchesDate = paymentDate.toDateString() === now.toDateString()
-    } else if (dateFilter === 'this_week') {
-      const startOfWeek = new Date(now)
-      startOfWeek.setDate(now.getDate() - now.getDay())
-      const endOfWeek = new Date(startOfWeek)
-      endOfWeek.setDate(startOfWeek.getDate() + 6)
-      matchesDate = paymentDate >= startOfWeek && paymentDate <= endOfWeek
-    } else if (dateFilter === 'this_month') {
-      matchesDate = 
-        paymentDate.getMonth() === now.getMonth() && 
-        paymentDate.getFullYear() === now.getFullYear()
+    const paymentDate = payment?.processedDate;
+
+    if (paymentDate) { // Ensure paymentDate is not null or undefined
+      if (dateFilter === 'today') {
+        matchesDate = paymentDate.toDateString() === now.toDateString()
+      } else if (dateFilter === 'this_week') {
+        const startOfWeek = new Date(now)
+        startOfWeek.setDate(now.getDate() - now.getDay())
+        const endOfWeek = new Date(startOfWeek)
+        endOfWeek.setDate(startOfWeek.getDate() + 6)
+        matchesDate = paymentDate >= startOfWeek && paymentDate <= endOfWeek
+      } else if (dateFilter === 'this_month') {
+        matchesDate =
+          paymentDate.getMonth() === now.getMonth() &&
+          paymentDate.getFullYear() === now.getFullYear()
+      }
+    } else {
+      matchesDate = false; // If no processedDate, it won't match any date filter
     }
     
     return matchesSearch && matchesStatus && matchesMethod && matchesDate
-  })
+  }) : []
 
   const handleExport = () => {
     // Create CSV content
+    if (!Array.isArray(filteredPayments) || filteredPayments.length === 0) {
+      toast({
+        title: 'Export Failed',
+        description: 'No payment data to export',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     const headers = ["ID", "Invoice ID", "Amount", "Method", "Status", "Transaction ID", "Date", "Notes"]
     const csvContent = [
       headers.join(","),
       ...filteredPayments.map(payment => [
-        payment.id,
-        payment.invoiceId,
-        payment.amount.toFixed(2),
-        payment.method,
-        payment.status,
-        payment.transactionId || '',
-        payment.processedDate.toISOString().split('T')[0],
-        payment.notes || ''
+        payment?.id || '',
+        payment?.invoiceId || '',
+        (payment?.amount || 0).toFixed(2),
+        payment?.method || '',
+        payment?.status || '',
+        payment?.transactionId || '',
+        payment?.processedDate ? payment.processedDate.toISOString().split('T')[0] : '',
+        payment?.notes || ''
       ].join(","))
     ].join("\n")
     
@@ -144,7 +163,7 @@ export function PaymentHistory({ payments, onViewPaymentDetails }: PaymentHistor
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.setAttribute('download', 'payment_history.csv')
+    link.setAttribute('download', `payment_history_${new Date().toISOString().split('T')[0]}.csv`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -156,23 +175,25 @@ export function PaymentHistory({ payments, onViewPaymentDetails }: PaymentHistor
   }
 
   // Calculate payment statistics
-  const totalPayments = payments.length
-  const totalAmount = payments.reduce((sum, p) => sum + p.amount, 0)
-  const completedPayments = payments.filter(p => p.status === 'completed').length
-  const pendingPayments = payments.filter(p => p.status === 'pending' || p.status === 'processing').length
-  const failedPayments = payments.filter(p => p.status === 'failed').length
+  const totalPayments = Array.isArray(payments) ? payments.length : 0;
+  const totalAmount = Array.isArray(payments) ? payments.reduce((sum, p) => sum + (p?.amount || 0), 0) : 0;
+  const completedPayments = Array.isArray(payments) ? payments.filter(p => p?.status === 'completed')?.length || 0 : 0;
+  const pendingPayments = Array.isArray(payments) ? payments.filter(p => p?.status === 'pending' || p?.status === 'processing')?.length || 0 : 0;
+  const failedPayments = Array.isArray(payments) ? payments.filter(p => p?.status === 'failed')?.length || 0 : 0;
 
   // Group payments by method
-  const paymentsByMethod = payments.reduce((acc, payment) => {
-    const method = payment.method
-    if (!acc[method]) {
-      acc[method] = 0
+  const paymentsByMethod = Array.isArray(payments) ? payments.reduce((acc, payment) => {
+    const method = payment?.method;
+    if (method) {
+      if (!acc[method]) {
+        acc[method] = 0;
+      }
+      if (payment?.status === 'completed') {
+        acc[method] += (payment?.amount || 0);
+      }
     }
-    if (payment.status === 'completed') {
-      acc[method] += payment.amount
-    }
-    return acc
-  }, {} as Record<string, number>)
+    return acc;
+  }, {} as Record<string, number>) : {};
 
   return (
     <div className="space-y-6">
@@ -240,26 +261,26 @@ export function PaymentHistory({ payments, onViewPaymentDetails }: PaymentHistor
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-3 md:grid-cols-3">
-            {Object.entries(paymentsByMethod).map(([method, amount]) => (
-              <div key={method} className="p-4 border rounded-lg">
-                <div className="flex items-center space-x-2 mb-2">
-                  {getMethodIcon(method)}
-                  <span className="font-medium">{getMethodLabel(method)}</span>
+          {Object.keys(paymentsByMethod).length > 0 ? (
+            <div className="grid gap-3 md:grid-cols-3">
+              {Object.entries(paymentsByMethod).map(([method, amount]) => (
+                <div key={method} className="p-4 border rounded-lg">
+                  <div className="flex items-center space-x-2 mb-2">
+                    {getMethodIcon(method)}
+                    <span className="font-medium">{getMethodLabel(method)}</span>
+                  </div>
+                  <div className="text-2xl font-bold text-primary">{formatCurrency(amount)}</div>
+                  <p className="text-sm text-muted-foreground">
+                    {Array.isArray(payments) ? payments.filter(p => p?.method === method && p?.status === 'completed')?.length || 0 : 0} payments
+                  </p>
                 </div>
-                <div className="text-2xl font-bold text-primary">{formatCurrency(amount)}</div>
-                <p className="text-sm text-muted-foreground">
-                  {payments.filter(p => p.method === method && p.status === 'completed').length} payments
-                </p>
-              </div>
-            ))}
-            
-            {Object.keys(paymentsByMethod).length === 0 && (
-              <div className="col-span-3 text-center py-8 text-muted-foreground">
-                <p>No payment data available</p>
-              </div>
-            )}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="col-span-3 text-center py-8 text-muted-foreground">
+              <p>No payment data available</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -341,65 +362,65 @@ export function PaymentHistory({ payments, onViewPaymentDetails }: PaymentHistor
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-muted/50">
-                  <th className="p-3 text-left font-medium text-muted-foreground">Invoice</th>
-                  <th className="p-3 text-left font-medium text-muted-foreground">Amount</th>
-                  <th className="p-3 text-left font-medium text-muted-foreground">Method</th>
-                  <th className="p-3 text-left font-medium text-muted-foreground">Status</th>
-                  <th className="p-3 text-left font-medium text-muted-foreground">Date</th>
-                  <th className="p-3 text-left font-medium text-muted-foreground">Transaction ID</th>
-                  <th className="p-3 text-left font-medium text-muted-foreground">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredPayments.map((payment) => (
-                  <tr key={payment.id} className="border-b hover:bg-muted/10">
-                    <td className="p-3">
-                      <div className="font-medium">#{payment.invoiceId.substring(0, 8)}</div>
-                    </td>
-                    <td className="p-3 font-medium">{formatCurrency(payment.amount)}</td>
-                    <td className="p-3">
-                      <div className="flex items-center space-x-1">
-                        {getMethodIcon(payment.method)}
-                        <span>{getMethodLabel(payment.method)}</span>
-                      </div>
-                    </td>
-                    <td className="p-3">
-                      <Badge className={cn("flex items-center space-x-1", getStatusColor(payment.status))}>
-                        {getStatusIcon(payment.status)}
-                        <span>{payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}</span>
-                      </Badge>
-                    </td>
-                    <td className="p-3">{formatDate(payment.processedDate)}</td>
-                    <td className="p-3">
-                      <span className="font-mono text-xs">
-                        {payment.transactionId ? payment.transactionId : '-'}
-                      </span>
-                    </td>
-                    <td className="p-3">
-                      <div className="flex space-x-2">
-                        <Button variant="ghost" size="sm" onClick={() => onViewPaymentDetails?.(payment)}>
-                          View
-                        </Button>
-                      </div>
-                    </td>
+            {Array.isArray(filteredPayments) && filteredPayments.length > 0 ? (
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-muted/50">
+                    <th className="p-3 text-left font-medium text-muted-foreground">Invoice</th>
+                    <th className="p-3 text-left font-medium text-muted-foreground">Amount</th>
+                    <th className="p-3 text-left font-medium text-muted-foreground">Method</th>
+                    <th className="p-3 text-left font-medium text-muted-foreground">Status</th>
+                    <th className="p-3 text-left font-medium text-muted-foreground">Date</th>
+                    <th className="p-3 text-left font-medium text-muted-foreground">Transaction ID</th>
+                    <th className="p-3 text-left font-medium text-muted-foreground">Actions</th>
                   </tr>
-                ))}
-                {filteredPayments.length === 0 && (
-                  <tr>
-                    <td colSpan={7} className="p-8 text-center text-muted-foreground">
-                      <CreditCard className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>No payments found matching your filters</p>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filteredPayments.map((payment) => (
+                    <tr key={payment?.id} className="border-b hover:bg-muted/10">
+                      <td className="p-3">
+                        <div className="font-medium">#{payment?.invoiceId?.substring(0, 8)}</div>
+                      </td>
+                      <td className="p-3 font-medium">{formatCurrency(payment?.amount || 0)}</td>
+                      <td className="p-3">
+                        <div className="flex items-center space-x-1">
+                          {getMethodIcon(payment?.method || '')}
+                          <span>{getMethodLabel(payment?.method || '')}</span>
+                        </div>
+                      </td>
+                      <td className="p-3">
+                        <Badge className={cn("flex items-center space-x-1", getStatusColor(payment?.status || ''))}>
+                          {getStatusIcon(payment?.status || '')}
+                          <span>{payment?.status ? payment.status.charAt(0).toUpperCase() + payment.status.slice(1) : 'Unknown'}</span>
+                        </Badge>
+                      </td>
+                      <td className="p-3">{payment?.processedDate ? formatDate(payment.processedDate) : '-'}</td>
+                      <td className="p-3">
+                        <span className="font-mono text-xs">
+                          {payment?.transactionId ? payment.transactionId : '-'}
+                        </span>
+                      </td>
+                      <td className="p-3">
+                        <div className="flex space-x-2">
+                          <Button variant="ghost" size="sm" onClick={() => payment && onViewPaymentDetails?.(payment)}>
+                            View
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="p-8 text-center text-muted-foreground border border-dashed rounded-lg">
+                <CreditCard className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No payments found matching your filters</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
     </div>
   )
 }
+
