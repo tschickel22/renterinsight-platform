@@ -1,58 +1,59 @@
-# 🔒 Base ignore
-dist/
-node_modules/
-.git/
-supabase/
+# 🔒 Ignore all other apps
+apps/agreement-vault/
+apps/client-portal/
+apps/commission-engine/
+apps/crm-prospecting/
+apps/delivery-tracker/
+apps/inventory-management/
+apps/invoice-payments/
+apps/quote-builder/
+apps/reporting-suite/
+apps/service-ops/
 
-# 🏗 Ignore build artifacts
-build/
-out/
-.next/
-.nuxt/
-.cache/
+# ✅ DO NOT IGNORE: company-settings and platform-admin
+# apps/company-settings/
+# apps/platform-admin/
 
-# 📦 Ignore lock files
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
+# 🔒 Ignore shared components, hooks, and utilities unless needed
+shared-core/
+src/components/
+src/hooks/
+src/lib/
+src/utils/
 
-# 🎨 Ignore large CSS and JS bundles
-dist/assets/index-*.css
-dist/assets/index-*.js
-*.css
-*.js
-
-# 🗃 Ignore large data files
-*.csv
+# 🔒 Ignore test and mock data
+__tests__/
+*.test.*
+*.spec.*
+mocks/
+mock-data/
+test-data/
+*.mock.*
 *.json
-*.log
-*.sql
+*.csv
 
-# 🖼 Ignore media files
+# 🔒 Ignore backend and Supabase
+supabase/
+*.sql
+supabase_discarded_migrations/
+
+# 🔒 Ignore assets and static files
+public/
+dist/
+*.png
 *.jpg
 *.jpeg
-*.png
-*.gif
+*.pdf
 *.svg
 *.mp4
-*.webm
-*.webp
-*.ico
 
-# ⚠️ Ignore Supabase API/docs
-renter_insight_bolt_manifest.json
-renter_insight_openapi.yaml
-
-# 🧪 Ignore test files
-**/__tests__/
-**/__mocks__/
-**/test/
-**/tests/
-
-# 🚫 Ignore all apps and modules by default
-apps/*
-src/modules/*
-
-# ✅ Allow editing Service Ops only
-!apps/service-ops/**
-!src/modules/service-ops/**
+# 🔒 Ignore documentation and config
+README.md
+docs/
+CHANGELOG.md
+LICENSE
+.env
+.env.*
+tsconfig.json
+tailwind.config.js
+vite.config.ts
