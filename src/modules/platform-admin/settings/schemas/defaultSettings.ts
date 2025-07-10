@@ -1,61 +1,52 @@
 export const defaultSettings = {
   general: {
-    platformName: 'Renter Insight',
-    supportEmail: 'support@renterinsight.com',
-    supportPhone: '(555) 123-4567',
     maintenanceMode: false,
     maintenanceMessage: 'The system is currently undergoing scheduled maintenance. Please try again later.',
-    defaultTimezone: 'America/New_York',
-    defaultCurrency: 'USD',
-    defaultDateFormat: 'MM/dd/yyyy',
-    defaultLanguage: 'en-US'
-  },
-  email: {
-    provider: 'default',
-    fromEmail: 'noreply@renterinsight.com',
-    fromName: 'Renter Insight',
-    replyToEmail: 'support@renterinsight.com',
-    footerText: 'This email was sent from Renter Insight CRM/DMS.',
-    maxDailyEmails: 10000,
-    throttleRate: 100, // emails per minute
-    enableTracking: true,
-    trackOpens: true,
-    trackClicks: true,
-    enableUnsubscribe: true,
-    unsubscribeLink: true,
-    unsubscribeText: 'To unsubscribe from these emails, click here.'
-  },
-  sms: {
-    provider: 'default',
-    fromNumber: '+15551234567',
-    enableTracking: true,
-    maxDailySms: 5000,
-    throttleRate: 50, // SMS per minute
-    defaultCountryCode: '+1',
-    optOutText: 'Reply STOP to opt out.',
-    helpText: 'Reply HELP for help.',
-    complianceEnabled: true
-  },
-  security: {
+    defaultUserRole: 'user',
     sessionTimeout: 30, // minutes
     maxLoginAttempts: 5,
-    lockoutDuration: 15, // minutes
-    passwordPolicy: {
-      minLength: 8,
-      requireUppercase: true,
-      requireLowercase: true,
-      requireNumbers: true,
-      requireSpecialChars: true,
-      passwordExpiry: 90, // days
-      preventReuse: 5 // previous passwords
-    },
-    twoFactorAuth: {
-      enabled: false,
-      required: false,
-      methods: ['email', 'authenticator']
-    },
-    ipWhitelist: [],
-    apiRateLimit: 100 // requests per minute
+    lockoutDuration: 30, // minutes
+    auditLevel: 'standard', // minimal, standard, verbose
+    allowMultipleDevices: true,
+    requireStrongPasswords: true,
+    passwordExpiryDays: 90, // 0 means never expire
+    systemName: 'Renter Insight CRM/DMS',
+    systemVersion: '1.0.0',
+    supportEmail: 'support@renterinsight.com',
+    supportPhone: '(555) 123-4567',
+    timezone: 'America/New_York'
+  },
+  email: {
+    provider: 'default', // default, sendgrid, mailchimp, mailgun, smtp
+    apiKey: '',
+    fromAddress: 'noreply@renterinsight.com',
+    fromName: 'Renter Insight',
+    smtpHost: '',
+    smtpPort: 587,
+    smtpUsername: '',
+    smtpPassword: '',
+    smtpSecure: true,
+    batchSize: 50,
+    rateLimitPerMinute: 100,
+    maxRetries: 3,
+    retryDelay: 5, // minutes
+    logEmails: true,
+    testMode: false,
+    testRecipient: ''
+  },
+  sms: {
+    provider: 'default', // default, twilio, messagebird, vonage
+    apiKey: '',
+    fromNumber: '',
+    accountSid: '', // for Twilio
+    authToken: '', // for Twilio
+    batchSize: 25,
+    rateLimitPerMinute: 50,
+    maxRetries: 3,
+    retryDelay: 5, // minutes
+    logSms: true,
+    testMode: false,
+    testRecipient: ''
   },
   payment: {
     providers: ['zego'],
@@ -64,57 +55,148 @@ export const defaultSettings = {
     autoCapture: true,
     allowPartialPayments: false,
     minimumPaymentAmount: 1.00,
-    paymentMethods: ['credit_card', 'bank_transfer'],
-    processingFee: {
-      type: 'percentage', // 'percentage' or 'fixed'
-      value: 2.9,
-      additional: 0.30 // additional fixed fee
-    },
-    invoicePrefix: 'INV-',
-    receiptPrefix: 'RCPT-',
-    defaultDueDays: 30
+    processingFeePercent: 2.9,
+    processingFeeCents: 30,
+    absorbFees: false,
+    invoiceExpiryDays: 30,
+    paymentReminders: true,
+    reminderDays:, // days before due date
+    pastDueReminders: true,
+    pastDueReminderDays:, // days after due date
+    allowedPaymentMethods: ['credit_card', 'bank_transfer', 'ach'],
+    requireCvv: true,
+    requireBillingAddress: true,
+    currency: 'USD',
+    taxRate: 0,
+    taxInclusive: false,
+    refundPolicy: 'standard', // standard, no_refunds, custom
+    chargebackProtection: true,
+    fraudDetection: true,
+    webhookSecret: '',
+    webhookUrl: '',
+    apiKeys: {
+      stripe: {
+        publishableKey: '',
+        secretKey: ''
+      },
+      zego: {
+        apiKey: '',
+        secretKey: ''
+      },
+      paypal: {
+        clientId: '',
+        clientSecret: ''
+      },
+      authorize: {
+        apiLoginId: '',
+        transactionKey: ''
+      }
+    }
   },
-  notifications: {
-    emailEnabled: true,
-    smsEnabled: true,
-    pushEnabled: false,
-    defaultEvents: {
-      newLead: ['email'],
-      newQuote: ['email'],
-      quoteAccepted: ['email', 'sms'],
-      invoiceCreated: ['email'],
-      paymentReceived: ['email', 'sms'],
-      serviceScheduled: ['email', 'sms'],
-      deliveryScheduled: ['email', 'sms']
-    },
-    reminderSchedule: {
-      invoiceDue: [7, 3, 1], // days before
-      appointmentReminder: [1], // days before
-      deliveryReminder: [1] // days before
+  security: {
+    mfaEnabled: false,
+    mfaProviders: ['email', 'sms', 'authenticator'],
+    passwordResetPolicy: 'email', // email, sms
+    ipWhitelistEnabled: false,
+    ipWhitelist: [],
+    bruteForceProtection: true,
+    sessionHijackingProtection: true,
+    xssProtection: true,
+    csrfProtection: true,
+    contentSecurityPolicy: "default-src 'self'",
+    rateLimitingEnabled: true,
+    rateLimitRequests: 100,
+    rateLimitWindow: 60, // seconds
+    dataEncryptionEnabled: true,
+    encryptionAlgorithm: 'AES-256',
+    dataRetentionDays: 365, // 0 means indefinite
+    gdprCompliance: true,
+    ccpaCompliance: true,
+    dataMaskingEnabled: true,
+    logRetentionDays: 90,
+    securityHeaders: {
+      xFrameOptions: 'DENY',
+      xContentTypeOptions: 'nosniff',
+      xXSSProtection: '1; mode=block',
+      strictTransportSecurity: 'max-age=31536000; includeSubDomains',
+      referrerPolicy: 'no-referrer-when-downgrade'
     }
   },
   integrations: {
     crm: {
       enabled: false,
-      provider: '',
+      provider: 'salesforce', // salesforce, hubspot, zoho
       apiKey: '',
-      webhookUrl: ''
+      syncFrequency: 'daily',
+      syncDirection: 'two-way'
     },
     accounting: {
       enabled: false,
-      provider: '',
+      provider: 'quickbooks', // quickbooks, xero, freshbooks
       apiKey: '',
-      webhookUrl: ''
+      syncFrequency: 'daily',
+      syncDirection: 'two-way'
     },
     calendar: {
       enabled: false,
-      provider: '',
+      provider: 'google', // google, outlook
       apiKey: '',
-      webhookUrl: ''
+      syncFrequency: 'daily',
+      syncDirection: 'two-way'
+    },
+    documentManagement: {
+      enabled: false,
+      provider: 'dropbox', // dropbox, google_drive, onedrive
+      apiKey: '',
+      syncFrequency: 'daily',
+      syncDirection: 'two-way'
+    }
+  },
+  notifications: {
+    emailNotifications: true,
+    smsNotifications: true,
+    pushNotifications: true,
+    inAppNotifications: true,
+    notificationChannels: ['email', 'sms', 'in_app'],
+    notificationTemplates: {
+      welcome: 'Welcome to our platform!',
+      passwordReset: 'Your password has been reset.',
+      paymentConfirmation: 'Your payment has been confirmed.',
+      newLead: 'You have a new lead!',
+      taskAssigned: 'A new task has been assigned to you.'
+    }
+  },
+  branding: {
+    logoUrl: '',
+    faviconUrl: '',
+    primaryColor: '#4F46E5',
+    secondaryColor: '#6366F1',
+    fontFamily: 'Inter, sans-serif',
+    customCss: '',
+    loginPageBackground: '',
+    emailTemplateHeader: '',
+    emailTemplateFooter: ''
+  },
+  advanced: {
+    customScripts: {
+      head: '',
+      body: ''
+    },
+    webhooks: [],
+    apiRateLimits: {
+      enabled: true,
+      requestsPerMinute: 1000,
+      burstLimit: 200
+    },
+    dataExportFormat: ['csv', 'json'],
+    debugMode: false,
+    logLevel: 'info', // debug, info, warn, error
+    featureFlags: {},
+    maintenanceWindow: {
+      enabled: false,
+      startTime: '02:00',
+      endTime: '04:00',
+      dayOfWeek: 'sunday'
     }
   }
 }
-
-export type PlatformSettings = typeof defaultSettings
-
-export type SettingsCategory = keyof typeof defaultSettings
