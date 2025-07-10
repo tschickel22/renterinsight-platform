@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Receipt, Plus, Search, Filter, Send, Eye, Download, CreditCard, TrendingUp, DollarSign, CheckCircle, XCircle, Clock, Table as Tabs } from 'lucide-react'
+import { Receipt, Plus, Search, Filter, Send, Eye, Download, CreditCard, TrendingUp, DollarSign, CheckCircle, XCircle, Clock } from 'lucide-react'
 import { Invoice, InvoiceStatus, Payment, PaymentStatus } from '@/types'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
@@ -479,10 +479,25 @@ function InvoicesList() {
 
 export default function InvoicePayments() {
   return (
-    <Routes>
-      <Route path="/" element={<InvoicesList />} />
-      <Route path="/*" element={<InvoicesList />} />
-    </Routes>
+    <TabsComponent value="invoices" onValueChange={() => {}}>
+      <TabsList className="grid w-full grid-cols-2">
+        <TabsTrigger value="invoices" className="flex items-center">
+          <Receipt className="h-4 w-4 mr-2" />
+          Invoices
+        </TabsTrigger>
+        <TabsTrigger value="payments" className="flex items-center">
+          <CreditCard className="h-4 w-4 mr-2" />
+          Payments
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="invoices">
+        <InvoicesList />
+      </TabsContent>
+
+      <TabsContent value="payments">
+        <PaymentHistory payments={[]} /> {/* Payments will be passed from parent */}
+      </TabsContent>
+    </TabsComponent>
   )
 }
-
