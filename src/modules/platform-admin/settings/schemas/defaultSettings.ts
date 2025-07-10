@@ -1,20 +1,22 @@
+// src/modules/platform-admin/settings/schemas/defaultSettings.ts
 export const defaultSettings = {
   // General Settings
-  systemName: 'Bolt Platform',
-  systemVersion: '1.0.0',
-  supportEmail: 'support@bolt.com',
-  supportPhone: '+1 (800) 123-4567',
-  timezone: 'America/New_York',
-  defaultUserRole: 'user',
-  maintenanceMode: false,
-  maintenanceMessage: 'The system is currently undergoing scheduled maintenance. We will be back shortly.',
-  auditLogRetentionDays: 90,
-  enableTwoFactorAuth: true,
-  sessionTimeoutMinutes: 60,
-
-  // Payment Settings
+  appName: 'Renter Insight',
+  appLogo: '/logo.svg',
+  contactEmail: 'support@renterinsight.com',
+  contactPhone: '+1 (555) 123-4567',
+  address: '123 Main St, Anytown, USA',
+  website: 'https://www.renterinsight.com',
+  timezone: 'America/Los_Angeles',
+  dateFormat: 'MM/DD/YYYY',
+  timeFormat: 'hh:mm A',
   currency: 'USD',
   currencySymbol: '$',
+  language: 'en',
+  maintenanceMode: false,
+  welcomeMessage: 'Welcome to Renter Insight!',
+
+  // Payment Settings
   paymentGateway: 'stripe', // 'stripe', 'paypal', 'none'
   stripePublishableKey: '',
   stripeSecretKey: '',
@@ -24,32 +26,58 @@ export const defaultSettings = {
   taxRate: 0.05, // 5%
   enableInvoiceGeneration: true,
 
+  // SMS Settings
+  smsProvider: 'twilio', // 'twilio', 'messagebird', 'none'
+  twilioAccountSid: '',
+  twilioAuthToken: '',
+  twilioPhoneNumber: '',
+  smsEnabled: true,
+  smsTemplates: [], // Placeholder for future template management
+
+  // Email Settings
+  emailProvider: 'smtp', // 'smtp', 'sendgrid', 'mailgun', 'none'
+  smtpHost: '',
+  smtpPort: 587,
+  smtpUsername: '',
+  smtpPassword: '',
+  smtpSecure: false,
+  emailFromAddress: 'noreply@example.com',
+  emailFromName: 'Renter Insight',
+  emailEnabled: true,
+  emailTemplates: [], // Placeholder for future template management
+
+  // Voice Settings
+  voiceProvider: 'twilio', // 'twilio', 'none'
+  twilioVoiceSid: '',
+  twilioVoiceAuthToken: '',
+  voiceEnabled: false,
+
   // Security Settings (example, not fully implemented in components yet)
   passwordMinLength: 8,
   passwordRequiresUppercase: true,
   passwordRequiresLowercase: true,
   passwordRequiresNumber: true,
   passwordRequiresSymbol: true,
-  accountLockoutAttempts: 5,
-  accountLockoutDurationMinutes: 30,
+  twoFactorAuthEnabled: false,
+  sessionTimeout: 3600, // seconds
+  failedLoginAttemptsLockout: 5,
+  lockoutDuration: 300, // seconds
 
-  // Integrations Settings (example)
-  googleAnalyticsId: '',
+  // Integrations (example)
+  googleMapsApiKey: '',
   slackWebhookUrl: '',
 
-  // Notifications Settings (example)
-  emailNotificationsEnabled: true,
-  smsNotificationsEnabled: false,
-  defaultEmailSender: 'noreply@bolt.com',
+  // Analytics (example)
+  googleAnalyticsTrackingId: '',
+  mixpanelProjectId: '',
 
-  // Branding Settings (example)
-  logoUrl: '',
-  primaryColor: '#007bff',
-  secondaryColor: '#6c757d',
+  // Branding (example)
+  primaryColor: '#4F46E5', // Indigo 600
+  secondaryColor: '#10B981', // Emerald 500
+  fontFamily: 'Inter, sans-serif',
 
-  // Advanced Settings (example)
-  debugMode: false,
-  logLevel: 'info',
-  apiRateLimit: 1000, // requests per minute
-  dataRetentionPolicy: '1 year',
+  // Other
+  termsOfServiceUrl: '/terms',
+  privacyPolicyUrl: '/privacy',
+  supportPageUrl: '/support',
 }
