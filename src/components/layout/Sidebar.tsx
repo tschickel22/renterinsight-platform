@@ -18,6 +18,8 @@ import {
   Shield,
   BarChart3,
   Home,
+  Cog,
+  Cog,
   X
 } from 'lucide-react'
 import { Dialog, Transition } from '@headlessui/react'
@@ -38,6 +40,8 @@ const navigation = [
   { name: 'Invoice & Payments', href: '/invoices', icon: Receipt },
   { name: 'Company Settings', href: '/settings', icon: Settings },
   { name: 'Platform Admin', href: '/admin', icon: Shield },
+  { name: 'Platform Settings', href: '/admin/settings', icon: Cog },
+  { name: 'Platform Settings', href: '/admin/settings', icon: Cog },
   { name: 'Reporting Suite', href: '/reports', icon: BarChart3 },
 ]
 

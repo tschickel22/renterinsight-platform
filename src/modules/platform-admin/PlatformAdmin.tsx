@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Shield, Plus, Search, Filter, Users, Building, Activity, AlertTriangle, TrendingUp, BarChart3, LogIn as Logs } from 'lucide-react'
+import { Shield, Plus, Search, Filter, Users, Building, Activity, AlertTriangle, TrendingUp, BarChart3, LogIn as Logs, Cog, Settings } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { UserRole } from '@/types'
 import { cn } from '@/lib/utils'
@@ -179,10 +179,16 @@ function PlatformAdminDashboard() {
               System administration and tenant management
             </p>
           </div>
-          <Button className="shadow-sm" onClick={handleAddTenant}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Tenant
-          </Button>
+          <div>
+            <Button className="shadow-sm" onClick={handleAddTenant}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Tenant
+            </Button>
+            <Button onClick={() => window.location.href = '/admin/settings'} className="shadow-sm ml-2">
+              <Settings className="h-4 w-4 mr-2" />
+              Platform Settings
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -254,158 +260,4 @@ function PlatformAdminDashboard() {
           </CardContent>
         </Card>
         <Card className="shadow-sm border-0 bg-gradient-to-br from-green-50 to-green-100/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-green-900">Error Rate</CardTitle>
-            <Activity className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-900">{mockSystemMetrics.errorRate}</div>
-            <p className="text-xs text-green-600 flex items-center mt-1">
-              <Activity className="h-3 w-3 mr-1" />
-              Very low
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* System Health */}
-      <Tabs defaultValue="health" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="health">System Health</TabsTrigger>
-          <TabsTrigger value="usage">Usage Stats</TabsTrigger>
-          <TabsTrigger value="logs">Audit Logs</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="health">
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-xl">System Health</CardTitle>
-              <CardDescription>
-                Real-time system status and health metrics
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-                  <div className="h-3 w-3 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-green-900">Database: Healthy</span>
-                </div>
-                <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-                  <div className="h-3 w-3 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-green-900">API Services: Operational</span>
-                </div>
-                <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-                  <div className="h-3 w-3 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-green-900">Payment Gateway: Connected</span>
-                </div>
-                <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-                  <div className="h-3 w-3 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-green-900">Email Service: Active</span>
-                </div>
-                <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-                  <div className="h-3 w-3 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-green-900">File Storage: Available</span>
-                </div>
-                <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-                  <div className="h-3 w-3 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-green-900">Backup System: Running</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="usage">
-          <UsageStats />
-        </TabsContent>
-        
-        <TabsContent value="logs">
-          <AuditLogs />
-        </TabsContent>
-      </Tabs>
-
-      {/* Search and Filters */}
-      <div className="flex gap-4">
-        <div className="ri-search-bar">
-          <Search className="ri-search-icon" />
-          <Input
-            placeholder="Search tenants..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="ri-search-input shadow-sm"
-          />
-        </div>
-        <Button variant="outline" className="shadow-sm">
-          <Filter className="h-4 w-4 mr-2" />
-          Filter
-        </Button>
-      </div>
-
-      {/* Tenants Table */}
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-xl">Tenant Management</CardTitle>
-          <CardDescription>
-            Manage dealership tenants and their configurations
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {filteredTenants.map((tenant) => (
-              <div key={tenant.id} className="ri-table-row">
-                <div className="flex items-center space-x-4 flex-1">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="font-semibold text-foreground">{tenant.name}</h3>
-                      <Badge className={cn("ri-badge-status", getStatusColor(tenant.status))}>
-                        {tenant.status.toUpperCase()}
-                      </Badge>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
-                      <div>
-                        <span className="font-medium">Domain:</span> 
-                        <span className="ml-1">{tenant.domain}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium">Users:</span> 
-                        <span className="ml-1">{tenant.users}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium">Created:</span> 
-                        <span className="ml-1">{tenant.createdAt.toLocaleDateString()}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium">Last Activity:</span> 
-                        <span className="ml-1">{tenant.lastActivity.toLocaleDateString()}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="ri-action-buttons">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="shadow-sm"
-                    onClick={() => handleManageTenant(tenant)}
-                  >
-                    <Shield className="h-3 w-3 mr-1" />
-                    Manage
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  )
-}
-
-export default function PlatformAdmin() {
-  return (
-    <Routes>
-      <Route path="/" element={<PlatformAdminDashboard />} />
-      <Route path="/*" element={<PlatformAdminDashboard />} />
-    </Routes>
-  )
-}
+          <CardHeader className="flex flex-row items-center justify-between space-y-

@@ -8,6 +8,8 @@ import Layout from '@/components/layout/Layout'
 import Dashboard from '@/pages/Dashboard'
 import Login from '@/pages/Login'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
+import PlatformSettings from '@/modules/platform-admin/settings'
+import PlatformSettings from '@/modules/platform-admin/settings'
 
 // Module imports
 import CRMProspecting from '@/modules/crm-prospecting/CRMProspecting'
@@ -56,6 +58,8 @@ function App() {
                           <Route path="/invoices/*" element={<InvoicePayments />} />
                           <Route path="/settings/*" element={<CompanySettings />} />
                           <Route path="/admin/*" element={<PlatformAdmin />} />
+                          <Route path="/admin/settings/*" element={<PlatformSettings />} />
+                          <Route path="/admin/settings/*" element={<PlatformSettings />} />
                           <Route path="/reports/*" element={<ReportingSuite />} />
                         </Routes>
                       </Layout>
