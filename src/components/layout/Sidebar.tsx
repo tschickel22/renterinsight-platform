@@ -19,7 +19,6 @@ import {
   BarChart3,
   Home,
   Cog,
-  Cog,
   X
 } from 'lucide-react'
 import { Dialog, Transition } from '@headlessui/react'

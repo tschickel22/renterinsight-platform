@@ -258,6 +258,5 @@ function PlatformAdminDashboard() {
               Fast response
             </p>
           </CardContent>
-        </Card>
         <Card className="shadow-sm border-0 bg-gradient-to-br from-green-50 to-green-100/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
