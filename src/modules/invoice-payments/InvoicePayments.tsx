@@ -18,12 +18,12 @@ import { generateInvoicePDF } from './utils' // Import the new utility function
 import { useTenant } from '@/contexts/TenantContext' // Import useTenant
 
 function InvoicesList() {
-  const { 
-    invoices, 
-    payments, 
-    createInvoice, 
-    updateInvoice, 
-    deleteInvoice, 
+  const {
+    invoices,
+    payments,
+    createInvoice,
+    updateInvoice,
+    deleteInvoice,
     updateInvoiceStatus,
     sendInvoice,
     sendPaymentRequest,
@@ -57,12 +57,16 @@ function InvoicesList() {
     }
   }
 
-  const filteredInvoices = invoices
-    .filter(invoice =>
-      invoice.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      invoice.customerId.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .filter(invoice => statusFilter === 'all' || invoice.status === statusFilter)
+  const filteredInvoices = Array.isArray(invoices)
+    ? invoices.filter(invoice => {
+        const matchesSearch =
+          (invoice?.number?.toLowerCase()?.includes(searchTerm.toLowerCase()) || false) ||
+          (invoice?.customerId?.toLowerCase()?.includes(searchTerm.toLowerCase()) || false)
+
+        const matchesStatus = statusFilter === 'all' || invoice?.status === statusFilter
+        return matchesSearch && matchesStatus
+      })
+    : []
 
   const handleCreateInvoice = () => {
     setSelectedInvoice(null)
@@ -175,7 +179,7 @@ function InvoicesList() {
       generateInvoicePDF(invoice, tenant) // Call the utility function
       toast({
         title: 'PDF Generated',
-        description: `Invoice ${invoice.number} PDF has been downloaded`,
+        description: `Invoice ${invoice?.number} PDF has been downloaded`,
       })
     } catch (error) {
       console.error('Error generating PDF:', error)
@@ -186,6 +190,15 @@ function InvoicesList() {
       })
     }
   }
+
+  const totalPaymentsCount = Array.isArray(payments) ? payments.filter(p => p?.status === 'completed')?.length || 0 : 0;
+  const totalInvoicesCount = Array.isArray(invoices) ? invoices.length : 0;
+  const outstandingInvoicesValue = Array.isArray(invoices)
+    ? invoices.filter(i => i?.status !== InvoiceStatus.PAID).reduce((sum, i) => sum + (i?.total || 0), 0)
+    : 0;
+  const paidThisMonthValue = Array.isArray(invoices)
+    ? invoices.filter(i => i?.status === InvoiceStatus.PAID).reduce((sum, i) => sum + (i?.total || 0), 0)
+    : 0;
 
   return (
     <div className="space-y-8">
@@ -200,12 +213,12 @@ function InvoicesList() {
           }}
         />
       )}
-      
+
       {/* Invoice Detail Modal */}
       {showInvoiceDetail && selectedInvoice && (
         <InvoiceDetail
           invoice={selectedInvoice}
-          payments={payments.filter(p => p.invoiceId === selectedInvoice.id)}
+          payments={Array.isArray(payments) ? payments.filter(p => p?.invoiceId === selectedInvoice?.id) : []}
           onClose={() => setShowInvoiceDetail(false)}
           onEdit={handleEditInvoice}
           onSendPaymentRequest={handleSendPaymentRequest}
@@ -219,7 +232,7 @@ function InvoicesList() {
           <div>
             <h1 className="ri-page-title">Invoice & Payments</h1>
             <p className="ri-page-description">
-              Manage invoices and process payments via Zego integration
+              Manage invoices and process payments
             </p>
           </div>
           <Button className="shadow-sm" onClick={handleCreateInvoice}>
@@ -237,7 +250,7 @@ function InvoicesList() {
             <Receipt className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-900">{invoices.length}</div>
+            <div className="text-2xl font-bold text-blue-900">{totalInvoicesCount}</div>
             <p className="text-xs text-blue-600 flex items-center mt-1">
               <TrendingUp className="h-3 w-3 mr-1" />
               All invoices
@@ -251,7 +264,7 @@ function InvoicesList() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-900">
-              {formatCurrency(invoices.filter(i => i.status !== InvoiceStatus.PAID).reduce((sum, i) => sum + i.total, 0))}
+              {formatCurrency(outstandingInvoicesValue)}
             </div>
             <p className="text-xs text-orange-600 flex items-center mt-1">
               <DollarSign className="h-3 w-3 mr-1" />
@@ -266,7 +279,7 @@ function InvoicesList() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-900">
-              {formatCurrency(invoices.filter(i => i.status === InvoiceStatus.PAID).reduce((sum, i) => sum + i.total, 0))}
+              {formatCurrency(paidThisMonthValue)}
             </div>
             <p className="text-xs text-green-600 flex items-center mt-1">
               <TrendingUp className="h-3 w-3 mr-1" />
@@ -280,10 +293,12 @@ function InvoicesList() {
             <CreditCard className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-900">98.5%</div>
+            <div className="text-2xl font-bold text-purple-900">
+              {totalPaymentsCount > 0 ? ((totalPaymentsCount / (Array.isArray(payments) ? payments.length : 1)) * 100).toFixed(1) : 0}%
+            </div>
             <p className="text-xs text-purple-600 flex items-center mt-1">
               <CheckCircle className="h-3 w-3 mr-1" />
-              {payments.filter(p => p.status === 'completed').length} successful payments
+              {totalPaymentsCount} successful payments
             </p>
           </CardContent>
         </Card>
@@ -330,92 +345,92 @@ function InvoicesList() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {filteredInvoices.map((invoice) => (
-              <div key={invoice.id} className="ri-table-row">
-                <div className="flex items-center space-x-4 flex-1">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="font-semibold text-foreground">{invoice.number}</h3>
-                      <Badge className={cn("ri-badge-status", getStatusColor(invoice.status))}>
-                        {invoice.status.toUpperCase()}
-                      </Badge>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
-                      <div>
-                        <span className="font-medium">Customer:</span> 
-                        <span className="ml-1">{invoice.customerId}</span>
+            {Array.isArray(filteredInvoices) && filteredInvoices.length > 0 ? (
+              filteredInvoices.map((invoice) => (
+                <div key={invoice?.id} className="ri-table-row">
+                  <div className="flex items-center space-x-4 flex-1">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3 mb-2">
+                        <h3 className="font-semibold text-foreground">{invoice?.number}</h3>
+                        <Badge className={cn("ri-badge-status", getStatusColor(invoice?.status || InvoiceStatus.DRAFT))}>
+                          {invoice?.status?.toUpperCase() || 'N/A'}
+                        </Badge>
                       </div>
-                      <div>
-                        <span className="font-medium">Total:</span> 
-                        <span className="ml-1 font-bold text-primary">{formatCurrency(invoice.total)}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium">Due Date:</span> 
-                        <span className="ml-1">{formatDate(invoice.dueDate)}</span>
-                      </div>
-                      {invoice.paidDate && (
+                      <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
                         <div>
-                          <span className="font-medium">Paid Date:</span> 
-                          <span className="ml-1">{formatDate(invoice.paidDate)}</span>
+                          <span className="font-medium">Customer:</span>
+                          <span className="ml-1">{invoice?.customerId}</span>
                         </div>
-                      )}
-                    </div>
-                    <div className="mt-2 bg-muted/30 p-2 rounded-md">
-                      <p className="text-sm text-muted-foreground">
-                        {invoice.items.length} item(s)
-                      </p>
-                      {invoice.notes && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          <span className="font-medium">Notes:</span> {invoice.notes}
+                        <div>
+                          <span className="font-medium">Total:</span>
+                          <span className="ml-1 font-bold text-primary">{formatCurrency(invoice?.total || 0)}</span>
+                        </div>
+                        <div>
+                          <span className="font-medium">Due Date:</span>
+                          <span className="ml-1">{invoice?.dueDate ? formatDate(invoice.dueDate) : 'N/A'}</span>
+                        </div>
+                        {invoice?.paidDate && (
+                          <div>
+                            <span className="font-medium">Paid Date:</span>
+                            <span className="ml-1">{formatDate(invoice.paidDate)}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="mt-2 bg-muted/30 p-2 rounded-md">
+                        <p className="text-sm text-muted-foreground">
+                          {Array.isArray(invoice?.items) ? invoice.items.length : 0} item(s)
                         </p>
-                      )}
+                        {invoice?.notes && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            <span className="font-medium">Notes:</span> {invoice.notes}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="ri-action-buttons">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="shadow-sm"
-                    onClick={() => handleViewInvoice(invoice)}
-                  >
-                    <Eye className="h-3 w-3 mr-1" />
-                    View
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="shadow-sm"
-                    onClick={() => handleEditInvoice(invoice)}
-                  >
-                    <Edit className="h-3 w-3 mr-1" />
-                    Edit
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="shadow-sm"
-                    onClick={() => handlePrintInvoicePDF(invoice)} // Call the new function here
-                  >
-                    <Download className="h-3 w-3 mr-1" />
-                    PDF
-                  </Button>
-                  {invoice.status !== InvoiceStatus.PAID && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                  <div className="ri-action-buttons">
+                    <Button
+                      variant="outline"
+                      size="sm"
                       className="shadow-sm"
-                      onClick={() => handleSendPaymentRequest(invoice.id)}
+                      onClick={() => invoice && handleViewInvoice(invoice)}
                     >
-                      <Send className="h-3 w-3 mr-1" />
-                      Send Payment Request
+                      <Eye className="h-3 w-3 mr-1" />
+                      View
                     </Button>
-                  )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="shadow-sm"
+                      onClick={() => invoice && handleEditInvoice(invoice)}
+                    >
+                      <Edit className="h-3 w-3 mr-1" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="shadow-sm"
+                      onClick={() => invoice && handlePrintInvoicePDF(invoice)} // Call the new function here
+                    >
+                      <Download className="h-3 w-3 mr-1" />
+                      PDF
+                    </Button>
+                    {invoice?.status !== InvoiceStatus.PAID && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="shadow-sm"
+                        onClick={() => invoice?.id && handleSendPaymentRequest(invoice.id)}
+                      >
+                        <Send className="h-3 w-3 mr-1" />
+                        Send Payment Request
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
-            
-            {filteredInvoices.length === 0 && (
+              ))
+            ) : (
               <div className="text-center py-12 text-muted-foreground">
                 <Receipt className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
                 <p>No invoices found</p>
@@ -437,3 +452,4 @@ export default function InvoicePayments() {
     </Routes>
   )
 }
+
