@@ -40,7 +40,6 @@ const navigation = [
   { name: 'Company Settings', href: '/settings', icon: Settings },
   { name: 'Platform Admin', href: '/admin', icon: Shield },
   { name: 'Platform Settings', href: '/admin/settings', icon: Cog },
-  { name: 'Platform Settings', href: '/admin/settings', icon: Cog },
   { name: 'Reporting Suite', href: '/reports', icon: BarChart3 },
 ]
 

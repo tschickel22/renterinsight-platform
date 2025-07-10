@@ -58,7 +58,6 @@ function App() {
                           <Route path="/settings/*" element={<CompanySettings />} />
                           <Route path="/admin/*" element={<PlatformAdmin />} />
                           <Route path="/admin/settings/*" element={<PlatformSettings />} />
-                          <Route path="/admin/settings/*" element={<PlatformSettings />} />
                           <Route path="/reports/*" element={<ReportingSuite />} />
                         </Routes>
                       </Layout>
