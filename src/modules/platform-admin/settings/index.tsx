@@ -1,134 +1,101 @@
-import React from 'react'
+// src/modules/platform-admin/settings/index.tsx
+import React, { useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { useSettings } from './utils/useSettings'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import GeneralSettings from './components/GeneralSettings'
 import PaymentSettings from './components/PaymentSettings'
-// import SecuritySettings from './components/SecuritySettings'
-// import IntegrationsSettings from './components/IntegrationsSettings'
-// import NotificationsSettings from './components/NotificationsSettings'
-// import BrandingSettings from './components/BrandingSettings'
-// import AdvancedSettings from './components/AdvancedSettings'
+import SmsSettings from './components/SmsSettings'
+import EmailSettings from './components/EmailSettings'
+import VoiceSettings from './components/VoiceSettings'
+import { Button } from '@/components/ui/button'
+import { useToast } from '@/components/ui/use-toast'
+import { useSettings, Settings } from './utils/useSettings'
 
-export default function PlatformSettings() {
-  const { settings, updateSetting, resetSettings, saveSettings } = useSettings()
+export default function PlatformAdminSettings() {
+  const { settings, updateSettings, resetSettings, loading, error } = useSettings()
+  const { toast } = useToast()
+  const [activeTab, setActiveTab] = useState('general')
 
-  if (!settings) {
+  const handleSettingsChange = (newValues: Partial<Settings>) => {
+    updateSettings(newValues)
+  }
+
+  const handleSaveChanges = () => {
+    // In a real application, you would send these settings to your backend
+    console.log('Saving settings:', settings)
+    toast({
+      title: 'Settings Saved',
+      description: 'Your platform settings have been updated.',
+    })
+  }
+
+  const handleResetToDefaults = () => {
+    resetSettings()
+    toast({
+      title: 'Settings Reset',
+      description: 'All settings have been reset to their default values.',
+    })
+  }
+
+  if (loading) {
     return <div>Loading settings...</div>
   }
 
+  if (error) {
+    return <div className="text-red-500">Error: {error}</div>
+  }
+
   return (
-    <div className="flex flex-col space-y-6 p-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Platform Settings</h1>
-          <p className="text-gray-500 dark:text-gray-400">Manage global platform configurations.</p>
+          <p className="text-muted-foreground">Manage global platform configurations.</p>
         </div>
         <div className="space-x-2">
-          <Button variant="outline" onClick={resetSettings}>Reset to Defaults</Button>
-          <Button onClick={saveSettings}>Save Changes</Button>
+          <Button variant="outline" onClick={handleResetToDefaults}>Reset to Defaults</Button>
+          <Button onClick={handleSaveChanges}>Save Changes</Button>
         </div>
       </div>
 
-      <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
-          <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="payment">Payment</TabsTrigger>
-          {/* <TabsTrigger value="security">Security</TabsTrigger>
-          <TabsTrigger value="integrations">Integrations</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="branding">Branding</TabsTrigger>
-          <TabsTrigger value="advanced">Advanced</TabsTrigger> */}
-        </TabsList>
+      <Card>
+        <CardHeader>
+          <CardTitle>Configuration</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-5"> {/* Adjusted grid-cols to fit new tabs */}
+              <TabsTrigger value="general">General</TabsTrigger>
+              <TabsTrigger value="payment">Payment</TabsTrigger>
+              <TabsTrigger value="sms">SMS</TabsTrigger>
+              <TabsTrigger value="email">Email</TabsTrigger>
+              <TabsTrigger value="voice">Voice</TabsTrigger>
+            </TabsList>
 
-        <TabsContent value="general">
-          <Card>
-            <CardHeader>
-              <CardTitle>General Settings</CardTitle>
-              <CardDescription>Configure basic system information and operational modes.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <GeneralSettings settings={settings} onChange={updateSetting} />
-            </CardContent>
-          </Card>
-        </TabsContent>
+            <TabsContent value="general">
+              <GeneralSettings settings={settings} onChange={handleSettingsChange} />
+            </TabsContent>
 
-        <TabsContent value="payment">
-          <Card>
-            <CardHeader>
-              <CardTitle>Payment Settings</CardTitle>
-              <CardDescription>Manage payment gateway configurations and currency settings.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <PaymentSettings settings={settings} onChange={updateSetting} />
-            </CardContent>
-          </Card>
-        </TabsContent>
+            <TabsContent value="payment">
+              <PaymentSettings settings={settings} onChange={handleSettingsChange} />
+            </TabsContent>
 
-        {/* Uncomment and add content for other tabs as needed */}
-        {/*
-        <TabsContent value="security">
-          <Card>
-            <CardHeader>
-              <CardTitle>Security Settings</CardTitle>
-              <CardDescription>Configure authentication, password policies, and security features.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <SecuritySettings settings={settings} onChange={updateSetting} />
-            </CardContent>
-          </Card>
-        </TabsContent>
+            <TabsContent value="sms">
+              <SmsSettings settings={settings} onChange={handleSettingsChange} />
+            </TabsContent>
 
-        <TabsContent value="integrations">
-          <Card>
-            <CardHeader>
-              <CardTitle>Integrations Settings</CardTitle>
-              <CardDescription>Manage third-party service integrations.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <IntegrationsSettings settings={settings} onChange={updateSetting} />
-            </CardContent>
-          </Card>
-        </TabsContent>
+            <TabsContent value="email">
+              <EmailSettings settings={settings} onChange={handleSettingsChange} />
+            </TabsContent>
 
-        <TabsContent value="notifications">
-          <Card>
-            <CardHeader>
-              <CardTitle>Notifications Settings</CardTitle>
-              <CardDescription>Configure email and SMS notification preferences and templates.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <NotificationsSettings settings={settings} onChange={updateSetting} />
-            </CardContent>
-          </Card>
-        </TabsContent>
+            <TabsContent value="voice">
+              <VoiceSettings settings={settings} onChange={handleSettingsChange} />
+            </TabsContent>
 
-        <TabsContent value="branding">
-          <Card>
-            <CardHeader>
-              <CardTitle>Branding Settings</CardTitle>
-              <CardDescription>Customize the platform's appearance and branding elements.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <BrandingSettings settings={settings} onChange={updateSetting} />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="advanced">
-          <Card>
-            <CardHeader>
-              <CardTitle>Advanced Settings</CardTitle>
-              <CardDescription>Access and configure advanced system parameters.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AdvancedSettings settings={settings} onChange={updateSetting} />
-            </CardContent>
-          </Card>
-        </TabsContent>
-        */}
-      </Tabs>
+            {/* Add more TabsContent for other settings sections */}
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   )
 }
