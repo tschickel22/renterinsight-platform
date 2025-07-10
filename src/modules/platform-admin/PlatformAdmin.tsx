@@ -1,3 +1,5 @@
+Here's the fixed script with added closing brackets and required whitespace:
+
 import React, { useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -258,5 +260,23 @@ function PlatformAdminDashboard() {
               Fast response
             </p>
           </CardContent>
+        </Card>
         <Card className="shadow-sm border-0 bg-gradient-to-br from-green-50 to-green-100/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-green-900">Error Rate</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-900">{mockSystemMetrics.errorRate}</div>
+            <p className="text-xs text-green-600 flex items-center mt-1">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              Very low
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}
+
+export default PlatformAdminDashboard
