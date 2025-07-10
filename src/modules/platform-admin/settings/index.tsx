@@ -8,7 +8,7 @@ import SmsSettings from './components/SmsSettings'
 import EmailSettings from './components/EmailSettings'
 import VoiceSettings from './components/VoiceSettings'
 import { Button } from '@/components/ui/button'
-import { useToast } from '@/components/ui/use-toast'
+import { useToast } from '@/hooks/use-toast'
 import { useSettings, Settings } from './utils/useSettings'
 
 export default function PlatformAdminSettings() {
