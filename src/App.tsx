@@ -9,7 +9,6 @@ import Dashboard from '@/pages/Dashboard'
 import Login from '@/pages/Login'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import PlatformSettings from '@/modules/platform-admin/settings'
-import PlatformSettings from '@/modules/platform-admin/settings'
 
 // Module imports
 import CRMProspecting from '@/modules/crm-prospecting/CRMProspecting'
