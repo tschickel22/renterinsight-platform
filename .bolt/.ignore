@@ -6,20 +6,30 @@ apps/crm-prospecting/
 apps/delivery-tracker/
 apps/inventory-management/
 apps/invoice-payments/
+apps/platform-admin/
 apps/quote-builder/
 apps/reporting-suite/
 apps/service-ops/
 
-# ✅ DO NOT IGNORE: company-settings and platform-admin
-# apps/company-settings/
-# apps/platform-admin/
+# ✅ Keep company-settings active
+!apps/company-settings/
 
-# 🔒 Ignore shared components, hooks, and utilities unless needed
-shared-core/
+# ✅ Keep settings-related core files exposed
+!shared-core/
+!src/components/settings/
+!src/components/forms/
+!src/hooks/useSettings.ts
+!src/hooks/useCompanyConfig.ts
+!src/lib/settings/
+!src/lib/supabase/
+!src/lib/config/
+!src/lib/types/
+!src/lib/utils/
+
+# 🔒 Ignore unrelated shared files
 src/components/
 src/hooks/
 src/lib/
-src/utils/
 
 # 🔒 Ignore test and mock data
 __tests__/
@@ -32,12 +42,12 @@ test-data/
 *.json
 *.csv
 
-# 🔒 Ignore backend and Supabase
+# 🔒 Ignore backend and Supabase migrations
 supabase/
 *.sql
 supabase_discarded_migrations/
 
-# 🔒 Ignore assets and static files
+# 🔒 Ignore static assets
 public/
 dist/
 *.png
